@@ -7,19 +7,8 @@ public partial class NpcCharacter {
     public enum TransientStates
     {
         Idle,
-        Speaking,
-        Listening,
         Eating,
-        Drinking,
-        Entertaining,
-        Meditating,
         Fighting,
-        Stun,
-        Blind,
-        Prone,
-        Fear,
-        Root,
-        Unconscious,
         Dead
     }
 
