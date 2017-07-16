@@ -1,17 +1,17 @@
-﻿
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
+using UnityEngine;
+
 /// <summary>
 /// A Character's attitude about a specific subject.
 /// </summary>
-static class MasterSubjectList
+public class MasterSubjectList : MonoBehaviour
 {
-
     #region Private members
-    static private List<Subject> masterSubjectList;
+    private List<Subject> masterSubjectList;
 
     #endregion
 
-    static void Awake()
+    public void Awake()
     {
         //TODO: load all subjects into the list.
 

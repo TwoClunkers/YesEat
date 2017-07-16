@@ -13,13 +13,11 @@
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
-    <CompilerResponseFile>
-    </CompilerResponseFile>
+    <CompilerResponseFile></CompilerResponseFile>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows:5</UnityBuildTarget>
     <UnityVersion>5.6.2f1</UnityVersion>
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
     <LangVersion>4</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -80,11 +78,11 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\NpcCharacter.cs" />
-    <Compile Include="Assets\MasterSubjectList.cs" />
-    <Compile Include="Assets\SubjectAttitude.cs" />
-    <Compile Include="Assets\TransientStates.cs" />
-    <Compile Include="Assets\TriggerSet.cs" />
+    <Compile Include="Assets\Scripts\MasterSubjectList.cs" />
+    <Compile Include="Assets\Scripts\NpcCharacter.cs" />
+    <Compile Include="Assets\Scripts\SubjectAttitude.cs" />
+    <Compile Include="Assets\Scripts\TransientStates.cs" />
+    <Compile Include="Assets\Scripts\TriggerSet.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />
