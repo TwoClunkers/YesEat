@@ -21,7 +21,6 @@ public class Subject
 		description = new String("This is the description");
 		icon = new Sprite();
 		relatedSubjects = new int[0];
-
 	}
 
 	//for use by derived classes
@@ -33,44 +32,37 @@ public class Subject
 		relatedSubjects = newRelated;
 	}
 
+    /// <summary>
+    /// This subject's name.
+    /// </summary>
 	public string Name
 	{
-		get { 
-			string temp;
-			temp = String.Copy (name);
-			return temp; }
-		set { 
-			string temp;
-			temp = value;
-			if (!String.IsNullOrEmpty (temp)) {
-				name = String.Copy (temp);	}	}
+		get { return name; }
+		set { name = value; }
 	}
 
+    /// <summary>
+    /// This subject's description.
+    /// </summary>
 	public string Description
 	{
-		get { 
-			string temp;
-			temp = String.Copy (description);
-			return temp; }
-		set { 
-			string temp;
-			temp = value;
-			if (!String.IsNullOrEmpty (temp)) {
-				description = String.Copy (temp);
-			} else
-				description = String.Empty;
-			}
+		get { return description; }
+		set { description = value ?? String.Empty; }
 	}
 
-	//For later UI developement
+	/// <summary>
+    /// GUI Icon for this subject.
+    /// </summary>
 	public Sprite Icon
 	{
 		get { return icon; }
 		set { icon = value; }
 	}
 
-	//this is also likely to be used in later development
-	public int[] RelatedSubjects 
+    /// <summary>
+    /// Subjects related to this one.
+    /// </summary>
+    public int[] RelatedSubjects 
 	{
 		get { return relatedSubjects; }
 		set { relatedSubjects = value; }

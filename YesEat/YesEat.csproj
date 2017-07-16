@@ -78,8 +78,10 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\LocationSubject.cs" />
     <Compile Include="Assets\Scripts\MasterSubjectList.cs" />
     <Compile Include="Assets\Scripts\NpcCharacter.cs" />
+    <Compile Include="Assets\Scripts\Subject.cs" />
     <Compile Include="Assets\Scripts\SubjectAttitude.cs" />
     <Compile Include="Assets\Scripts\TransientStates.cs" />
     <Compile Include="Assets\Scripts\TriggerSet.cs" />
