@@ -81,7 +81,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\NpcCharacter.cs" />
+    <Compile Include="Assets\MasterSubjectList.cs" />
+    <Compile Include="Assets\SubjectAttitude.cs" />
     <Compile Include="Assets\TransientStates.cs" />
+    <Compile Include="Assets\TriggerSet.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />
