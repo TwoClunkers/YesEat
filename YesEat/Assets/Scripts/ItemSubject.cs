@@ -2,7 +2,7 @@
 using UnityEngine;
 
 /// <summary>
-/// The Item Subject should describe and encapsulate everything that can be placed in inventory
+/// The Item Subject extends Subject Class and should describe and encapsulate everything that can be placed in inventory
 /// </summary>
 
 public class ItemSubject : Subject

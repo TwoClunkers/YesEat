@@ -3,7 +3,7 @@ using System;
 using UnityEngine;
 
 /// <summary>
-/// Food Subject to describe our items that are used as food
+/// Food Subject extends the Item Class of the Subject Class to describe Food for AI
 /// </summary>
 
 public class FoodSubject : ItemSubject

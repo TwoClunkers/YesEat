@@ -2,7 +2,7 @@
 using UnityEngine;
 
 /// <summary>
-/// Structures are built
+/// Structure Subject extends the Subject Class to describe structures for AI
 /// </summary>
 
 public class StructureSubject : Subject
