@@ -46,13 +46,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-     <Compile Include="Assets\LocationSubject.cs" />
-     <Compile Include="Assets\MasterSubjectList.cs" />
-     <Compile Include="Assets\NpcCharacter.cs" />
-     <Compile Include="Assets\Subject.cs" />
-     <Compile Include="Assets\SubjectAttitude.cs" />
-     <Compile Include="Assets\TransientStates.cs" />
-     <Compile Include="Assets\TriggerSet.cs" />
+     <Compile Include="Assets\Scripts\BuildRecipe.cs" />
+     <Compile Include="Assets\Scripts\FoodSubject.cs" />
+     <Compile Include="Assets\Scripts\ItemSubject.cs" />
+     <Compile Include="Assets\Scripts\LocationSubject.cs" />
+     <Compile Include="Assets\Scripts\MasterSubjectList.cs" />
+     <Compile Include="Assets\Scripts\NpcCharacter.cs" />
+     <Compile Include="Assets\Scripts\StructureSubject.cs" />
+     <Compile Include="Assets\Scripts\Subject.cs" />
+     <Compile Include="Assets\Scripts\SubjectAttitude.cs" />
+     <Compile Include="Assets\Scripts\TransientStates.cs" />
+     <Compile Include="Assets\Scripts\TriggerSet.cs" />
  <Reference Include="UnityEngine.UI">
  <HintPath>C:/Program Files/Unity/Editor/Data/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
  </Reference>
