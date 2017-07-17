@@ -1,12 +1,9 @@
 ﻿<Properties StartupItem="Assembly-CSharp.csproj">
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="Unity.Instance.Unity Editor" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Subject.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets\Scripts\AnimalSubject.cs">
     <Files>
-      <File FileName="Assets\MasterSubjectList.cs" Line="2" Column="1" />
-      <File FileName="Assets\Subject.cs" Line="42" Column="2" />
-      <File FileName="Assets\NpcCharacter.cs" Line="1" Column="1" />
-      <File FileName="Assets\TransientStates.cs" Line="1" Column="1" />
-      <File FileName="Assets\SubjectAttitude.cs" Line="14" Column="5" />
+      <File FileName="Assets\Scripts\AnimalSubject.cs" Line="52" Column="3" />
+      <File FileName="Assets\Scripts\PlantSubject.cs" Line="49" Column="1" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>
