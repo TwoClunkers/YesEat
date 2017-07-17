@@ -7,6 +7,7 @@ public partial class NpcCharacter {
     public enum TransientStates
     {
         Idle,
+        Moving,
         Eating,
         Fighting,
         Dead
@@ -22,7 +23,7 @@ public partial class NpcCharacter {
         /// <returns>Yes|No</returns>
         public bool CanEat()
         {
-            return (_status & TransientStates.Fear & TransientStates.Stun & TransientStates.Unconscious) == 0;
+            return (_status & TransientStates.Dead) == 0;
         }
         /// <summary>
         /// Turns on the changeState flag.
@@ -39,6 +40,16 @@ public partial class NpcCharacter {
         public void UnsetState(TransientStates changeState)
         {
             _status &= ~changeState;
+        }
+
+        /// <summary>
+        /// Check if the checkState state is set.
+        /// </summary>
+        /// <param name="checkState">The state to check for.</param>
+        /// <returns>True:set, False: not set.</returns>
+        public bool IsStateSet(TransientStates checkState)
+        {
+            return (_status & checkState) != 0;
         }
     }
 }
