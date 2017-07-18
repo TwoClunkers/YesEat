@@ -13,11 +13,13 @@
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Unity Subset v3.5</TargetFrameworkProfile>
-    <CompilerResponseFile></CompilerResponseFile>
+    <CompilerResponseFile>
+    </CompilerResponseFile>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>StandaloneWindows:5</UnityBuildTarget>
     <UnityVersion>5.6.2f1</UnityVersion>
-    <RootNamespace></RootNamespace>
+    <RootNamespace>
+    </RootNamespace>
     <LangVersion>4</LangVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
@@ -80,8 +82,13 @@
   <ItemGroup>
     <Compile Include="Assets\Scripts\AnimalSubject.cs" />
     <Compile Include="Assets\Scripts\BuildRecipe.cs" />
+<<<<<<< HEAD
     <Compile Include="Assets\Scripts\FoodSubject.cs" />
     <Compile Include="Assets\Scripts\InventoryItem.cs" />
+=======
+    <Compile Include="Assets\Scripts\Drivers.cs" />
+    <Compile Include="Assets\Scripts\FoodSubject.cs" />
+>>>>>>> origin/master
     <Compile Include="Assets\Scripts\ItemSubject.cs" />
     <Compile Include="Assets\Scripts\LocationSubject.cs" />
     <Compile Include="Assets\Scripts\MasterSubjectList.cs" />
@@ -90,8 +97,8 @@
     <Compile Include="Assets\Scripts\StructureSubject.cs" />
     <Compile Include="Assets\Scripts\Subject.cs" />
     <Compile Include="Assets\Scripts\SubjectAttitude.cs" />
-    <Compile Include="Assets\Scripts\TransientStates.cs" />
-    <Compile Include="Assets\Scripts\TriggerSet.cs" />
+    <Compile Include="Assets\Scripts\NpcStates.cs" />
+    <Compile Include="Assets\Scripts\NpcDefinition.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />
