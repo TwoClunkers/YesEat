@@ -49,6 +49,7 @@
      <Compile Include="Assets\Scripts\AnimalSubject.cs" />
      <Compile Include="Assets\Scripts\BuildRecipe.cs" />
      <Compile Include="Assets\Scripts\FoodSubject.cs" />
+     <Compile Include="Assets\Scripts\InventoryItem.cs" />
      <Compile Include="Assets\Scripts\ItemSubject.cs" />
      <Compile Include="Assets\Scripts\LocationSubject.cs" />
      <Compile Include="Assets\Scripts\MasterSubjectList.cs" />

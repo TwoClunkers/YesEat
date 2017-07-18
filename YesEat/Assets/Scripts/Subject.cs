@@ -8,7 +8,8 @@ using UnityEngine;
 
 public class Subject
 {
-	#region Private members
+    #region Private members
+    protected int subjectID;
 	protected string name;
 	protected string description;
 	protected Sprite icon;
@@ -17,6 +18,7 @@ public class Subject
 
 	public Subject ()
 	{
+        subjectID = 0;
 		name = new String("Name");
 		description = new String("This is the description");
 		icon = new Sprite();
@@ -31,6 +33,16 @@ public class Subject
 		icon = newSprite;
 		relatedSubjects = newRelated;
 	}
+
+    /// <summary>
+    /// The subject ID is used to find the right subject
+    /// </summary>
+    public int SubjectID
+    {
+        get { return subjectID; }
+        set { subjectID = value; }
+    }
+
 
     /// <summary>
     /// This subject's name.

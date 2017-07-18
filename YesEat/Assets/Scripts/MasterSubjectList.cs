@@ -16,4 +16,9 @@ public class MasterSubjectList : MonoBehaviour
         //TODO: load all subjects into the list.
 
     }
+
+    public Subject GetSubject(int subjectID)
+    {
+        return masterSubjectList.Find(o => o.SubjectID == subjectID);
+    }
 }
