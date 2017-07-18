@@ -6,22 +6,56 @@
 public partial class NpcCharacter
 {
     #region private member declarations
-    private int health = 0;
-    private int food = 0;
-    private int safety = 0;
-    private List<Subject> subjectsKnown = new List<Subject>();
-    private List<SubjectAttitude> attitudes = new List<SubjectAttitude>();
+    private int health;
+    private int food;
+    private int safety;
+    private List<Subject> subjectsKnown;
+    private List<SubjectAttitude> attitudes;
     private CharacterStatus status;
-    private TriggerSet triggers = new TriggerSet();
-    private List<Drivers> drivers = new List<Drivers>();
+    private NpcDefinition definition;
+    private List<Drivers> drivers;
+
     #endregion
 
+    public NpcCharacter()
+    {
+        health = 100;
+        food = 100;
+        safety = 100;
+        subjectsKnown = new List<Subject>();
+        attitudes = new List<SubjectAttitude>();
+        status = new CharacterStatus();
+        definition = new NpcDefinition();
+        drivers = new List<Drivers>();
+    }
+
     /// <summary>
-    /// Reduce food like the body is consuming it. Reduce health if starving.
+    /// Whether this NPC is dead or not.
+    /// </summary>
+    public bool IsDead { get { return status.IsStateSet(NpcStates.Dead); } }
+
+    private void Die()
+    {
+        status.SetState(NpcStates.Dead);
+        drivers.Clear();
+    }
+
+    /// <summary>
+    /// Reduce food. Reduce health if starving. Regenerate health if not starving.
     /// </summary>
     public void Metabolize()
     {
-
+        if (IsDead) return;
+        if (food == 0)
+        {
+            health -= definition.StarvingDamage;
+            if (health <= 0)
+                Die();
+        }
+        if (health < definition.HealthMax)
+        {
+            health += definition.HealthRegen;
+        }
     }
 
     /// <summary>
@@ -31,25 +65,23 @@ public partial class NpcCharacter
     {
         if (health <= 0)
         {
-            //character is dead
-            drivers.Clear();
-            status.SetState(TransientStates.Dead);
+            Die();
         }
-        else if (health <= triggers.HealthDanger)
+        else if (health <= definition.HealthDanger)
         {
             if (drivers.Contains(Drivers.Health))
                 drivers.Remove(Drivers.Health);
             drivers.Insert(0, Drivers.Health);
         }
 
-        if (food <= triggers.FoodHungry)
+        if (food <= definition.FoodHungry)
         {
             if (drivers.Contains(Drivers.Hunger))
                 drivers.Remove(Drivers.Hunger);
             drivers.Insert(0, Drivers.Hunger);
         }
 
-        if (safety <= triggers.SafetyDeadly)
+        if (safety <= definition.SafetyDeadly)
         {
             if (!drivers.Contains(Drivers.Safety))
                 drivers.Remove(Drivers.Safety);
@@ -61,33 +93,28 @@ public partial class NpcCharacter
     /// Modify status by eating something.
     /// </summary>
     /// <param name="FoodItem">The food item to be eaten.</param>
-    /// <returns>True: FoodItem was fully consumed. False: FoodItem could not be completely eaten.</returns>
-    public bool Eat(Item FoodItem)
+    /// <returns>True: Item consumed. False: Item not consumed.</returns>
+    public bool Eat(InventoryItem FoodItem)
     {
+        if (this.IsDead) return false;
         //check flags to make sure we're able to eat
         bool wasConsumed = false;
         if (status.CanEat())
         {
-            status.SetState(TransientStates.Eating); //set eating flag
-            if (food + FoodItem.FoodValue > triggers.FoodMax)
+            if (food < definition.FoodMax)
             {
+                status.SetState(NpcStates.Eating); //set eating flag
                 food += FoodItem.FoodValue;
-                FoodItem.FoodValue = food - triggers.FoodMax; //literally too much to eat, puke the rest
-                food = triggers.FoodMax;
-            }
-            else if (food + FoodItem.FoodValue <= triggers.FoodMax)
-            {
-                food += FoodItem.FoodValue;
+                food = System.Math.Min(food, definition.FoodMax);
                 wasConsumed = true;
+                status.UnsetState(NpcStates.Eating); //unset eating flag
             }
 
-            if (food >= triggers.FoodHungry)
+            if (food >= definition.FoodHungry)
             {
                 if (drivers.Contains(Drivers.Hunger))
                     drivers.Remove(Drivers.Hunger);
             }
-
-            status.UnsetState(TransientStates.Eating); //unset eating flag
         }
         return wasConsumed;
     }
@@ -99,23 +126,25 @@ public partial class NpcCharacter
     /// <returns>True: Character was killed by the damage. False: still alive.</returns>
     public bool Harm(int damageAmount)
     {
-        status.SetState(TransientStates.Fighting);
+        if (this.IsDead) return false;
+
+        status.SetState(NpcStates.Fighting);
         health += damageAmount;
         health = System.Math.Max(health, 0);
 
         if (health <= 0)
         {
             // zero health, it died.
-            status.SetState(TransientStates.Dead);
+            status.SetState(NpcStates.Dead);
         }
-        else if (health <= triggers.HealthDanger)
+        else if (health <= definition.HealthDanger)
         {
             if (drivers.Contains(Drivers.Safety))
                 drivers.Remove(Drivers.Safety);
             drivers.Insert(0, Drivers.Safety);
         }
         
-        return !status.IsStateSet(TransientStates.Dead);
+        return !status.IsStateSet(NpcStates.Dead);
     }
 
     /// <summary>
@@ -123,16 +152,30 @@ public partial class NpcCharacter
     /// </summary>
     /// <param name="newTriggerSet">The new TriggerSet.</param>
     /// <returns>False = System Exception</returns>
-    public bool SetCharacterTriggers(TriggerSet newTriggerSet)
+    public  NpcCharacter(NpcDefinition triggerSet, List<Subject> InitialSubjectsKnown, List<SubjectAttitude> initialAttitudes, CharacterStatus initialCharacterStates, List<Drivers> initialDrivers)
     {
-        try
+        definition = triggerSet;
+        health = definition.HealthMax;
+        food = definition.FoodMax;
+        safety = definition.SafetyHigh;
+        subjectsKnown = InitialSubjectsKnown;
+        attitudes = initialAttitudes;
+        status = initialCharacterStates;
+        drivers = initialDrivers;
+    }
+
+    public NpcCharacter(Subject subject)
+    {
+        if (subject is AnimalSubject)
         {
-            this.triggers = newTriggerSet;
-            return true;
-        }
-        catch (System.Exception)
-        {
-            return false;
+            definition = subject.Definition;
+            health = definition.HealthMax;
+            food = definition.FoodMax;
+            safety = definition.SafetyHigh;
+            subjectsKnown = subject.SubjectsKnown;
+            attitudes = subject.Attitudes;
+            status = new CharacterStatus();
+            drivers = new List<Drivers>();
         }
     }
 }

@@ -80,14 +80,20 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Assets\Scripts\AnimalSubject.cs" />
+    <Compile Include="Assets\Scripts\BuildRecipe.cs" />
     <Compile Include="Assets\Scripts\Drivers.cs" />
+    <Compile Include="Assets\Scripts\FoodSubject.cs" />
+    <Compile Include="Assets\Scripts\ItemSubject.cs" />
     <Compile Include="Assets\Scripts\LocationSubject.cs" />
     <Compile Include="Assets\Scripts\MasterSubjectList.cs" />
     <Compile Include="Assets\Scripts\NpcCharacter.cs" />
+    <Compile Include="Assets\Scripts\PlantSubject.cs" />
+    <Compile Include="Assets\Scripts\StructureSubject.cs" />
     <Compile Include="Assets\Scripts\Subject.cs" />
     <Compile Include="Assets\Scripts\SubjectAttitude.cs" />
-    <Compile Include="Assets\Scripts\TransientStates.cs" />
-    <Compile Include="Assets\Scripts\TriggerSet.cs" />
+    <Compile Include="Assets\Scripts\NpcStates.cs" />
+    <Compile Include="Assets\Scripts\NpcDefinition.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />

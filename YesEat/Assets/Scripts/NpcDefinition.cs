@@ -4,8 +4,12 @@ public partial class NpcCharacter {
     /// <summary>
     /// Resource pool limits, thresholds for triggering changes in priorities.
     /// </summary>
-    public class TriggerSet
+    public class NpcDefinition
     {
+        public float MetabolizeInterval = 0.0f;
+        public int HealthRegen = 0;
+        public int StarvingDamage = 0;
+        
         public int HealthDanger = 0;
         public int HealthMax = 0;
         public int FoodHungry = 0;
