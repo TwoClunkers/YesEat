@@ -11,14 +11,17 @@ public class MasterSubjectList : MonoBehaviour
 
     #endregion
 
-    public void Awake()
+    public MasterSubjectList()
     {
         //TODO: load all subjects into the list.
-
+        masterSubjectList = new List<Subject>();
     }
 
     public Subject GetSubject(int subjectID)
     {
-        return masterSubjectList.Find(o => o.SubjectID == subjectID);
+        if (masterSubjectList.Exists(o => o.SubjectID == subjectID))
+            return masterSubjectList.Find(o => o.SubjectID == subjectID);
+        else
+            return null;
     }
 }

@@ -1,5 +1,6 @@
 ﻿
-public partial class NpcCharacter {
+public partial class NpcCharacter
+{
     /// <summary>
     /// All possible transient character states.
     /// </summary>
