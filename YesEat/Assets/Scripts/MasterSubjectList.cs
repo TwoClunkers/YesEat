@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -17,11 +18,32 @@ public class MasterSubjectList : MonoBehaviour
         masterSubjectList = new List<Subject>();
     }
 
-    public Subject GetSubject(int subjectID)
+    /// <summary>
+    /// Get Subject using subjectID.
+    /// </summary>
+    /// <param name="subjectID">subjectID of Subject to find.</param>
+    /// <param name="subjectType">Required type of subject.</param>
+    /// <returns>Returns null if subject is not found or the type of the returned subject does not match subjectType.</returns>
+    public Subject GetSubject(int subjectID, Type subjectType = null)
     {
         if (masterSubjectList.Exists(o => o.SubjectID == subjectID))
-            return masterSubjectList.Find(o => o.SubjectID == subjectID);
+        {
+            Subject tempSubject = masterSubjectList.Find(o => o.SubjectID == subjectID);
+            if (subjectType != null)
+            {
+                if (tempSubject.GetType() == subjectType)
+                    return tempSubject;
+                else
+                    return null;
+            }
+            else
+            {
+                return tempSubject;
+            }
+        }
         else
+        {
             return null;
+        }
     }
 }
