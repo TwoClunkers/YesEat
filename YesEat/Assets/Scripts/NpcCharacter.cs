@@ -10,17 +10,20 @@ public partial class NpcCharacter
     private int food;
     private int safety;
 
+    private MasterSubjectList masterSubjectList;
     private CharacterStatus status;
     private NpcDefinition definition;
     private List<Drivers> drivers;
+    private List<Subject> considerSubjects;
 
     #endregion
 
     /// <summary>
     /// Create a generic NpcCharacter.
     /// </summary>
-    public NpcCharacter()
+    public NpcCharacter(ref MasterSubjectList _masterSubjectList)
     {
+        masterSubjectList = _masterSubjectList;
         health = 100;
         food = 100;
         safety = 100;
@@ -33,20 +36,18 @@ public partial class NpcCharacter
     /// Initialize a new NpcCharacter. 
     /// </summary>
     /// <param name="subject">Subject's NpcDefinition will define the character's initial resource pools, thresholds for fulfilling basic needs, known subjects, and subject attitudes.</param>
-    public NpcCharacter(Subject subject)
+    public NpcCharacter(ref MasterSubjectList _masterSubjectList, Subject subject)
     {
+        masterSubjectList = _masterSubjectList;
         if (subject is AnimalSubject)
         {
             AnimalSubject animalSubject = subject as AnimalSubject;
-            if (subject is AnimalSubject)
-            {
-                definition = animalSubject.Definition;
-                health = definition.HealthMax;
-                food = definition.FoodMax;
-                safety = definition.SafetyHigh;
-                status = new CharacterStatus();
-                drivers = new List<Drivers>();
-            }
+            definition = animalSubject.Definition;
+            health = definition.HealthMax;
+            food = definition.FoodMax;
+            safety = definition.SafetyHigh;
+            status = new CharacterStatus();
+            drivers = new List<Drivers>();
         }
     }
 
@@ -71,6 +72,31 @@ public partial class NpcCharacter
         {
             health += definition.HealthRegen;
         }
+    }
+
+    public void AiCoreProcess()
+    {
+        //| === Meta Code ===   []=flow chart box
+        //| []Survey current position.
+        //|     Check saved collides and check distance?
+        //| []Save all discovered subjects.
+        //|     Save subjects to List<Subject> considerSubjects
+        //|     Sort considerSubjects from closest to farthest subject.
+        //| []Am I safe?
+        //|     Assume we're safe- clear safety from drivers.
+        //|     Consider each subject starting with the closest.
+        //|     Check each subject against attitudes to see if it is a danger.
+        //|     If the subject is unknown skip it for now.
+        //|     If any danger subjects are found set safety as top priority.
+        //| []Which driver is max priority?
+        //|
+        //|   =====> AiCoreSubprocessSafety()
+        AiCoreSubprocessSafety();
+        //|   =====> AiCoreSubprocessHunger()
+        AiCoreSubprocessHunger();
+        //|   =====> AiCoreSubprocessNest()
+        AiCoreSubprocessNest();
+        
     }
 
     /// <summary>
@@ -119,10 +145,13 @@ public partial class NpcCharacter
             if (food < definition.FoodMax)
             {
                 status.SetState(NpcStates.Eating); //set eating flag
-                FoodSubject foodSubject = FoodItem.GetSubject() as FoodSubject;
-                food += foodSubject.FoodValue;
-                food = System.Math.Min(food, definition.FoodMax);
-                wasConsumed = true;
+                FoodSubject foodSubject = masterSubjectList.GetSubject(FoodItem.SubjectID, typeof(FoodSubject)) as FoodSubject;
+                if (foodSubject != null)
+                {
+                    food += foodSubject.FoodValue;
+                    food = System.Math.Min(food, definition.FoodMax);
+                    wasConsumed = true;
+                }
                 status.UnsetState(NpcStates.Eating); //unset eating flag
             }
 
