@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 /// <summary>
 /// Core character AI.
@@ -17,6 +18,23 @@ public partial class NpcCharacter
     private List<Subject> considerSubjects;
 
     #endregion
+
+    /// <summary>
+    /// Contains methods for extensive parsing and evaluation of subjects and attitudes.
+    /// </summary>
+    public static class Think
+    {
+        /// <summary>
+        /// Find the nearest location where subjectToFind can be found.
+        /// </summary>
+        /// <param name="subjectToFind">The subject to search for.</param>
+        /// <returns>The found location or null if no location was found.</returns>
+        public static LocationSubject FindNearest(Subject subjectToFind)
+        {
+            //TODO: Find nearest location where subjectToFind can be found.
+            throw new NotImplementedException();
+        }
+    }
 
     /// <summary>
     /// Create a generic NpcCharacter.
@@ -96,7 +114,7 @@ public partial class NpcCharacter
         AiCoreSubprocessHunger();
         //|   =====> AiCoreSubprocessNest()
         AiCoreSubprocessNest();
-        
+
     }
 
     /// <summary>
