@@ -42,14 +42,14 @@ public class InventoryItem
     }
 
     /// <summary>
-    /// 
+    /// SetStack will set the value of the Inventory Item and only return false if we set an invalid subject
     /// </summary>
     /// <param name="newSubjectID"></param>
     /// <param name="newStackSize"></param>
     /// <returns></returns>
     public bool SetStack (int newSubjectID, int newStackSize)
     {
-        ItemSubject newSubject = masterSubjectList.GetSubject(newSubjectID, ItemSubject) as ItemSubject;
+        ItemSubject newSubject = masterSubjectList.GetSubject(newSubjectID, typeof(ItemSubject)) as ItemSubject;
 
         if (newSubject != null)
         {
@@ -70,7 +70,7 @@ public class InventoryItem
     {
         if (newSubjectID != subjectID) return newStackSize; //reject entire amount
 
-        ItemSubject newSubject = masterSubjectList.GetSubject(newSubjectID, ItemSubject) as ItemSubject;
+        ItemSubject newSubject = masterSubjectList.GetSubject(newSubjectID, typeof(ItemSubject)) as ItemSubject;
 
         if (newSubject != null)
         {
@@ -91,7 +91,7 @@ public class InventoryItem
     {
         if (addedInvItem.subjectID != subjectID) return addedInvItem.stackSize; //reject entire amount
 
-        ItemSubject newSubject = masterSubjectList.GetSubject(addedInvItem.subjectID, ItemSubject) as ItemSubject;
+        ItemSubject newSubject = masterSubjectList.GetSubject(addedInvItem.subjectID, typeof(ItemSubject)) as ItemSubject;
 
         if (newSubject != null)
         {
