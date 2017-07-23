@@ -10,17 +10,24 @@ public partial class NpcCharacter
         //  Get list of food in inventory
         //  Send selection to: public bool Eat(InventoryItem FoodItem)
 
-        //Picking up food Action
-
         //Harvesting food Action
+        //  Move within range of targeted Bush
+        //  Attempt a "Take" on the targeted inventory
+        //  If successful go to Selection of Food
 
-        //Moving to Location associated with food
+        //Moving to Bush Action
+        //  Look at bushes in known area
+        //  Take position of closest non-empty
+        //  If successful move to location and go to Harvesting
 
-        //Engaging friends to learn Locations associated with food
+        //Moving to Location associated with food or Bushes?
+        //  Think about locations associated with bushes or food
+        //  If found, move to closest location and go to Moving to Bush
 
         //Searching Unknown Locations
+        //  Think about Unknown locations
+        //  If found, move to closest of locations to explore and go to Moving to Location
 
-        // actions strung together to form strategies
     }
 
 }

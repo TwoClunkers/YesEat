@@ -19,7 +19,7 @@ public class InventoryItem
     public InventoryItem(ref MasterSubjectList masterSubjectListRef)
     {
         subjectID = -1;
-        stackSize = 1;
+        stackSize = 0;
         masterSubjectList = masterSubjectListRef;
     }
 
@@ -61,12 +61,12 @@ public class InventoryItem
     }
 
     /// <summary>
-    /// AddStack will return the number remaining that would not fit based on ItemSubject.maxStack
+    /// Add will return the number remaining that would not fit based on ItemSubject.maxStack
     /// </summary>
     /// <param name="newSubjectID"></param>
     /// <param name="newStackSize"></param>
     /// <returns></returns>
-    public int AddStack(int newSubjectID, int newStackSize)
+    public int Add(int newSubjectID, int newStackSize)
     {
         if (newSubjectID != subjectID) return newStackSize; //reject entire amount
 
@@ -83,11 +83,11 @@ public class InventoryItem
     }
 
     /// <summary>
-    /// Override for AddStack takes an Inventory Item to add to this Inventory Item and returns amount that would not fit
+    /// Override for Add takes an Inventory Item to add to this Inventory Item and returns amount that would not fit
     /// </summary>
     /// <param name="addedInvItem"></param>
     /// <returns></returns>
-    public int AddStack(InventoryItem addedInvItem)
+    public int Add(InventoryItem addedInvItem)
     {
         if (addedInvItem.subjectID != subjectID) return addedInvItem.stackSize; //reject entire amount
 
@@ -103,6 +103,37 @@ public class InventoryItem
 
     }
 
+    /// <summary>
+    /// Take subtracts the number of needed Items from this stack and returns the amount successfuly grabbed
+    /// </summary>
+    /// <param name="neededInvItem"></param>
+    /// <returns></returns>
+    public int Take(InventoryItem neededInvItem)
+    {
+        if (neededInvItem.subjectID != subjectID) return 0; //no amount pulled
+
+        int amountTaken = Math.Min(neededInvItem.stackSize, stackSize);
+
+        stackSize -= amountTaken;
+        if (stackSize < 1) subjectID = -1;
+
+        return amountTaken;
+    }
+
+    /// <summary>
+    /// Simple tool to check if we already have this subject on the list
+    /// </summary>
+    /// <param name="listToCheck"></param>
+    /// <returns></returns>
+    public bool IsOnList(InventoryItem[] listToCheck)
+    {
+        for (int i = 0; i < listToCheck.Length; i++)
+        {
+            if (listToCheck[i].SubjectID == subjectID) return true;
+        }
+
+        return false;
+    }
 }
 
 
