@@ -24,7 +24,7 @@ public class LocationSubject : Subject
 
         coordinates = new Vector3(1, 1, 1);
         radius = 8;
-        layer = 0;
+        layer = 1;
     }
 
     /// <summary>
