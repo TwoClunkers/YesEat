@@ -1,9 +1,10 @@
-﻿
+﻿using System;
 
 public partial class NpcCharacter
 {
     private void AiCoreSubprocessNest()
     {
+        throw new NotImplementedException();
         //|     []Nest:
         //|         []Current location qualifies for nesting?
         //|             [No]Search for nesting location

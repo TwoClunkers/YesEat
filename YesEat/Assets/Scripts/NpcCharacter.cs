@@ -14,7 +14,7 @@ public partial class NpcCharacter
     private MasterSubjectList masterSubjectList;
     private CharacterStatus status;
     private NpcDefinition definition;
-    private List<Drivers> drivers;
+    private List<NpcDrivers> drivers;
     private List<Subject> considerSubjects;
 
     #endregion
@@ -46,10 +46,7 @@ public partial class NpcCharacter
             if (IsSubjectKnown(npcDefinition, conSubject))
             {
                 SubjectAttitude subjectAttitude = npcDefinition.attitudes.Find(o => o.SubjectID == conSubject.SubjectID);
-                if (subjectAttitude.Goodness < 0 && subjectAttitude.Importance > 0)
-                {
-
-                }
+                return (subjectAttitude.Goodness < 0 && subjectAttitude.Importance > 0);
             }
             else
             {
@@ -63,7 +60,7 @@ public partial class NpcCharacter
         /// </summary>
         /// <param name="npcDefinition">The NpcDefinition that contains the attitudes to check.</param>
         /// <param name="conSubject">The Subject to be considered.</param>
-        /// <returns></returns>
+        /// <returns>True: known. False: not known.</returns>
         internal static bool IsSubjectKnown(NpcDefinition npcDefinition, Subject conSubject)
         {
             return npcDefinition.attitudes.Exists(o => o.SubjectID == conSubject.SubjectID);
@@ -81,7 +78,7 @@ public partial class NpcCharacter
         safety = 100;
         definition = new NpcDefinition();
         status = new CharacterStatus();
-        drivers = new List<Drivers>();
+        drivers = new List<NpcDrivers>();
     }
 
     /// <summary>
@@ -99,7 +96,7 @@ public partial class NpcCharacter
             food = definition.FoodMax;
             safety = definition.SafetyHigh;
             status = new CharacterStatus();
-            drivers = new List<Drivers>();
+            drivers = new List<NpcDrivers>();
         }
     }
 
@@ -136,8 +133,8 @@ public partial class NpcCharacter
         //|     Sort considerSubjects from closest to farthest subject.
         //| []Am I safe?
         //|     Assume we're safe- clear safety from drivers.
-        if (drivers.Contains(Drivers.Safety))
-            drivers.Remove(Drivers.Safety);
+        if (drivers.Contains(NpcDrivers.Safety))
+            drivers.Remove(NpcDrivers.Safety);
         //|     Consider each subject starting with the closest.
         //|     Check each subject against attitudes to see if it is a danger.
         //|     If the subject is unknown skip it for now.
@@ -148,32 +145,33 @@ public partial class NpcCharacter
             {
                 if (Think.IsSubjectDangerous(definition, conSubject))
                 {
-                    if (drivers.Contains(Drivers.Safety))
+                    if (drivers.Contains(NpcDrivers.Safety))
                     {
-                        drivers.Remove(Drivers.Safety);
-                        drivers.Insert(0, Drivers.Safety);
+                        drivers.Remove(NpcDrivers.Safety);
+                        drivers.Insert(0, NpcDrivers.Safety);
                     }
                 }
-            }
-            else
-            {
-                //unknown subject
-
             }
         }
         //| []Which driver is max priority?
         switch (drivers[0])
         {
-            case Drivers.Health:
+            case NpcDrivers.Health:
                 AiCoreSubprocessNest();
                 break;
-            case Drivers.Safety:
+            case NpcDrivers.Safety:
                 AiCoreSubprocessSafety();
                 break;
-            case Drivers.Hunger:
+            case NpcDrivers.Hunger:
                 AiCoreSubprocessHunger();
                 break;
+            case NpcDrivers.Explore:
+                AiCoreSubprocessExplore();
+                break;
             default:
+                //There are no critical drivers, default to exploration
+                drivers.Clear();
+                drivers.Add(NpcDrivers.Explore);
                 break;
         }
 
@@ -190,23 +188,23 @@ public partial class NpcCharacter
         }
         else if (health <= definition.HealthDanger)
         {
-            if (drivers.Contains(Drivers.Health))
-                drivers.Remove(Drivers.Health);
-            drivers.Insert(0, Drivers.Health);
+            if (drivers.Contains(NpcDrivers.Health))
+                drivers.Remove(NpcDrivers.Health);
+            drivers.Insert(0, NpcDrivers.Health);
         }
 
         if (food <= definition.FoodHungry)
         {
-            if (drivers.Contains(Drivers.Hunger))
-                drivers.Remove(Drivers.Hunger);
-            drivers.Insert(0, Drivers.Hunger);
+            if (drivers.Contains(NpcDrivers.Hunger))
+                drivers.Remove(NpcDrivers.Hunger);
+            drivers.Insert(0, NpcDrivers.Hunger);
         }
 
         if (safety <= definition.SafetyDeadly)
         {
-            if (!drivers.Contains(Drivers.Safety))
-                drivers.Remove(Drivers.Safety);
-            drivers.Insert(0, Drivers.Safety);
+            if (!drivers.Contains(NpcDrivers.Safety))
+                drivers.Remove(NpcDrivers.Safety);
+            drivers.Insert(0, NpcDrivers.Safety);
         }
     }
 
@@ -237,8 +235,8 @@ public partial class NpcCharacter
 
             if (food >= definition.FoodHungry)
             {
-                if (drivers.Contains(Drivers.Hunger))
-                    drivers.Remove(Drivers.Hunger);
+                if (drivers.Contains(NpcDrivers.Hunger))
+                    drivers.Remove(NpcDrivers.Hunger);
             }
         }
         return wasConsumed;
@@ -263,9 +261,9 @@ public partial class NpcCharacter
         }
         else if (health <= definition.HealthDanger)
         {
-            if (drivers.Contains(Drivers.Safety))
-                drivers.Remove(Drivers.Safety);
-            drivers.Insert(0, Drivers.Safety);
+            if (drivers.Contains(NpcDrivers.Safety))
+                drivers.Remove(NpcDrivers.Safety);
+            drivers.Insert(0, NpcDrivers.Safety);
         }
 
         return !status.IsStateSet(NpcStates.Dead);

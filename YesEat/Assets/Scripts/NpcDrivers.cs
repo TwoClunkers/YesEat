@@ -3,10 +3,11 @@
     /// <summary>
     /// All possible character drivers.
     /// </summary>
-    public enum Drivers
+    public enum NpcDrivers
     {
         Health,
         Safety,
-        Hunger
+        Hunger,
+        Explore
     }
 }
