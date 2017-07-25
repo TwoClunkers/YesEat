@@ -7,17 +7,7 @@ public partial class NpcCharacter
         //|     []Safety:
         //|         []Source of danger
         //|             []Low Health
-        //|                 
-        //|                 []Have Food?
-        //|                     [Yes]Eat food
-        //|                     [No]Have Nest?
-        //|                         [No]Search for safe location
-        //|                         [Yes]Goto nest
-        //|                             []Nest safe?
-        //|                                 [Yes]Remove safety from drivers
-        //|                                     ()Return
-        //|                                 [No]Search for safe location
-        //|                                     ()Return
+        //|                 If hunger is below Hunger trigger set hunger as top priority
         //|             []Received Damage
         //|                 []Known attacker?
         //|                     Check knownSubjects

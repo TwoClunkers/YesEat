@@ -22,17 +22,51 @@ public partial class NpcCharacter
     /// <summary>
     /// Contains methods for extensive parsing and evaluation of subjects and attitudes.
     /// </summary>
-    public static class Think
+    internal static class Think
     {
         /// <summary>
         /// Find the nearest location where subjectToFind can be found.
         /// </summary>
         /// <param name="subjectToFind">The subject to search for.</param>
         /// <returns>The found location or null if no location was found.</returns>
-        public static LocationSubject FindNearest(Subject subjectToFind)
+        internal static LocationSubject FindNearest(Subject subjectToFind)
         {
             //TODO: Find nearest location where subjectToFind can be found.
             throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Checks the attitude of the NPC towards conSubject. IsSubjectKnown() must be used to verify the Subject is known before IsSubjectDangerous().
+        /// </summary>
+        /// <param name="npcDefinition">The NpcDefinition that contains the attitudes to check.</param>
+        /// <param name="conSubject">The Subject to be considered.</param>
+        /// <returns>True = dangerous; False = not dangerous. If conSubject does not exist and Exception will be thrown.</returns>
+        internal static bool IsSubjectDangerous(NpcDefinition npcDefinition, Subject conSubject)
+        {
+            if (IsSubjectKnown(npcDefinition, conSubject))
+            {
+                SubjectAttitude subjectAttitude = npcDefinition.attitudes.Find(o => o.SubjectID == conSubject.SubjectID);
+                if (subjectAttitude.Goodness < 0 && subjectAttitude.Importance > 0)
+                {
+
+                }
+            }
+            else
+            {
+                throw new Exception("The queried Subject is not in the attitudes list.");
+            }
+            throw new NotImplementedException();
+        }
+
+        /// <summary>
+        /// Checks if conSubject exists in the npcDefinition.
+        /// </summary>
+        /// <param name="npcDefinition">The NpcDefinition that contains the attitudes to check.</param>
+        /// <param name="conSubject">The Subject to be considered.</param>
+        /// <returns></returns>
+        internal static bool IsSubjectKnown(NpcDefinition npcDefinition, Subject conSubject)
+        {
+            return npcDefinition.attitudes.Exists(o => o.SubjectID == conSubject.SubjectID);
         }
     }
 
@@ -102,18 +136,46 @@ public partial class NpcCharacter
         //|     Sort considerSubjects from closest to farthest subject.
         //| []Am I safe?
         //|     Assume we're safe- clear safety from drivers.
+        if (drivers.Contains(Drivers.Safety))
+            drivers.Remove(Drivers.Safety);
         //|     Consider each subject starting with the closest.
         //|     Check each subject against attitudes to see if it is a danger.
         //|     If the subject is unknown skip it for now.
         //|     If any danger subjects are found set safety as top priority.
+        foreach (Subject conSubject in considerSubjects)
+        {
+            if (Think.IsSubjectKnown(definition, conSubject))
+            {
+                if (Think.IsSubjectDangerous(definition, conSubject))
+                {
+                    if (drivers.Contains(Drivers.Safety))
+                    {
+                        drivers.Remove(Drivers.Safety);
+                        drivers.Insert(0, Drivers.Safety);
+                    }
+                }
+            }
+            else
+            {
+                //unknown subject
+
+            }
+        }
         //| []Which driver is max priority?
-        //|
-        //|   =====> AiCoreSubprocessSafety()
-        AiCoreSubprocessSafety();
-        //|   =====> AiCoreSubprocessHunger()
-        AiCoreSubprocessHunger();
-        //|   =====> AiCoreSubprocessNest()
-        AiCoreSubprocessNest();
+        switch (drivers[0])
+        {
+            case Drivers.Health:
+                AiCoreSubprocessNest();
+                break;
+            case Drivers.Safety:
+                AiCoreSubprocessSafety();
+                break;
+            case Drivers.Hunger:
+                AiCoreSubprocessHunger();
+                break;
+            default:
+                break;
+        }
 
     }
 

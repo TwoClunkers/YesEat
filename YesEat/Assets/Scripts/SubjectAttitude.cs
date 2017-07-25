@@ -6,8 +6,8 @@ public class SubjectAttitude
 {
     #region Private members
     private int subjectID = 0;
-    private int importance = 0;
-    private int goodness = 0;
+    private sbyte importance = 0;
+    private sbyte goodness = 0;
     #endregion
 
     public int SubjectID
@@ -19,7 +19,7 @@ public class SubjectAttitude
     /// <summary>
     /// The character's perception of the importance or value of the subject.
     /// </summary>
-    public int Importance
+    public sbyte Importance
     {
         get { return importance; }
         set { importance = value; }
@@ -28,7 +28,7 @@ public class SubjectAttitude
     /// <summary>
     /// The character's perception of whether the subject is good or bad.
     /// </summary>
-    public int Goodness
+    public sbyte Goodness
     {
         get { return goodness; }
         set { goodness = value; }

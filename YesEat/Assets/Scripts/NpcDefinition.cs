@@ -1,15 +1,14 @@
 ﻿
+using System;
 using System.Collections.Generic;
 
 public partial class NpcCharacter
 {
-
     /// <summary>
     /// Resource pool limits, thresholds for triggering changes in priorities.
     /// </summary>
     public class NpcDefinition
     {
-        public List<Subject> subjectsKnown;
         public List<SubjectAttitude> attitudes;
         public float MetabolizeInterval = 0.0f;
         public int HealthRegen = 0;
@@ -21,5 +20,6 @@ public partial class NpcCharacter
         public int FoodMax = 0;
         public int SafetyDeadly = 0;
         public int SafetyHigh = 0;
+
     }
 }
