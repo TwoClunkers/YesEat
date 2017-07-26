@@ -1,9 +1,10 @@
-﻿
+﻿using System;
 
 public partial class NpcCharacter
 {
     private void AiCoreSubprocessHunger()
     {
+        throw new NotImplementedException();
         //Hunger steps
 
         //Selection of Available Food
