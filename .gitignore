@@ -1,9 +1,9 @@
-/YesEat/[Ll]ibrary/
-/YesEat/[Tt]emp/
-/YesEat/[Oo]bj/
-/YesEat/[Bb]uild/
-/YesEat/[Bb]uilds/
-/YesEat/Assets/AssetStoreTools*
+*/YesEat/[Ll]ibrary/
+*/YesEat/[Tt]emp/
+*/YesEat/[Oo]bj/
+*/YesEat/[Bb]uild/
+*/YesEat/[Bb]uilds/
+*/YesEat/Assets/AssetStoreTools*
 
 # Visual Studio 2015 cache directory
 /.vs/
