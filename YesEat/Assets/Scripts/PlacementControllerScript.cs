@@ -30,7 +30,7 @@ public class PlacementControllerScript : MonoBehaviour
                 centerPosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y));
 
                 //We will let everything start with a radius of 1.0
-                if (CheckPlacementPosition(centerPosition, 1.0f))
+                if (CheckPlacementPosition(centerPosition, 1.0f, null))
                 {
                     placedObject = Instantiate(currentSelection, centerPosition, Quaternion.identity);
                     placedObject.transform.localScale = new Vector3(0.1f, 0.1f, 0.1f);
@@ -46,7 +46,7 @@ public class PlacementControllerScript : MonoBehaviour
                 //calculate our edge and manipulate the scale until finalized
                 edgePosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y));
                 float distance = Vector3.Distance(centerPosition, edgePosition);
-                if(CheckPlacementPosition(centerPosition, distance))
+                if(CheckPlacementPosition(centerPosition, distance, placedObject))
                 {
                     placedObject.transform.localScale = new Vector3(distance * 2, 0.1f, distance * 2);
                 }
@@ -65,7 +65,7 @@ public class PlacementControllerScript : MonoBehaviour
         }
     }
 
-    public bool CheckPlacementPosition(Vector3 center, float radius)
+    public bool CheckPlacementPosition(Vector3 center, float radius, GameObject excludeObject)
     {
         if (currentSelection == null) return false; //nothing to place;
         //First we catch all the colliders in our area
@@ -74,7 +74,7 @@ public class PlacementControllerScript : MonoBehaviour
         //If we caught any, will have to check them
         for (int i = 0; i < hitColliders.Length; i++)
         {
-            if (hitColliders[i].gameObject == placedObject) continue;
+            if (hitColliders[i].gameObject == excludeObject) continue;
             //Are any Colliders a LocationObject?
             //If we have one location, (not two) we are fine to place
             if ((hitColliders[i].tag == "Location") ^ (currentSelection.tag == "Location"))
