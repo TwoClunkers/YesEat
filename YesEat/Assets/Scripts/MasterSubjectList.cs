@@ -1,11 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
-using UnityEngine;
 
 /// <summary>
 /// A Character's attitude about a specific subject.
 /// </summary>
-public class MasterSubjectList : MonoBehaviour
+public class MasterSubjectList
 {
     #region Private members
     private List<Subject> masterSubjectList;
