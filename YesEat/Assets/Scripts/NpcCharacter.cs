@@ -17,6 +17,7 @@ public partial class NpcCharacter
     private NpcDriversList drivers;
     private List<Subject> considerSubjects;
 
+
     #endregion
 
     /// <summary>
@@ -45,14 +46,13 @@ public partial class NpcCharacter
         {
             if (IsSubjectKnown(definition, conSubject))
             {
-                SubjectAttitude subjectAttitude = definition.attitudes.Find(o => o.SubjectID == conSubject.SubjectID);
+                SubjectAttitude subjectAttitude = definition.Attitudes.Find(o => o.SubjectID == conSubject.SubjectID);
                 return (subjectAttitude.Goodness < 0 && subjectAttitude.Importance > 0);
             }
             else
             {
                 throw new Exception("The queried Subject is not in the attitudes list.");
             }
-            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -63,29 +63,45 @@ public partial class NpcCharacter
         /// <returns>True: known. False: not known.</returns>
         internal static bool IsSubjectKnown(NpcDefinition npcDefinition, Subject conSubject)
         {
-            return npcDefinition.attitudes.Exists(o => o.SubjectID == conSubject.SubjectID);
+            return npcDefinition.Attitudes.Exists(o => o.SubjectID == conSubject.SubjectID);
         }
 
-        internal static void UpdateAttitude(NpcAttitudeChangeEvent attitudeChangeEvent, NpcDefinition definition, Subject subjectAttacker)
+        internal static void UpdateAttitude(NpcAttitudeChangeEvent attitudeChangeEvent, NpcDefinition definition, Subject subject)
         {
             switch (attitudeChangeEvent)
             {
                 case NpcAttitudeChangeEvent.HealthDamage:
-                    if(IsSubjectKnown(definition, subjectAttacker))
+                    if (IsSubjectKnown(definition, subject))
                     {
-                        SubjectAttitude attackerSubjectAttitude = definition.attitudes.Find(o => o.SubjectID == subjectAttacker.SubjectID);
+                        //known hurts, bad.
+                        SubjectAttitude attackerSubjectAttitude = definition.Attitudes.Find(o => o.SubjectID == subject.SubjectID);
                         attackerSubjectAttitude.AddGoodness(-1);
                         attackerSubjectAttitude.AddImportance(1);
                     }
                     else
                     {
-                        SubjectAttitude subjectAttitude = new SubjectAttitude(subjectAttacker.SubjectID, -1, 1);
-                        definition.attitudes.Add(subjectAttitude);
+                        //new thing hurts me, bad.
+                        SubjectAttitude subjectAttitude = new SubjectAttitude(subject.SubjectID, -1, 1);
+                        definition.Attitudes.Add(subjectAttitude);
                     }
                     break;
                 case NpcAttitudeChangeEvent.FoodEaten:
+                    if (IsSubjectKnown(definition, subject))
+                    {
+                        //known food, good.
+                        SubjectAttitude foodSubjectAttitude = definition.Attitudes.Find(o => o.SubjectID == subject.SubjectID);
+                        foodSubjectAttitude.AddGoodness(1);
+                        foodSubjectAttitude.AddImportance(1);
+                    }
+                    else
+                    {
+                        //new food, good.
+                        SubjectAttitude subjectAttitude = new SubjectAttitude(subject.SubjectID, 1, 1);
+                        definition.Attitudes.Add(subjectAttitude);
+                    }
                     break;
                 case NpcAttitudeChangeEvent.LocationFound:
+                    // TODO: look at everything in this location and decide how to effect goodness and importance for this location.
                     break;
                 default:
                     throw new Exception("Invalid NpcAttitudeChangeEvent");
@@ -156,8 +172,7 @@ public partial class NpcCharacter
         //          sorted by distance with the lowest index being the closest.
 
         // Assume we're safe- clear safety from drivers.
-        if (drivers.Contains(NpcDrivers.Safety))
-            drivers.Remove(NpcDrivers.Safety);
+        drivers.Remove(NpcDrivers.Safety);
 
         // Consider each subject starting with the closest.
         foreach (Subject conSubject in considerSubjects)

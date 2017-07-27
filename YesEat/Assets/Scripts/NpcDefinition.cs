@@ -9,7 +9,8 @@ public partial class NpcCharacter
     /// </summary>
     public class NpcDefinition
     {
-        public List<SubjectAttitude> attitudes;
+        public List<NpcLocationMemory> LocationMemories;
+        public List<SubjectAttitude> Attitudes;
         public float MetabolizeInterval = 0.0f;
         public int HealthRegen = 0;
         public int StarvingDamage = 0;
