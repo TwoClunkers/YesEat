@@ -19,8 +19,8 @@ public partial class NpcCharacter
         public int HealthMax = 0;
         public int FoodHungry = 0;
         public int FoodMax = 0;
+        public int FoodMetabolizeRate = 0;
         public int SafetyDeadly = 0;
         public int SafetyHigh = 0;
-
     }
 }
