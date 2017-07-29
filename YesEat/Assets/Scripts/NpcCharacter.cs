@@ -174,6 +174,16 @@ public partial class NpcCharacter
             }
             return shouldAttack;
         }
+
+        /// <summary>
+        /// Check if the NPC has a nest.
+        /// </summary>
+        /// <returns>True: have nest, False: do not have nest</returns>
+        internal static bool HaveNest(NpcDefinition npcDefinition)
+        {
+            throw new NotImplementedException();
+            // TODO: check location memories for a nest.
+        }
     }
 
     /// <summary>
@@ -209,13 +219,10 @@ public partial class NpcCharacter
 
     public void AiCoreProcess()
     {
-        // TODO:    Add all game objects in close range to the considerSubjects list
-        //          sorted by distance with the lowest index being the closest.
-
-        // Assume we're safe- clear safety from drivers.
-        drivers.Remove(NpcDrivers.Safety);
+        ObserveSurroundings();
 
         // Consider each subject starting with the closest.
+        bool dangerFound = false;
         foreach (Subject conSubject in considerSubjects)
         {
             if (Think.IsSubjectKnown(definition, conSubject))
@@ -223,17 +230,19 @@ public partial class NpcCharacter
                 if (Think.IsSubjectDangerous(definition, conSubject))
                 {
                     // danger! decrease safety
-                    safety -= 1;
+                    safety --;
                 }
             }
         }
+        // increment safety if no danger was found near us
+        if (!dangerFound) safety++;
 
         UpdateDrivers();
 
         //| []Which driver is max priority?
         switch (drivers[0])
         {
-            case NpcDrivers.Health:
+            case NpcDrivers.Nest:
                 AiCoreSubprocessNest();
                 break;
             case NpcDrivers.Safety:
@@ -254,11 +263,27 @@ public partial class NpcCharacter
 
     }
 
+    private void ObserveSurroundings()
+    {
+        throw new NotImplementedException();
+        // TODO:    Add all game objects in close range to the considerSubjects list
+        //          sorted by distance with the lowest index being the closest.
+    }
+
     /// <summary>
     /// Update drivers based on current values.
     /// </summary>
     public void UpdateDrivers()
     {
+        if (food > definition.FoodHungry && health > definition.HealthDanger && safety > definition.SafetyDeadly)
+        {
+            // we're fed, healthy, and not in danger
+            // if we do not have a nest, make one.
+            if (!Think.HaveNest(definition))
+            {
+                drivers.SetTopDriver(NpcDrivers.Nest);
+            }
+        }
         // of the basic needs hunger is lowest priority
         if (food <= definition.FoodHungry)
         {
@@ -272,7 +297,8 @@ public partial class NpcCharacter
         }
         else if (health <= definition.HealthDanger)
         {
-            drivers.SetTopDriver(NpcDrivers.Health);
+            // dangerously low on health, safety is now max priority
+            drivers.SetTopDriver(NpcDrivers.Safety);
         }
 
         // of the basic needs safety is the highest priority

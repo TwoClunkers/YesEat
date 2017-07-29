@@ -1,27 +1,24 @@
 ﻿using System.Collections.Generic;
 
-public partial class NpcCharacter
+/// <summary>
+/// All possible character drivers.
+/// </summary>
+public enum NpcDrivers
 {
+    Safety,
+    Hunger,
+    Nest,
+    Explore
+}
 
-    /// <summary>
-    /// All possible character drivers.
-    /// </summary>
-    public enum NpcDrivers
+public class NpcDriversList : List<NpcDrivers>
+{
+    public void SetTopDriver(NpcDrivers npcDriver)
     {
-        Health,
-        Safety,
-        Hunger,
-        Explore
-    }
+        if (this.Contains(npcDriver))
+            this.Remove(npcDriver);
 
-    public class NpcDriversList : List<NpcDrivers>
-    {
-        public void SetTopDriver(NpcDrivers npcDriver)
-        {
-            if (this.Contains(npcDriver))
-                this.Remove(npcDriver);
-
-            this.Insert(0, npcDriver);
-        }
+        this.Insert(0, npcDriver);
     }
 }
+

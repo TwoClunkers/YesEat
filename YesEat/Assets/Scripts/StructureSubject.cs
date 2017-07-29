@@ -1,5 +1,4 @@
-﻿using System;
-using UnityEngine;
+﻿using UnityEngine;
 
 /// <summary>
 /// Structure Subject extends the Subject Class to describe structures for AI
@@ -8,7 +7,7 @@ using UnityEngine;
 public class StructureSubject : Subject
 {
     #region Private members
-    private BuildRecipe buildDirections;
+    private BuildRecipe _buildRecipe;
     #endregion
 
     public StructureSubject() : base()
@@ -17,18 +16,17 @@ public class StructureSubject : Subject
         description = "A Structure that is Built";
         icon = new Sprite();
 
-        buildDirections = new BuildRecipe();
+        _buildRecipe = new BuildRecipe();
     }
 
     /// <summary>
     /// The BuildRecipe used to make this Structure
     /// </summary>
-    public BuildRecipe BuildDirections
+    public BuildRecipe BuildRecipe
     {
-        get { return buildDirections; }
-        set { buildDirections = value; }
+        get { return _buildRecipe; }
+        set { _buildRecipe = value; }
     }
-
 
 }
 
