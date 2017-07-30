@@ -6,11 +6,11 @@
 */[Bb]uilds/
 */Assets/AssetStoreTools*
 =======
-YesEat/[Ll]ibrary/
-YesEat/[Tt]emp/
-YesEat/[Oo]bj/
-YesEat/[Bb]uild/
-YesEat/[Bb]uilds/
+YesEat/[Ll]ibrary/**
+YesEat/[Tt]emp/**
+YesEat/[Oo]bj/**
+YesEat/[Bb]uild/**
+YesEat/[Bb]uilds/**
 YesEat/Assets/AssetStoreTools*
 >>>>>>> origin/master
 
