@@ -1,10 +1,10 @@
 <<<<<<< HEAD
-*/[Ll]ibrary/
-*/[Tt]emp/
-*/[Oo]bj/
-*/[Bb]uild/
-*/[Bb]uilds/
-*/Assets/AssetStoreTools*
+[Ll]ibrary/**
+[Tt]emp/**
+[Oo]bj/**
+[Bb]uild/**
+[Bb]uilds/**
+Assets/AssetStoreTools*
 =======
 YesEat/[Ll]ibrary/**
 YesEat/[Tt]emp/**
