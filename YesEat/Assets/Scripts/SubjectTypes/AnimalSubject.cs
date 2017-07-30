@@ -11,7 +11,6 @@ public class AnimalSubject : Subject
     private int maxGrowth;
     private int growthTime;
     private int matureTime;
-    private NpcCharacter.NpcDefinition definition;
     #endregion
 
     public AnimalSubject() : base()
@@ -52,14 +51,6 @@ public class AnimalSubject : Subject
         set { matureTime = value; }
     }
 
-    /// <summary>
-    /// Main definition information for NpcCharacter.
-    /// </summary>
-    public NpcCharacter.NpcDefinition Definition
-    {
-        get { return definition; }
-        set { definition = value; }
-    }
 }
 
 

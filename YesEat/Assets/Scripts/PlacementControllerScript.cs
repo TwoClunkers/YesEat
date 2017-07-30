@@ -89,4 +89,14 @@ public class PlacementControllerScript : MonoBehaviour
         return true;
 
     }
+
+    public void OnSelectLocation()
+    {
+        Debug.Log("You have clicked Location!");
+    }
+
+    public void OnSelectBush()
+    {
+        Debug.Log("You have clicked Bush!");
+    }
 }
