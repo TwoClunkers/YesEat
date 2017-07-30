@@ -7,8 +7,9 @@
 public class NpcDefinition
 {
     public List<NpcLocationMemory> LocationMemories;
+    public NpcLocationMemory Nest;
     public List<SubjectAttitude> Attitudes;
-    public NpcTraits Traits;
+    public NpcCharacterTraits Traits;
     public float MetabolizeInterval = 0.0f;
     public int HealthRegen = 0;
     public int StarvingDamage = 0;
