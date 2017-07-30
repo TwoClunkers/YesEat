@@ -18,9 +18,23 @@ public class InventoryItem
     /// <param name="masterSubjectListRef">reference to the MasterSubjectList</param>
     public InventoryItem(ref MasterSubjectList masterSubjectListRef)
     {
+        masterSubjectList = masterSubjectListRef;
         subjectID = -1;
         stackSize = 0;
+    }
+
+
+    /// <summary>
+    /// New InventoryItem constructor
+    /// </summary>
+    /// <param name="masterSubjectListRef"></param>
+    /// <param name="_subjectID"></param>
+    /// <param name="_stackSize"></param>
+    public InventoryItem(ref MasterSubjectList masterSubjectListRef, int _subjectID, int _stackSize)
+    {
         masterSubjectList = masterSubjectListRef;
+        subjectID = _subjectID;
+        stackSize = _stackSize;
     }
 
     /// <summary>
