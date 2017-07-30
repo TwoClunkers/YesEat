@@ -13,6 +13,7 @@ YesEat/[Bb]uilds/**
 YesEat/Assets/AssetStoreTools*
 
 YesEat/Library/metadata/**
+/YesEat/Library/metadata/**
 
 # Visual Studio 2015 cache directory
 /.vs/
@@ -42,3 +43,6 @@ sysinfo.txt
 *.apk
 *.unitypackage
 
+YesEat/Library/metadata/00/00000000000000005000000000000000
+YesEat/Library/metadata/00/00000000000000005000000000000000
+YesEat/Library/metadata/67/671b6cfc84d394949bfa59207f68313d
