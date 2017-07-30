@@ -11,13 +11,52 @@ public partial class NpcCharacter
     private int food;
     private int safety;
 
+    private int subjectID;
     private MasterSubjectList masterSubjectList;
     private CharacterStatus status;
     private NpcDefinition definition;
     private NpcDriversList drivers;
     private List<Subject> considerSubjects;
 
+    private List<NpcCharacter> combatTargets;
     #endregion
+
+    /// <summary>
+    /// Create a generic NpcCharacter.
+    /// </summary>
+    public NpcCharacter(ref MasterSubjectList _masterSubjectList)
+    {
+        masterSubjectList = _masterSubjectList;
+        health = 100;
+        food = 100;
+        safety = 100;
+        definition = new NpcDefinition();
+        status = new CharacterStatus();
+        drivers = new NpcDriversList();
+        combatTargets = new List<NpcCharacter>();
+        subjectID = -1;
+    }
+
+    /// <summary>
+    /// Initialize a new NpcCharacter. 
+    /// </summary>
+    /// <param name="subject">Subject's NpcDefinition will define the character's initial resource pools, thresholds for fulfilling basic needs, known subjects, and subject attitudes.</param>
+    public NpcCharacter(ref MasterSubjectList _masterSubjectList, Subject subject)
+    {
+        masterSubjectList = _masterSubjectList;
+        if (subject is AnimalSubject)
+        {
+            AnimalSubject animalSubject = subject as AnimalSubject;
+            definition = animalSubject.Definition;
+            subjectID = animalSubject.SubjectID;
+            health = definition.HealthMax;
+            food = definition.FoodMax;
+            safety = definition.SafetyHigh;
+            status = new CharacterStatus();
+            drivers = new NpcDriversList();
+            combatTargets = new List<NpcCharacter>();
+        }
+    }
 
     /// <summary>
     /// Contains methods for extensive parsing and evaluation of subjects and attitudes.
@@ -45,14 +84,13 @@ public partial class NpcCharacter
         {
             if (IsSubjectKnown(definition, conSubject))
             {
-                SubjectAttitude subjectAttitude = definition.attitudes.Find(o => o.SubjectID == conSubject.SubjectID);
+                SubjectAttitude subjectAttitude = definition.Attitudes.Find(o => o.SubjectID == conSubject.SubjectID);
                 return (subjectAttitude.Goodness < 0 && subjectAttitude.Importance > 0);
             }
             else
             {
                 throw new Exception("The queried Subject is not in the attitudes list.");
             }
-            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -63,74 +101,99 @@ public partial class NpcCharacter
         /// <returns>True: known. False: not known.</returns>
         internal static bool IsSubjectKnown(NpcDefinition npcDefinition, Subject conSubject)
         {
-            return npcDefinition.attitudes.Exists(o => o.SubjectID == conSubject.SubjectID);
+            return npcDefinition.Attitudes.Exists(o => o.SubjectID == conSubject.SubjectID);
         }
 
-        internal static void UpdateAttitude(NpcAttitudeChangeEvent attitudeChangeEvent, NpcDefinition definition, Subject subjectAttacker)
+        /// <summary>
+        /// Change attitude about a subject based on an event.
+        /// </summary>
+        /// <param name="attitudeChangeEvent">The event that has occured.</param>
+        /// <param name="definition">The NPC to effect.</param>
+        /// <param name="subject">The subject to adjust attitude towards.</param>
+        internal static void UpdateAttitude(NpcAttitudeChangeEvent attitudeChangeEvent, NpcDefinition definition, Subject subject)
         {
             switch (attitudeChangeEvent)
             {
                 case NpcAttitudeChangeEvent.HealthDamage:
-                    if(IsSubjectKnown(definition, subjectAttacker))
+                    if (IsSubjectKnown(definition, subject))
                     {
-                        SubjectAttitude attackerSubjectAttitude = definition.attitudes.Find(o => o.SubjectID == subjectAttacker.SubjectID);
+                        //known hurts, bad.
+                        SubjectAttitude attackerSubjectAttitude = definition.Attitudes.Find(o => o.SubjectID == subject.SubjectID);
                         attackerSubjectAttitude.AddGoodness(-1);
                         attackerSubjectAttitude.AddImportance(1);
                     }
                     else
                     {
-                        SubjectAttitude subjectAttitude = new SubjectAttitude(subjectAttacker.SubjectID, -1, 1);
-                        definition.attitudes.Add(subjectAttitude);
+                        //new thing hurts me, bad.
+                        SubjectAttitude subjectAttitude = new SubjectAttitude(subject.SubjectID, -1, 1);
+                        definition.Attitudes.Add(subjectAttitude);
                     }
                     break;
                 case NpcAttitudeChangeEvent.FoodEaten:
+                    if (IsSubjectKnown(definition, subject))
+                    {
+                        //known food, good.
+                        SubjectAttitude foodSubjectAttitude = definition.Attitudes.Find(o => o.SubjectID == subject.SubjectID);
+                        foodSubjectAttitude.AddGoodness(1);
+                        foodSubjectAttitude.AddImportance(1);
+                    }
+                    else
+                    {
+                        //new food, good.
+                        SubjectAttitude subjectAttitude = new SubjectAttitude(subject.SubjectID, 1, 1);
+                        definition.Attitudes.Add(subjectAttitude);
+                    }
                     break;
                 case NpcAttitudeChangeEvent.LocationFound:
+                    // TODO: look at everything in this location and decide how to effect goodness and importance for this location.
                     break;
                 default:
                     throw new Exception("Invalid NpcAttitudeChangeEvent");
             }
             throw new NotImplementedException();
         }
-    }
 
-    /// <summary>
-    /// Create a generic NpcCharacter.
-    /// </summary>
-    public NpcCharacter(ref MasterSubjectList _masterSubjectList)
-    {
-        masterSubjectList = _masterSubjectList;
-        health = 100;
-        food = 100;
-        safety = 100;
-        definition = new NpcDefinition();
-        status = new CharacterStatus();
-        drivers = new NpcDriversList();
-    }
-
-    /// <summary>
-    /// Initialize a new NpcCharacter. 
-    /// </summary>
-    /// <param name="subject">Subject's NpcDefinition will define the character's initial resource pools, thresholds for fulfilling basic needs, known subjects, and subject attitudes.</param>
-    public NpcCharacter(ref MasterSubjectList _masterSubjectList, Subject subject)
-    {
-        masterSubjectList = _masterSubjectList;
-        if (subject is AnimalSubject)
+        /// <summary>
+        /// Consider whether I should attack another NPC.
+        /// </summary>
+        /// <param name="npcToConsider">The NPC to consider attacking.</param>
+        /// <param name="damageAmount">The amount of damage we received from the NPC if applicable.</param>
+        /// <returns>True = attack, False = do not attack.</returns>
+        internal static bool ShouldFight(NpcCharacter npcToConsider, int? damageAmount = null)
         {
-            AnimalSubject animalSubject = subject as AnimalSubject;
-            definition = animalSubject.Definition;
-            health = definition.HealthMax;
-            food = definition.FoodMax;
-            safety = definition.SafetyHigh;
-            status = new CharacterStatus();
-            drivers = new NpcDriversList();
+            bool shouldAttack = false;
+            if (damageAmount != null)
+            {
+                //we were attacked
+                //TODO: assess whether I should attack or not
+            }
+            else
+            {
+                //haven't been attacked by them
+                //TODO: assess whether I should attack or not
+            }
+            return shouldAttack;
+        }
+
+        /// <summary>
+        /// Check if the NPC has a nest.
+        /// </summary>
+        /// <returns>True: have nest, False: do not have nest</returns>
+        internal static bool HaveNest(NpcDefinition npcDefinition)
+        {
+            throw new NotImplementedException();
+            // TODO: check location memories for a nest.
         }
     }
 
     /// <summary>
-    /// True = Dead. False = Not dead.
+    /// This NPC's associated subject.
     /// </summary>
-    public bool IsDead { get { return status.IsStateSet(NpcStates.Dead); } }
+    public int SubjectID
+    {
+        get { return subjectID; }
+        set { subjectID = value; }
+    }
 
     /// <summary>
     /// Reduce food. Reduce health if starving. Regenerate health if not starving.
@@ -144,37 +207,42 @@ public partial class NpcCharacter
             if (health <= 0)
                 Die();
         }
-        if (health < definition.HealthMax)
+        else
         {
-            health += definition.HealthRegen;
+            if (health < definition.HealthMax)
+            {
+                health += definition.HealthRegen;
+                food -= definition.FoodMetabolizeRate;
+            }
         }
     }
 
     public void AiCoreProcess()
     {
-        // TODO:    Add all game objects in close range to the considerSubjects list
-        //          sorted by distance with the lowest index being the closest.
-
-        // Assume we're safe- clear safety from drivers.
-        if (drivers.Contains(NpcDrivers.Safety))
-            drivers.Remove(NpcDrivers.Safety);
+        ObserveSurroundings();
 
         // Consider each subject starting with the closest.
+        bool dangerFound = false;
         foreach (Subject conSubject in considerSubjects)
         {
             if (Think.IsSubjectKnown(definition, conSubject))
             {
                 if (Think.IsSubjectDangerous(definition, conSubject))
                 {
-                    // danger! set safety as top priority
-                    drivers.SetTopDriver(NpcDrivers.Safety);
+                    // danger! decrease safety
+                    safety --;
                 }
             }
         }
+        // increment safety if no danger was found near us
+        if (!dangerFound) safety++;
+
+        UpdateDrivers();
+
         //| []Which driver is max priority?
         switch (drivers[0])
         {
-            case NpcDrivers.Health:
+            case NpcDrivers.Nest:
                 AiCoreSubprocessNest();
                 break;
             case NpcDrivers.Safety:
@@ -195,27 +263,48 @@ public partial class NpcCharacter
 
     }
 
+    private void ObserveSurroundings()
+    {
+        throw new NotImplementedException();
+        // TODO:    Add all game objects in close range to the considerSubjects list
+        //          sorted by distance with the lowest index being the closest.
+    }
+
     /// <summary>
     /// Update drivers based on current values.
     /// </summary>
     public void UpdateDrivers()
     {
+        if (food > definition.FoodHungry && health > definition.HealthDanger && safety > definition.SafetyDeadly)
+        {
+            // we're fed, healthy, and not in danger
+            // if we do not have a nest, make one.
+            if (!Think.HaveNest(definition))
+            {
+                drivers.SetTopDriver(NpcDrivers.Nest);
+            }
+        }
+        // of the basic needs hunger is lowest priority
+        if (food <= definition.FoodHungry)
+        {
+            drivers.SetTopDriver(NpcDrivers.Hunger);
+        }
+
+        // of the basic needs health is 2nd lowest priority
         if (health <= 0)
         {
             Die();
         }
         else if (health <= definition.HealthDanger)
         {
-            drivers.SetTopDriver(NpcDrivers.Health);
+            // dangerously low on health, safety is now max priority
+            drivers.SetTopDriver(NpcDrivers.Safety);
         }
 
-        if (food <= definition.FoodHungry)
-        {
-            drivers.SetTopDriver(NpcDrivers.Hunger);
-        }
-
+        // of the basic needs safety is the highest priority
         if (safety <= definition.SafetyDeadly)
         {
+            status.UnsetState(NpcStates.Fighting);
             drivers.SetTopDriver(NpcDrivers.Safety);
         }
     }
@@ -254,14 +343,15 @@ public partial class NpcCharacter
     /// <summary>
     /// Inflict DamageAmount of health damage to character.
     /// </summary>
+    /// <param name="subjectAttacker">Source of damage.</param>
     /// <param name="damageAmount">Amount of damage to inflict.</param>
+    /// <param name="NpcAttacker">Attacking NPC if applicable.</param>
     /// <returns>True: Character was killed by the damage. False: still alive.</returns>
-    public bool Harm(Subject subjectAttacker, int damageAmount)
+    public bool Damage(Subject subjectAttacker, int damageAmount, NpcCharacter NpcAttacker = null)
     {
         if (IsDead) return false;
 
-        status.SetState(NpcStates.Fighting);
-        health += damageAmount;
+        health -= damageAmount;
         health = Math.Max(health, 0);
 
         if (health <= 0)
@@ -270,30 +360,38 @@ public partial class NpcCharacter
         }
         else if (health <= definition.HealthDanger)
         {
-            drivers.SetTopDriver(NpcDrivers.Safety);
+            // decrease safety by percentage of max health that damage received was
+            safety -= (damageAmount / definition.HealthMax) * 100;
         }
 
-        //|                 []Known attacker?
+        // known attacker?
         if (Think.IsSubjectKnown(definition, subjectAttacker))
         {
             Think.UpdateAttitude(NpcAttitudeChangeEvent.HealthDamage, definition, subjectAttacker);
         }
-        //|                     Check knownSubjects
-        //|                     [No]Save attitude: bad / danger
-        //|                         Think.GotHurtBy(Subject, damageAmount) - adjust attitude based 
-        //|                         on how much damage was done and how we feel about this subject
-        //|                     [Yes]Fight?
-        //|                         [No]Search for safe location
-        //|                             Think.FindNearest(FindEnum.SafeLocation) - check knownSubjects for a location that is safe
-        //|                             travel to safe location or search for presently unknown location that is safe
-        //|                             ()Return
-        //|                         [Yes]Attack damage source
-        //|                             set fighting state, save current subject to combat target list
-        //|                             inflict damage on combat target
-        //|                             ()Return
+
+        if (NpcAttacker != null)
+        {
+            if (Think.ShouldFight(NpcAttacker, damageAmount))
+            {
+                combatTargets.Add(NpcAttacker);
+                status.SetState(NpcStates.Fighting);
+                //TODO: add a subroutine that will trigger a fight action if fighting state is set.
+            }
+            else
+            {
+                // set safety minimum to flee
+                safety = int.MinValue;
+            }
+        }
 
         return !IsDead;
     }
+
+    /// <summary>
+    /// True = Dead. False = Not dead.
+    /// </summary>
+    public bool IsDead { get { return status.IsStateSet(NpcStates.Dead); } }
 
     /// <summary>
     /// Character has died, set Dead status and clear out all drivers.
