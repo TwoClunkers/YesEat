@@ -14,7 +14,7 @@ public partial class NpcCharacter
         Dead
     }
 
-    public class CharacterStatus
+    public class NpcCharacterStatus
     {
         private NpcStates _status;
 

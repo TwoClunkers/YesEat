@@ -13,7 +13,7 @@ public partial class NpcCharacter
 
     private int subjectID;
     private MasterSubjectList masterSubjectList;
-    private CharacterStatus status;
+    private NpcCharacterStatus status;
     private NpcDefinition definition;
     private NpcDriversList drivers;
     private List<Subject> considerSubjects;
@@ -31,7 +31,7 @@ public partial class NpcCharacter
         food = 100;
         safety = 100;
         definition = new NpcDefinition();
-        status = new CharacterStatus();
+        status = new NpcCharacterStatus();
         drivers = new NpcDriversList();
         combatTargets = new List<NpcCharacter>();
         subjectID = -1;
@@ -52,7 +52,7 @@ public partial class NpcCharacter
             health = definition.HealthMax;
             food = definition.FoodMax;
             safety = definition.SafetyHigh;
-            status = new CharacterStatus();
+            status = new NpcCharacterStatus();
             drivers = new NpcDriversList();
             combatTargets = new List<NpcCharacter>();
         }
@@ -179,10 +179,9 @@ public partial class NpcCharacter
         /// Check if the NPC has a nest.
         /// </summary>
         /// <returns>True: have nest, False: do not have nest</returns>
-        internal static bool HaveNest(NpcDefinition npcDefinition)
+        internal static bool HaveNest(NpcDefinition definition)
         {
-            throw new NotImplementedException();
-            // TODO: check location memories for a nest.
+            return (definition.Nest.ObjectMemories.Count > 0);
         }
     }
 
@@ -230,7 +229,7 @@ public partial class NpcCharacter
                 if (Think.IsSubjectDangerous(definition, conSubject))
                 {
                     // danger! decrease safety
-                    safety --;
+                    safety--;
                 }
             }
         }
@@ -275,15 +274,19 @@ public partial class NpcCharacter
     /// </summary>
     public void UpdateDrivers()
     {
-        if (food > definition.FoodHungry && health > definition.HealthDanger && safety > definition.SafetyDeadly)
+        if (definition.Traits.IsNestMaker)
         {
-            // we're fed, healthy, and not in danger
-            // if we do not have a nest, make one.
-            if (!Think.HaveNest(definition))
+            // Are we fed, healthy, & safe?
+            if (food > definition.FoodHungry && health > definition.HealthDanger && safety > definition.SafetyDeadly)
             {
-                drivers.SetTopDriver(NpcDrivers.Nest);
+                // if we do not have a nest, make one.
+                if (!Think.HaveNest(definition))
+                {
+                    drivers.SetTopDriver(NpcDrivers.Nest);
+                }
             }
         }
+
         // of the basic needs hunger is lowest priority
         if (food <= definition.FoodHungry)
         {
