@@ -3,6 +3,7 @@ using System.Collections;
 
 public class PlacementControllerScript : MonoBehaviour
 {
+    public MasterSubjectList masterSubjectList;
     public GameObject currentSelection;
     private bool readyToPlace;
     private bool placementStarted;
