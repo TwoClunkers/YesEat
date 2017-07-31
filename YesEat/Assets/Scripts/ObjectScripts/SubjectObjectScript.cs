@@ -6,6 +6,7 @@ public class SubjectObjectScript : MonoBehaviour
     #region Private members
     protected Subject thisSubject;
     protected LocationSubject location;
+    protected MasterSubjectList masterSubjectList;
     #endregion
 
     // Use this for initialization
@@ -35,9 +36,10 @@ public class SubjectObjectScript : MonoBehaviour
         set { location = value; }
     }
 
-    public virtual void InitializeFromSubject(Subject newSubject, Vector3 position)
+    public virtual void InitializeFromSubject(MasterSubjectList _masterSubjectList, Subject newSubject)
     {
-
+        thisSubject = newSubject;
+        masterSubjectList = _masterSubjectList;
     }
 
 }

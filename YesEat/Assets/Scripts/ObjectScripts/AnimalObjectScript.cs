@@ -28,14 +28,15 @@ public class AnimalObjectScript : SubjectObjectScript
         if(location != null)
         {
             float distance = Vector3.Distance(location.Coordinates, transform.position);
-            if(distance > 5) MoveTowardsPoint(location.Coordinates, speed);
+            if (distance > 5) MoveTowardsPoint(location.Coordinates, speed);
             else if(distance > 1) MoveTowardsPoint(location.Coordinates, speed/3);
         }
+        Observe();
     }
 
     void MoveTowardsPoint(Vector3 targetPosition, float _speed)
     {
-        Vector3 targetDir = targetPosition - transform.position;
+        Vector3 targetDir = transform.position -= targetPosition;
         //first, lets turn in the direction we need to go
         float step = _speed * Time.deltaTime;
         Vector3 newDir = Vector3.RotateTowards(transform.forward, targetDir, step, 0.0F);
