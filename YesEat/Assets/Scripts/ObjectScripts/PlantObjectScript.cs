@@ -79,7 +79,7 @@ public class PlantObjectScript : SubjectObjectScript
     public override void InitializeFromSubject(MasterSubjectList _masterSubjectList, Subject newSubject)
     {
         masterSubjectList = _masterSubjectList;
-        thisSubject = newSubject;
+        subject = newSubject;
         if (newSubject is PlantSubject)
         {
             PlantSubject plantSubject = newSubject as PlantSubject;

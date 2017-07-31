@@ -9,17 +9,18 @@ public class AnimalObjectScript : SubjectObjectScript
     #region Private members
     private int sightNear;
     private int sightFar;
-    private int count;
+    private float AiCoreTickTime;
     private float speed;
     private GameObject[] nearObjects;
     private GameObject[] farObjects;
     private LocationSubject destination;
-
+    private NpcCharacter npcCharacter;
     #endregion
 
     // Use this for initialization
     void Start()
     {
+        npcCharacter = new NpcCharacter(this, ref masterSubjectList);
         sightFar = 5;
         sightNear = 2;
         speed = 4;
@@ -33,6 +34,13 @@ public class AnimalObjectScript : SubjectObjectScript
     // Update is called once per frame
     void Update()
     {
+        AiCoreTickTime += Time.deltaTime;
+        if (AiCoreTickTime > 0.5f)
+        {
+            npcCharacter.AiCoreProcess();
+            AiCoreTickTime -= 0.5f;
+        }
+
         if (destination != null)
         {
             float distance = Vector3.Distance(destination.Coordinates, transform.position);

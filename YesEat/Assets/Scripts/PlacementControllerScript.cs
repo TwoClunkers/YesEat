@@ -66,7 +66,7 @@ public class PlacementControllerScript : MonoBehaviour
                     {
                         placedObject.transform.localScale = new Vector3(distance * 2, 0.1f, distance * 2);
                         SubjectObjectScript script = placedObject.GetComponent<SubjectObjectScript>() as SubjectObjectScript;
-                        LocationSubject newLocation = script.ThisSubject as LocationSubject;
+                        LocationSubject newLocation = script.Subject as LocationSubject;
                         if(newLocation != null)
                         {
                             newLocation.Radius = distance;

@@ -38,7 +38,7 @@ public class SubjectObjectScript : MonoBehaviour
 
     public virtual void InitializeFromSubject(MasterSubjectList _masterSubjectList, Subject newSubject)
     {
-        thisSubject = newSubject;
+        subject = newSubject;
         masterSubjectList = _masterSubjectList;
     }
 
