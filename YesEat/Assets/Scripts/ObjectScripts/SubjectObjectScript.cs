@@ -4,7 +4,7 @@ using System.Collections;
 public class SubjectObjectScript : MonoBehaviour
 {
     #region Private members
-    protected Subject thisSubject;
+    protected Subject subject;
     protected LocationSubject location;
     #endregion
 
@@ -23,10 +23,10 @@ public class SubjectObjectScript : MonoBehaviour
     /// <summary>
     /// ThisSubject is the subjectcard used to make this object
     /// </summary>
-    public Subject ThisSubject
+    public Subject Subject
     {
-        get { return thisSubject; }
-        set { thisSubject = value; }
+        get { return subject; }
+        set { subject = value; }
     }
 
     public LocationSubject Location

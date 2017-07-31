@@ -10,7 +10,15 @@ public class NpcLocationMemory
     private List<NpcObjectMemory> objectMemories;
     private int locationSubjectID;
     private DateTime lastTimeSeen;
+    private MasterSubjectList masterSubjectList;
     #endregion
+
+    NpcLocationMemory(ref MasterSubjectList MasterSubjectListRef)
+    {
+        masterSubjectList = MasterSubjectListRef;
+    }
+
+    public LocationSubject LocationSubject { get { return masterSubjectList.GetSubject(locationSubjectID) as LocationSubject; } }
 
     /// <summary>
     /// MasterSubjectList.SubjectID for this location.

@@ -1,17 +1,20 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
+using System;
 
 public class AnimalObjectScript : SubjectObjectScript
 {
     #region Private members
-    public int sightNear;
-    public int sightFar;
-    public int count;
-    public float speed;
+    private int sightNear;
+    private int sightFar;
+    private int count;
+    private float speed;
     private GameObject[] nearObjects;
     private GameObject[] farObjects;
-    
+    private LocationSubject destination;
+
     #endregion
 
     // Use this for initialization
@@ -22,14 +25,20 @@ public class AnimalObjectScript : SubjectObjectScript
         speed = 4;
     }
 
+    internal void MoveToNewLocation(LocationSubject newLocation)
+    {
+        if (destination.SubjectID != newLocation.SubjectID) destination = newLocation;
+    }
+
     // Update is called once per frame
     void Update()
     {
-        if(location != null)
+        if (destination != null)
         {
-            float distance = Vector3.Distance(location.Coordinates, transform.position);
-            if(distance > 5) MoveTowardsPoint(location.Coordinates, speed);
-            else if(distance > 1) MoveTowardsPoint(location.Coordinates, speed/3);
+            float distance = Vector3.Distance(destination.Coordinates, transform.position);
+            if (distance > sightFar) MoveTowardsPoint(destination.Coordinates, speed);
+            else if (distance > 1) MoveTowardsPoint(destination.Coordinates, speed / 3);
+            else destination = null;
         }
     }
 
@@ -44,7 +53,7 @@ public class AnimalObjectScript : SubjectObjectScript
         transform.position += (transform.forward * step);
     }
 
-    void Observe()
+    public List<GameObject> Observe()
     {
         List<GameObject> nearList = new List<GameObject>();
         List<GameObject> farList = new List<GameObject>();
@@ -68,5 +77,8 @@ public class AnimalObjectScript : SubjectObjectScript
         nearObjects = nearList.ToArray();
         farObjects = farList.ToArray();
 
+        // return a list of observed objects
+        nearList.OrderBy(o => Vector3.Distance(transform.position, o.transform.position));
+        return nearList;
     }
 }
