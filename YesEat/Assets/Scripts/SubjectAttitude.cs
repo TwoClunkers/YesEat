@@ -6,8 +6,8 @@ public class SubjectAttitude
 {
     #region Private members
     private int subjectID = 0;
-    private sbyte importance = 0;
-    private sbyte goodness = 0;
+    private sbyte safety = 0;
+    private sbyte food = 0;
     #endregion
 
     /// <summary>
@@ -19,69 +19,62 @@ public class SubjectAttitude
         set { subjectID = value; }
     }
 
-    /// <summary>
-    /// The character's perception of the importance or value of the subject. Range: +/-127
-    /// </summary>
-    public sbyte Importance
+    public sbyte Safety
     {
-        get { return importance; }
-        set { importance = value; }
+        get { return safety; }
+        set { safety = value; }
     }
 
-    /// <summary>
-    /// The character's perception of whether the subject is good or bad. Range: +/-127 <para />
-    /// Negative values are Bad, Positive values are Good.
-    /// </summary>
-    public sbyte Goodness
+    public sbyte Food
     {
-        get { return goodness; }
-        set { goodness = value; }
+        get { return food; }
+        set { food = value; }
     }
 
-    public SubjectAttitude(int SubjectID, sbyte Importance, sbyte Goodness)
+    public SubjectAttitude(int SubjectID, sbyte SafetyValue, sbyte FoodValue)
     {
         this.subjectID = SubjectID;
-        this.importance = Importance;
-        this.goodness = Goodness;
+        this.safety = SafetyValue;
+        this.food = FoodValue;
     }
 
     /// <summary>
-    /// Add (or subtract) Goodness, clamped at min/max of sbyte type.
+    /// Add (or subtract) Food, clamped at min/max of sbyte type.
     /// </summary>
-    /// <param name="value">The amount of Goodness to add (can be negative)</param>
-    public void AddGoodness(sbyte value)
+    /// <param name="value">The amount of Food to add (can be negative)</param>
+    public void AddFood(sbyte value)
     {
-        if (goodness + value < sbyte.MinValue)
+        if (food + value < sbyte.MinValue)
         {
-            goodness = sbyte.MinValue;
+            food = sbyte.MinValue;
         }
-        else if (goodness + value > sbyte.MaxValue)
+        else if (food + value > sbyte.MaxValue)
         {
-            goodness = sbyte.MaxValue;
+            food = sbyte.MaxValue;
         }
         else
         {
-            goodness += value;
+            food += value;
         }
     }
 
     /// <summary>
-    /// Add (or subtract) Importance, clamped at min/max of sbyte type.
+    /// Add (or subtract) Food, clamped at min/max of sbyte type.
     /// </summary>
-    /// <param name="value">The amount of Importance to add (can be negative)</param>
-    public void AddImportance(sbyte value)
+    /// <param name="value">The amount of Food to add (can be negative)</param>
+    public void AddSafety(sbyte value)
     {
-        if (importance + value < sbyte.MinValue)
+        if (safety + value < sbyte.MinValue)
         {
-            importance = sbyte.MinValue;
+            safety = sbyte.MinValue;
         }
-        else if (importance + value > sbyte.MaxValue)
+        else if (safety + value > sbyte.MaxValue)
         {
-            importance = sbyte.MaxValue;
+            safety = sbyte.MaxValue;
         }
         else
         {
-            importance += value;
+            safety += value;
         }
     }
 }

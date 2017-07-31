@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
+using UnityEngine;
 
 /// <summary>
 /// Core character AI.
@@ -16,17 +18,20 @@ public partial class NpcCharacter
     private NpcCharacterStatus status;
     private NpcDefinition definition;
     private NpcDriversList drivers;
-    private List<Subject> considerSubjects;
-
+    private List<GameObject> considerObjects;
+    private AnimalObjectScript objectScript;
     private List<NpcCharacter> combatTargets;
     #endregion
 
     /// <summary>
     /// Create a generic NpcCharacter.
     /// </summary>
-    public NpcCharacter(ref MasterSubjectList _masterSubjectList)
+    /// <param name="ParentObjectScript">The in-game object that represents this NPC.</param>
+    /// <param name="MasterSubjectListRef">A reference to the main MasterSubjectList.</param>
+    public NpcCharacter(AnimalObjectScript ParentObjectScript, ref MasterSubjectList MasterSubjectListRef)
     {
-        masterSubjectList = _masterSubjectList;
+        masterSubjectList = MasterSubjectListRef;
+        objectScript = ParentObjectScript;
         health = 100;
         food = 100;
         safety = 100;
@@ -40,13 +45,16 @@ public partial class NpcCharacter
     /// <summary>
     /// Initialize a new NpcCharacter. 
     /// </summary>
-    /// <param name="subject">Subject's NpcDefinition will define the character's initial resource pools, thresholds for fulfilling basic needs, known subjects, and subject attitudes.</param>
-    public NpcCharacter(ref MasterSubjectList _masterSubjectList, Subject subject)
+    /// <param name="ParentObject">The in-game object that represents this NPC.</param>
+    /// <param name="MasterSubjectListRef">A reference to the main MasterSubjectList.</param>
+    /// <param name="BasedOnSubject">Subject's NpcDefinition will define the character's initial resource pools, thresholds for fulfilling basic needs, known subjects, and subject attitudes.</param>
+    public NpcCharacter(AnimalObjectScript ParentObjectScript, ref MasterSubjectList MasterSubjectListRef, Subject BasedOnSubject)
     {
-        masterSubjectList = _masterSubjectList;
-        if (subject is AnimalSubject)
+        masterSubjectList = MasterSubjectListRef;
+        if (BasedOnSubject is AnimalSubject)
         {
-            AnimalSubject animalSubject = subject as AnimalSubject;
+            objectScript = ParentObjectScript;
+            AnimalSubject animalSubject = BasedOnSubject as AnimalSubject;
             definition = animalSubject.Definition;
             subjectID = animalSubject.SubjectID;
             health = definition.HealthMax;
@@ -58,6 +66,7 @@ public partial class NpcCharacter
         }
     }
 
+    #region Think { ... }
     /// <summary>
     /// Contains methods for extensive parsing and evaluation of subjects and attitudes.
     /// </summary>
@@ -68,7 +77,7 @@ public partial class NpcCharacter
         /// </summary>
         /// <param name="subjectToFind">The subject to search for.</param>
         /// <returns>The found location or null if no location was found.</returns>
-        internal static LocationSubject FindNearest(Subject subjectToFind)
+        internal static LocationSubject FindNearestSubject(Subject subjectToFind)
         {
             //TODO: Find nearest location where subjectToFind can be found.
             throw new NotImplementedException();
@@ -85,7 +94,7 @@ public partial class NpcCharacter
             if (IsSubjectKnown(definition, conSubject))
             {
                 SubjectAttitude subjectAttitude = definition.Attitudes.Find(o => o.SubjectID == conSubject.SubjectID);
-                return (subjectAttitude.Goodness < 0 && subjectAttitude.Importance > 0);
+                return (subjectAttitude.Safety < 0);
             }
             else
             {
@@ -119,13 +128,12 @@ public partial class NpcCharacter
                     {
                         //known hurts, bad.
                         SubjectAttitude attackerSubjectAttitude = definition.Attitudes.Find(o => o.SubjectID == subject.SubjectID);
-                        attackerSubjectAttitude.AddGoodness(-1);
-                        attackerSubjectAttitude.AddImportance(1);
+                        attackerSubjectAttitude.AddSafety(-1);
                     }
                     else
                     {
                         //new thing hurts me, bad.
-                        SubjectAttitude subjectAttitude = new SubjectAttitude(subject.SubjectID, -1, 1);
+                        SubjectAttitude subjectAttitude = new SubjectAttitude(subject.SubjectID, -1, 0);
                         definition.Attitudes.Add(subjectAttitude);
                     }
                     break;
@@ -134,8 +142,7 @@ public partial class NpcCharacter
                     {
                         //known food, good.
                         SubjectAttitude foodSubjectAttitude = definition.Attitudes.Find(o => o.SubjectID == subject.SubjectID);
-                        foodSubjectAttitude.AddGoodness(1);
-                        foodSubjectAttitude.AddImportance(1);
+                        foodSubjectAttitude.AddFood(1);
                     }
                     else
                     {
@@ -150,7 +157,6 @@ public partial class NpcCharacter
                 default:
                     throw new Exception("Invalid NpcAttitudeChangeEvent");
             }
-            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -183,7 +189,34 @@ public partial class NpcCharacter
         {
             return (definition.Nest.ObjectMemories.Count > 0);
         }
+
+        /// <summary>
+        /// Find a the nearest safe location.
+        /// </summary>
+        /// <param name="masterSubjectList">Reference to the MasterSubjectList</param>
+        /// <param name="definition">The NPC to check</param>
+        /// <param name="objectScript">The GameObject's script.</param>
+        /// <returns>The nearest safe location. Returns NULL if no safe locations are found.</returns>
+        internal static LocationSubject FindSafeLocation(NpcDefinition definition, AnimalObjectScript objectScript)
+        {
+            // get a list of all safe locations we remember
+            List<SubjectAttitude> foundLocations = definition.Attitudes.FindAll(o => (o.Safety > 0));
+            if (foundLocations.Count > 0)
+            {
+                // get a list of the corresponding memories of the locations
+                List<NpcLocationMemory> locMemoryList = definition.LocationMemories.FindAll(o => foundLocations.Exists(loc => loc.SubjectID == o.LocationSubjectID));
+                //sort the list
+                locMemoryList = locMemoryList.OrderBy(o => Vector3.Distance(o.LocationSubject.Coordinates, objectScript.gameObject.transform.position)) as List<NpcLocationMemory>;
+
+                if (locMemoryList.Count > 0)
+                    return locMemoryList[0].LocationSubject;
+                else
+                    return null;
+            }
+            else return null;
+        }
     }
+    #endregion
 
     /// <summary>
     /// This NPC's associated subject.
@@ -216,19 +249,23 @@ public partial class NpcCharacter
         }
     }
 
+    /// <summary>
+    /// The main AI process.
+    /// </summary>
     public void AiCoreProcess()
     {
-        ObserveSurroundings();
+        considerObjects = objectScript.Observe();
 
         // Consider each subject starting with the closest.
         bool dangerFound = false;
-        foreach (Subject conSubject in considerSubjects)
+        foreach (GameObject conObject in considerObjects)
         {
-            if (Think.IsSubjectKnown(definition, conSubject))
+            if (Think.IsSubjectKnown(definition, conObject.GetComponent<SubjectObjectScript>().Subject))
             {
-                if (Think.IsSubjectDangerous(definition, conSubject))
+                if (Think.IsSubjectDangerous(definition, conObject.GetComponent<SubjectObjectScript>().Subject))
                 {
                     // danger! decrease safety
+                    dangerFound = true;
                     safety--;
                 }
             }
@@ -238,7 +275,7 @@ public partial class NpcCharacter
 
         UpdateDrivers();
 
-        //| []Which driver is max priority?
+        // Act on max priority driver
         switch (drivers[0])
         {
             case NpcDrivers.Nest:
@@ -262,17 +299,10 @@ public partial class NpcCharacter
 
     }
 
-    private void ObserveSurroundings()
-    {
-        throw new NotImplementedException();
-        // TODO:    Add all game objects in close range to the considerSubjects list
-        //          sorted by distance with the lowest index being the closest.
-    }
-
     /// <summary>
     /// Update drivers based on current values.
     /// </summary>
-    public void UpdateDrivers()
+    private void UpdateDrivers()
     {
         if (definition.Traits.IsNestMaker)
         {

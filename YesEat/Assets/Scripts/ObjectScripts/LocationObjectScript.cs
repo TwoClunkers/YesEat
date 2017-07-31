@@ -13,7 +13,7 @@ public class LocationObjectScript : SubjectObjectScript
     // Use this for initialization
     void Start()
     {
-        thisSubject = new LocationSubject();
+        subject = new LocationSubject();
         count = 0;
     }
 
@@ -56,7 +56,7 @@ public class LocationObjectScript : SubjectObjectScript
     /// </summary>
     public void UpdateRelatedInLocation()
     {
-        LocationSubject locationSubject = thisSubject as LocationSubject;
+        LocationSubject locationSubject = subject as LocationSubject;
         if (locationSubject == null) return;
 
         //grab collides within the area of our location and create a list of objects
@@ -74,7 +74,7 @@ public class LocationObjectScript : SubjectObjectScript
             script.Location = locationSubject;
     
             //record each subjectID found if not already recorded
-            int foundID = script.ThisSubject.SubjectID;
+            int foundID = script.Subject.SubjectID;
             if(!foundSubjectIDs.Contains(foundID))
             {
                 foundSubjectIDs.Add(foundID);
@@ -85,13 +85,13 @@ public class LocationObjectScript : SubjectObjectScript
         int[] newRelated = new int[foundSubjectIDs.Count];
         newRelated = foundSubjectIDs.ToArray();
 
-        if (newRelated.Length != thisSubject.RelatedSubjects.Length)
+        if (newRelated.Length != subject.RelatedSubjects.Length)
             isChanged = true;
         else 
         {
             for (int i = 0; i < newRelated.Length; i++)
             {
-                if (newRelated[i] != thisSubject.RelatedSubjects[i])
+                if (newRelated[i] != subject.RelatedSubjects[i])
                 {
                     isChanged = true;
                     break;
@@ -100,6 +100,6 @@ public class LocationObjectScript : SubjectObjectScript
         }
 
         //Store output in local subject copy
-        thisSubject.RelatedSubjects = foundSubjectIDs.ToArray();
+        subject.RelatedSubjects = foundSubjectIDs.ToArray();
     }
 }
