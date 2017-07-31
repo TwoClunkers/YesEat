@@ -9,7 +9,7 @@ public class LocationSubject : Subject
 {
     #region Private members
     private Vector3 coordinates;
-    private int radius;
+    private float radius;
     private int layer;
     #endregion
 
@@ -23,7 +23,7 @@ public class LocationSubject : Subject
         icon = new Sprite();
 
         coordinates = new Vector3(1, 1, 1);
-        radius = 8;
+        radius = 1.0f;
         layer = 1;
     }
 
@@ -39,7 +39,7 @@ public class LocationSubject : Subject
     /// <summary>
     /// The radius of the location. (around the y axis)
     /// </summary>
-    public int Radius
+    public float Radius
     {
         get { return radius; }
         set { radius = value; }

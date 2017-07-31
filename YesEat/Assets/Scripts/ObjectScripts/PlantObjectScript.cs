@@ -4,7 +4,6 @@ using System.Collections;
 public class PlantObjectScript : SubjectObjectScript
 {
     #region Private members
-    private MasterSubjectList masterSubjectList;
     private int produceID;
     private int produceTime;
     private int maxGrowth;
@@ -58,8 +57,8 @@ public class PlantObjectScript : SubjectObjectScript
     /// </summary>
     void ProduceStep()
     {
-        InventoryItem producedItem = new InventoryItem(ref masterSubjectList, produceID, 1);
-        inventory.Add(producedItem);
+        //InventoryItem producedItem = new InventoryItem(ref masterSubjectList, produceID, 1);
+        //inventory.Add(producedItem);
         lastProduce = Time.time;
     }
 
@@ -69,7 +68,7 @@ public class PlantObjectScript : SubjectObjectScript
     void GrowthStep()
     {
         currentGrowth += 1;
-        gameObject.transform.localScale = new Vector3(currentGrowth * 0.1f + 0.5f, currentGrowth * 0.2f, currentGrowth * 0.1f + 0.5f);
+        gameObject.transform.localScale = new Vector3(currentGrowth * 0.01f + 0.5f, currentGrowth * 0.02f + 0.5f, currentGrowth * 0.01f + 0.5f);
     }
 
     /// <summary>
@@ -77,9 +76,10 @@ public class PlantObjectScript : SubjectObjectScript
     /// </summary>
     /// <param name="_masterSubjectList"></param>
     /// <param name="newSubject"></param>
-    public virtual void InitializeFromSubject(MasterSubjectList _masterSubjectList, Subject newSubject)
+    public override void InitializeFromSubject(MasterSubjectList _masterSubjectList, Subject newSubject)
     {
         masterSubjectList = _masterSubjectList;
+        thisSubject = newSubject;
         if (newSubject is PlantSubject)
         {
             PlantSubject plantSubject = newSubject as PlantSubject;
@@ -89,6 +89,20 @@ public class PlantObjectScript : SubjectObjectScript
             growthTime = plantSubject.GrowthTime;
             matureGrowth = plantSubject.MatureGrowth;
             inventory = new Inventory(plantSubject.InventorySize, ref _masterSubjectList);
+
+            mature = false;
+            age = 0.0f;
+            currentGrowth = 1.0f;
+            lastProduce = Time.time;
+        }
+        else
+        {
+            produceID = 1;
+            produceTime = 20;
+            maxGrowth = 20;
+            growthTime = 20;
+            matureGrowth = 15;
+            inventory = new Inventory(3, ref _masterSubjectList);
 
             mature = false;
             age = 0.0f;
