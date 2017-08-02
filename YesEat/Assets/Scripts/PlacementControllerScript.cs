@@ -17,6 +17,7 @@ public class PlacementControllerScript : MonoBehaviour
     // Use this for initialization
     void Start()
     {
+        masterSubjectList = new MasterSubjectList();
         centerPosition = new Vector3();
         edgePosition = new Vector3();
         currentSelection = null;

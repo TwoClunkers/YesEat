@@ -9,19 +9,19 @@ public class NpcDefinition
     /// <summary>
     /// Memories of each location that has been observed.
     /// </summary>
-    public List<NpcLocationMemory> LocationMemories;
+    public List<NpcLocationMemory> LocationMemories = null;
     /// <summary>
     /// Memory of nest location.
     /// </summary>
-    public NpcLocationMemory Nest;
+    public NpcLocationMemory Nest = null;
     /// <summary>
     /// Attitude toward every known subject.
     /// </summary>
-    public List<SubjectAttitude> Attitudes;
+    public List<SubjectAttitude> Attitudes = null;
     /// <summary>
     /// Static traits like NestMaker, Herbivore, Carnivore, etc.
     /// </summary>
-    public NpcCharacterTraits Traits;
+    public NpcCharacterTraits Traits = null;
     /// <summary>
     /// The time between Metabolize() ticks.
     /// </summary>
@@ -63,4 +63,17 @@ public class NpcDefinition
     /// Maximum Safety.
     /// </summary>
     public int SafetyHigh = 0;
+
+    /// <summary>
+    /// Typical movement speed.
+    /// </summary>
+    public float MoveSpeed = 0.0f;
+    /// <summary>
+    /// Near range of sight.
+    /// </summary>
+    public float SightRangeNear = 0.0f;
+    /// <summary>
+    /// Far range of sight.
+    /// </summary>
+    public float SightRangeFar = 0.0f;
 }

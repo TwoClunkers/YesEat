@@ -21,6 +21,7 @@ public partial class NpcCharacter
     private List<GameObject> considerObjects;
     private AnimalObjectScript objectScript;
     private List<NpcCharacter> combatTargets;
+    private List<LocationSubject> unexploredLocations;
     #endregion
 
     /// <summary>
@@ -39,6 +40,7 @@ public partial class NpcCharacter
         status = new NpcCharacterStatus();
         drivers = new NpcDriversList();
         combatTargets = new List<NpcCharacter>();
+        unexploredLocations = new List<LocationSubject>();
         subjectID = -1;
     }
 
@@ -63,6 +65,7 @@ public partial class NpcCharacter
             status = new NpcCharacterStatus();
             drivers = new NpcDriversList();
             combatTargets = new List<NpcCharacter>();
+            unexploredLocations = new List<LocationSubject>();
         }
     }
 
@@ -187,7 +190,10 @@ public partial class NpcCharacter
         /// <returns>True: have nest, False: do not have nest</returns>
         internal static bool HaveNest(NpcDefinition definition)
         {
-            return (definition.Nest.ObjectMemories.Count > 0);
+            if (definition.Nest != null)
+                return (definition.Nest.ObjectMemories.Count > 0);
+            else
+                return false;
         }
 
         /// <summary>
@@ -219,6 +225,17 @@ public partial class NpcCharacter
     #endregion
 
     /// <summary>
+    /// This NPC's Definition.
+    /// </summary>
+    public NpcDefinition Definition { get { return definition; } }
+
+    #region Expose Definition values as read only
+    public float SightRangeFar { get { return definition.SightRangeFar; } }
+    public float SightRangeNear { get { return definition.SightRangeNear; } }
+    public float MoveSpeed { get { return definition.MoveSpeed; } }
+    #endregion
+
+    /// <summary>
     /// This NPC's associated subject.
     /// </summary>
     public int SubjectID
@@ -226,6 +243,11 @@ public partial class NpcCharacter
         get { return subjectID; }
         set { subjectID = value; }
     }
+
+    /// <summary>
+    /// This NPC's subject.
+    /// </summary>
+    public AnimalSubject Subject { get { return masterSubjectList.GetSubject(subjectID, typeof(AnimalSubject)) as AnimalSubject; } }
 
     /// <summary>
     /// Reduce food. Reduce health if starving. Regenerate health if not starving.
@@ -304,6 +326,9 @@ public partial class NpcCharacter
     /// </summary>
     private void UpdateDrivers()
     {
+        // Default driver: Explore.
+        if (drivers.Count == 0) drivers.Add(NpcDrivers.Explore);
+
         if (definition.Traits.IsNestMaker)
         {
             // Are we fed, healthy, & safe?

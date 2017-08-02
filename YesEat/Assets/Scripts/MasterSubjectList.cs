@@ -13,8 +13,51 @@ public class MasterSubjectList
 
     public MasterSubjectList()
     {
-        //TODO: load all subjects into the list.
         masterSubjectList = new List<Subject>();
+        
+        //`-.,.-'-.,.-'-.,.-'-.,.-'-.,.-'
+        maxID = 1; // == Plinkett
+        //,.-`-.,.-`-.,.-`-.,.-`-.,.-`-.,
+        NpcDefinition plinkettNpcDefinition = new NpcDefinition()
+        {
+            Attitudes = new List<SubjectAttitude>(),
+            FoodHungry = 50,
+            FoodMax = 100,
+            FoodMetabolizeRate = 1,
+            HealthDanger = 40,
+            HealthMax = 100,
+            HealthRegen = 1,
+            LocationMemories = new List<NpcLocationMemory>(),
+            MetabolizeInterval = 10,
+            MoveSpeed = 5,
+            Nest = null,
+            SafetyDeadly = -10,
+            SafetyHigh = 10,
+            SightRangeFar = 5,
+            SightRangeNear = 2,
+            StarvingDamage = 1,
+            Traits = new NpcCharacterTraits(NpcTraits.NestMaker & NpcTraits.Herbivore)
+        };
+        AnimalSubject plinkett = new AnimalSubject()
+        {
+            Definition = plinkettNpcDefinition,
+            Description = "A herbivore.",
+            GrowthTime = 5,
+            Icon = new UnityEngine.Sprite(),
+            MatureTime = 200,
+            MaxGrowth = 400,
+            Name = "Plinkett",
+            RelatedSubjects = new int[0],
+            SubjectID = maxID
+        };
+
+        masterSubjectList.Add(plinkett);
+        
+        //`-.,.-'-.,.-'-.,.-'-.,.-'-.,.-'
+        maxID = 2; // == Gobber?
+        //,.-`-.,.-`-.,.-`-.,.-`-.,.-`-.,
+        //TODO: load all subjects into the list.
+
     }
 
     /// <summary>

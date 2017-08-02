@@ -13,7 +13,7 @@ public class NpcLocationMemory
     private MasterSubjectList masterSubjectList;
     #endregion
 
-    NpcLocationMemory(ref MasterSubjectList MasterSubjectListRef)
+    public NpcLocationMemory(ref MasterSubjectList MasterSubjectListRef)
     {
         masterSubjectList = MasterSubjectListRef;
     }

@@ -5,14 +5,18 @@
 [System.Flags]
 public enum NpcTraits
 {
-    NestMaker,
-    Herbivore,
-    Carnivore
+    NestMaker = (1 << 1),
+    Herbivore = (1 << 2),
+    Carnivore = (1 << 3)
 }
 
 public class NpcCharacterTraits
 {
     private NpcTraits _traits;
+
+    public NpcCharacterTraits() { }
+
+    public NpcCharacterTraits(NpcTraits Traits) { _traits = Traits; }
 
     /// <summary>
     /// Is this NPC a nest maker?
@@ -23,18 +27,18 @@ public class NpcCharacterTraits
     /// Turns on the changeTrait flag.
     /// </summary>
     /// <param name="changeTrait">The flag to turn on.</param>
-    public void SetState(NpcTraits changeTrait) { _traits &= changeTrait; }
+    public void SetTrait(NpcTraits changeTrait) { _traits &= changeTrait; }
 
     /// <summary>
     /// Turns off the changeTrait flag.
     /// </summary>
     /// <param name="changeTrait">The flag to be turned off.</param>
-    public void UnsetState(NpcTraits changeTrait) { _traits &= ~changeTrait; }
+    public void UnsetTrait(NpcTraits changeTrait) { _traits &= ~changeTrait; }
 
     /// <summary>
-    /// Check if the checkState state is set.
+    /// Check if checkTrait is set.
     /// </summary>
-    /// <param name="checkTrait">The state to check for.</param>
+    /// <param name="checkTrait">The trait to check for.</param>
     /// <returns>True:set, False: not set.</returns>
     public bool HasTrait(NpcTraits checkTrait) { return (_traits & checkTrait) != 0; }
 }

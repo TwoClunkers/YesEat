@@ -7,25 +7,27 @@ using System;
 public class AnimalObjectScript : SubjectObjectScript
 {
     #region Private members
-    private int sightNear;
-    private int sightFar;
     private float AiCoreTickTime;
-    private float speed;
     private GameObject[] nearObjects;
     private GameObject[] farObjects;
     private LocationSubject destination;
     private NpcCharacter npcCharacter;
     #endregion
 
+    public int AnimalSubjectID = -1;
+
     // Use this for initialization
     void Start()
     {
-        npcCharacter = new NpcCharacter(this, ref masterSubjectList);
-        sightFar = 5;
-        sightNear = 2;
-        speed = 4;
+        if (AnimalSubjectID == -1) throw new System.Exception(gameObject.name + ": No AnimalSubjectID is assigned.");
+        AnimalSubject animalSubject = masterSubjectList.GetSubject(AnimalSubjectID) as AnimalSubject;
+        npcCharacter = new NpcCharacter(this, ref masterSubjectList, animalSubject);
     }
 
+    /// <summary>
+    /// Begin path finding to a new location.
+    /// </summary>
+    /// <param name="newLocation">The location to move to.</param>
     internal void MoveToNewLocation(LocationSubject newLocation)
     {
         if (destination.SubjectID != newLocation.SubjectID) destination = newLocation;
@@ -44,17 +46,22 @@ public class AnimalObjectScript : SubjectObjectScript
         if (destination != null)
         {
             float distance = Vector3.Distance(destination.Coordinates, transform.position);
-            if (distance > sightFar) MoveTowardsPoint(destination.Coordinates, speed);
-            else if (distance > 1) MoveTowardsPoint(destination.Coordinates, speed / 3);
+            if (distance > npcCharacter.SightRangeFar) MoveTowardsPoint(destination.Coordinates, npcCharacter.MoveSpeed);
+            else if (distance > 1) MoveTowardsPoint(destination.Coordinates, npcCharacter.MoveSpeed / 3);
             else destination = null;
         }
     }
 
-    void MoveTowardsPoint(Vector3 targetPosition, float _speed)
+    /// <summary>
+    /// Move game object towards a world position.
+    /// </summary>
+    /// <param name="targetPosition"></param>
+    /// <param name="moveSpeed"></param>
+    private void MoveTowardsPoint(Vector3 targetPosition, float moveSpeed)
     {
         Vector3 targetDir = targetPosition - transform.position;
         //first, lets turn in the direction we need to go
-        float step = _speed * Time.deltaTime;
+        float step = moveSpeed * Time.deltaTime;
         Vector3 newDir = Vector3.RotateTowards(transform.forward, targetDir, step, 0.0F);
         transform.rotation = Quaternion.LookRotation(newDir);
         //then we can move forward
@@ -66,20 +73,30 @@ public class AnimalObjectScript : SubjectObjectScript
         List<GameObject> nearList = new List<GameObject>();
         List<GameObject> farList = new List<GameObject>();
 
+        // filter out the terrain.
+        int layerMask = ~(1 << 8);
+
         //first we can add the contents of far
-        Collider[] hitColliders = Physics.OverlapSphere(gameObject.transform.position, sightFar);
+        Collider[] hitColliders = Physics.OverlapSphere(gameObject.transform.position, npcCharacter.SightRangeFar, layerMask);
         for (int i = 0; i < hitColliders.Length; i++)
         {
             farList.Add(hitColliders[i].gameObject);
 
         }
+
+        // filter out terrain and locations
+        layerMask = ~((1 << 8) | (1 << 9));
         //now let's grab collides within the near area and remove them from the "far" list
-        hitColliders = Physics.OverlapSphere(gameObject.transform.position, sightNear);
+        hitColliders = Physics.OverlapSphere(gameObject.transform.position, npcCharacter.SightRangeNear, layerMask);
         for (int i = 0; i < hitColliders.Length; i++)
         {
             nearList.Add(hitColliders[i].gameObject);
             farList.Remove(hitColliders[i].gameObject);
         }
+
+        // remove this object itself.
+        nearList.Remove(this.gameObject);
+        farList.Remove(this.gameObject);
 
         //store the observations locally
         nearObjects = nearList.ToArray();
