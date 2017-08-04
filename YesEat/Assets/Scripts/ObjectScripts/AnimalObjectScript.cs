@@ -30,7 +30,12 @@ public class AnimalObjectScript : SubjectObjectScript
     /// <param name="newLocation">The location to move to.</param>
     internal void MoveToNewLocation(LocationSubject newLocation)
     {
-        if (destination.SubjectID != newLocation.SubjectID) destination = newLocation;
+        if (destination != null)
+        {
+            if (destination.SubjectID != newLocation.SubjectID)
+                destination = newLocation;
+        }
+        else destination = newLocation;
     }
 
     // Update is called once per frame
@@ -73,8 +78,8 @@ public class AnimalObjectScript : SubjectObjectScript
         List<GameObject> nearList = new List<GameObject>();
         List<GameObject> farList = new List<GameObject>();
 
-        // filter out the terrain.
-        int layerMask = ~(1 << 8);
+        // only locations
+        int layerMask = (1 << 9);
 
         //first we can add the contents of far
         Collider[] hitColliders = Physics.OverlapSphere(gameObject.transform.position, npcCharacter.SightRangeFar, layerMask);
@@ -105,5 +110,14 @@ public class AnimalObjectScript : SubjectObjectScript
         // return a list of observed objects
         nearList.OrderBy(o => Vector3.Distance(transform.position, o.transform.position));
         return nearList;
+    }
+
+    internal List<LocationSubject> GetFarObjects()
+    {
+        List<GameObject> farObjectList = farObjects.ToList();
+        if (farObjectList.Count() > 0)
+            return farObjectList.Select(o => o.GetComponent<SubjectObjectScript>().Location).ToList();
+        else
+            return new List<LocationSubject>();
     }
 }

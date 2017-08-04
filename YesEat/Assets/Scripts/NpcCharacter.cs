@@ -277,6 +277,7 @@ public partial class NpcCharacter
     public void AiCoreProcess()
     {
         considerObjects = objectScript.Observe();
+        unexploredLocations = objectScript.GetFarObjects();
 
         // Consider each subject starting with the closest.
         bool dangerFound = false;

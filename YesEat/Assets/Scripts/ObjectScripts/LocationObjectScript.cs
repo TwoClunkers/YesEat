@@ -8,12 +8,13 @@ public class LocationObjectScript : SubjectObjectScript
     private bool isChanged = false;
     private int count;
     #endregion
-   
+    public int SubjectID = -1;
     
     // Use this for initialization
     void Start()
     {
         subject = new LocationSubject();
+        subject.SubjectID = SubjectID;
         count = 0;
     }
 

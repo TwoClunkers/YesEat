@@ -56,7 +56,7 @@ public class PlacementControllerScript : MonoBehaviour
             }
             else
             {
-                
+
                 //We have started to place
                 if (currentSelection.tag == "Location")
                 {
@@ -68,11 +68,19 @@ public class PlacementControllerScript : MonoBehaviour
                         placedObject.transform.localScale = new Vector3(distance * 2, 0.1f, distance * 2);
                         SubjectObjectScript script = placedObject.GetComponent<SubjectObjectScript>() as SubjectObjectScript;
                         LocationSubject newLocation = script.Subject as LocationSubject;
-                        if(newLocation != null)
+                        if (newLocation != null)
                         {
                             newLocation.Radius = distance;
+                            newLocation.Coordinates = centerPosition;
+                            newLocation.Description = "New Location " + centerPosition.x + "," + centerPosition.y + "," + centerPosition.z;
+                            newLocation.Icon = null;
+                            newLocation.Layer = 1;
+                            newLocation.Name = "Location" +
+                                centerPosition.x.ToString().Substring(0, 4) + "," +
+                                centerPosition.y.ToString().Substring(0, 4) + "," +
+                                centerPosition.z.ToString().Substring(0, 4);
                         }
-                        
+
                     }
 
                     //Look for a second mouse click to finalize the location
@@ -94,7 +102,7 @@ public class PlacementControllerScript : MonoBehaviour
 
     public bool CheckPlacementPosition(Vector3 center, float radius, GameObject excludeObject)
     {
-        
+
         if (currentSelection == null) return false; //nothing to place;
         //First we catch all the colliders in our area
         Collider[] hitColliders = Physics.OverlapSphere(center, radius);

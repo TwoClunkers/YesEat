@@ -22,8 +22,8 @@ public class Subject
         subjectID = 0;
         name = "Name";
         description = "This is the description";
-        icon = new Sprite();
-        prefab = new GameObject();
+        icon = null;
+        prefab = null;
         relatedSubjects = new int[0];
     }
 

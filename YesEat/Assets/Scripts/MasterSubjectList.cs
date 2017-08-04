@@ -54,9 +54,22 @@ public class MasterSubjectList
         masterSubjectList.Add(plinkett);
         
         //`-.,.-'-.,.-'-.,.-'-.,.-'-.,.-'
-        maxID = 2; // == Gobber?
+        maxID = 2; // == Location
         //,.-`-.,.-`-.,.-`-.,.-`-.,.-`-.,
         //TODO: load all subjects into the list.
+        LocationSubject NewLocationOne = new LocationSubject()
+        {
+            Coordinates = new UnityEngine.Vector3(1, 1, 1),
+            Description = "A very positional kind of location",
+            Icon = new UnityEngine.Sprite(),
+            Layer = 1,
+            Name = "Location",
+            Radius = 2,
+            RelatedSubjects = new int[0],
+            SubjectID = maxID
+        };
+        masterSubjectList.Add(NewLocationOne);
+
 
     }
 
