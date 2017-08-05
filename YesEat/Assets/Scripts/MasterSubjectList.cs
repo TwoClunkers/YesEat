@@ -70,16 +70,111 @@ public class MasterSubjectList
         };
         masterSubjectList.Add(NewLocationOne);
 
+        //`-.,.-'-.,.-'-.,.-'-.,.-'-.,.-'
+        maxID = 3; // == Bush
+        //,.-`-.,.-`-.,.-`-.,.-`-.,.-`-.,
+        //TODO: load all subjects into the list.
+        PlantSubject Bush = new PlantSubject()
+        {
+            SubjectID = maxID,
+            Name = "Bush",
+            Description = "A Berry Bush",
+            Icon = new UnityEngine.Sprite(),
+            RelatedSubjects = new int[0],
 
+            ProduceID = 4,
+            ProduceTime = 10,
+            MaxGrowth = 20,
+            GrowthTime = 10,
+            MatureGrowth = 20,
+            InventorySize = 3
+        };
+        masterSubjectList.Add(Bush);
+
+        //`-.,.-'-.,.-'-.,.-'-.,.-'-.,.-'
+        maxID = 4; // == Berry
+        //,.-`-.,.-`-.,.-`-.,.-`-.,.-`-.,
+        //TODO: load all subjects into the list.
+        FoodSubject Berry = new FoodSubject()
+        {
+            SubjectID = maxID,
+            Name = "Berry",
+            Description = "A Juicy Berry",
+            Icon = new UnityEngine.Sprite(),
+            RelatedSubjects = new int[0],
+
+            BuildDirections = null,
+            MaxStack = 10,
+            FoodType = 0,
+            FoodValue = 10
+        };
+        masterSubjectList.Add(Berry);
+
+        //`-.,.-'-.,.-'-.,.-'-.,.-'-.,.-'
+        maxID = 5; // == Meat
+        //,.-`-.,.-`-.,.-`-.,.-`-.,.-`-.,
+        //TODO: load all subjects into the list.
+        FoodSubject Meat = new FoodSubject()
+        {
+            SubjectID = maxID,
+            Name = "Meat",
+            Description = "It was once muscle...",
+            Icon = new UnityEngine.Sprite(),
+            RelatedSubjects = new int[0],
+
+            BuildDirections = null,
+            MaxStack = 10,
+            FoodType = 1,
+            FoodValue = 10
+        };
+        masterSubjectList.Add(Meat);
+
+        //`-.,.-'-.,.-'-.,.-'-.,.-'-.,.-'
+        maxID = 6; // == Gobber
+        //,.-`-.,.-`-.,.-`-.,.-`-.,.-`-.,
+        NpcDefinition gobberNpcDefinition = new NpcDefinition()
+        {
+            Attitudes = new List<SubjectAttitude>(),
+            FoodHungry = 50,
+            FoodMax = 100,
+            FoodMetabolizeRate = 1,
+            HealthDanger = 40,
+            HealthMax = 100,
+            HealthRegen = 1,
+            LocationMemories = new List<NpcLocationMemory>(),
+            MetabolizeInterval = 10,
+            MoveSpeed = 5,
+            Nest = null,
+            SafetyDeadly = -10,
+            SafetyHigh = 10,
+            SightRangeFar = 5,
+            SightRangeNear = 2,
+            StarvingDamage = 1,
+            Traits = new NpcCharacterTraits(NpcTraits.Carnivore)
+        };
+        AnimalSubject gobber = new AnimalSubject()
+        {
+            Definition = gobberNpcDefinition,
+            Description = "A carnivore.",
+            GrowthTime = 5,
+            Icon = new UnityEngine.Sprite(),
+            MatureTime = 200,
+            MaxGrowth = 400,
+            Name = "Gobber",
+            RelatedSubjects = new int[0],
+            SubjectID = maxID
+        };
+
+        masterSubjectList.Add(gobber);
     }
 
-    /// <summary>
-    /// Get Subject using subjectID.
-    /// </summary>
-    /// <param name="subjectID">subjectID of Subject to find.</param>
-    /// <param name="subjectType">Required type of subject.</param>
-    /// <returns>Returns null if subject is not found or the type of the returned subject does not match subjectType.</returns>
-    public Subject GetSubject(int subjectID, Type subjectType = null)
+/// <summary>
+/// Get Subject using subjectID.
+/// </summary>
+/// <param name="subjectID">subjectID of Subject to find.</param>
+/// <param name="subjectType">Required type of subject.</param>
+/// <returns>Returns null if subject is not found or the type of the returned subject does not match subjectType.</returns>
+public Subject GetSubject(int subjectID, Type subjectType = null)
     {
         if (masterSubjectList.Exists(o => o.SubjectID == subjectID))
         {

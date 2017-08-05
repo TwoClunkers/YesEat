@@ -91,21 +91,22 @@ public class PlantObjectScript : SubjectObjectScript
             inventory = new Inventory(plantSubject.InventorySize, ref _masterSubjectList);
 
             mature = false;
-            age = 0.0f;
+            age = 0.1f;
             currentGrowth = 1.0f;
             lastProduce = Time.time;
         }
         else
         {
+            //default values used if no valid subject for initialization
             produceID = 1;
             produceTime = 20;
-            maxGrowth = 20;
+            maxGrowth = 1;
             growthTime = 20;
             matureGrowth = 15;
             inventory = new Inventory(3, ref _masterSubjectList);
 
             mature = false;
-            age = 0.0f;
+            age = 0.1f;
             currentGrowth = 1.0f;
             lastProduce = Time.time;
         }

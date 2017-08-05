@@ -17,7 +17,7 @@ public class FoodSubject : ItemSubject
     {
         name = "Food";
         description = "Something Eaten";
-        icon = new Sprite();
+        icon = null;
 
         foodType = 0;
         foodValue = 1;
