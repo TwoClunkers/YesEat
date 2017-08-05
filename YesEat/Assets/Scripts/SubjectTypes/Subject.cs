@@ -82,7 +82,7 @@ public class Subject
         set { relatedSubjects = value; }
     }
 
-    internal void TeachNpc(NpcCharacter npcCharacter)
+    internal void TeachNpc(NpcCore npcCharacter)
     {
         throw new NotImplementedException();
     }

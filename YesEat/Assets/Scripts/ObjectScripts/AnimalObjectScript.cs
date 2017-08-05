@@ -11,7 +11,7 @@ public class AnimalObjectScript : SubjectObjectScript
     private GameObject[] nearObjects;
     private GameObject[] seenLocationObjects;
     private LocationSubject destination;
-    private NpcCharacter npcCharacter;
+    private NpcCore npcCharacter;
     #endregion
 
     public int AnimalSubjectID = -1;
@@ -21,7 +21,7 @@ public class AnimalObjectScript : SubjectObjectScript
     {
         if (AnimalSubjectID == -1) throw new System.Exception(gameObject.name + ": No AnimalSubjectID is assigned for the Prefab.");
         AnimalSubject animalSubject = masterSubjectList.GetSubject(AnimalSubjectID) as AnimalSubject;
-        npcCharacter = new NpcCharacter(this, ref masterSubjectList, animalSubject);
+        npcCharacter = new NpcCore(this, ref masterSubjectList, animalSubject);
     }
 
     /// <summary>

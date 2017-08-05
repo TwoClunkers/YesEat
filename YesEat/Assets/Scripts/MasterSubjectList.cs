@@ -20,14 +20,14 @@ public class MasterSubjectList
         //,.-`-.,.-`-.,.-`-.,.-`-.,.-`-.,
         NpcDefinition plinkettNpcDefinition = new NpcDefinition()
         {
-            Attitudes = new List<SubjectAttitude>(),
+            Attitudes = new List<SubjectMemory>(),
             FoodHungry = 50,
             FoodMax = 100,
             FoodMetabolizeRate = 1,
             HealthDanger = 40,
             HealthMax = 100,
             HealthRegen = 1,
-            LocationMemories = new List<NpcLocationMemory>(),
+            LocationMemories = new List<LocationMemory>(),
             MetabolizeInterval = 10,
             MoveSpeed = 5,
             Nest = null,
@@ -134,14 +134,14 @@ public class MasterSubjectList
         //,.-`-.,.-`-.,.-`-.,.-`-.,.-`-.,
         NpcDefinition gobberNpcDefinition = new NpcDefinition()
         {
-            Attitudes = new List<SubjectAttitude>(),
+            Attitudes = new List<SubjectMemory>(),
             FoodHungry = 50,
             FoodMax = 100,
             FoodMetabolizeRate = 1,
             HealthDanger = 40,
             HealthMax = 100,
             HealthRegen = 1,
-            LocationMemories = new List<NpcLocationMemory>(),
+            LocationMemories = new List<LocationMemory>(),
             MetabolizeInterval = 10,
             MoveSpeed = 5,
             Nest = null,
