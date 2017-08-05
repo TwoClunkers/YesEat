@@ -9,7 +9,7 @@ public class AnimalObjectScript : SubjectObjectScript
     #region Private members
     private float AiCoreTickTime;
     private GameObject[] nearObjects;
-    private GameObject[] farObjects;
+    private GameObject[] seenLocationObjects;
     private LocationSubject destination;
     private NpcCharacter npcCharacter;
     #endregion
@@ -19,7 +19,7 @@ public class AnimalObjectScript : SubjectObjectScript
     // Use this for initialization
     void Start()
     {
-        if (AnimalSubjectID == -1) throw new System.Exception(gameObject.name + ": No AnimalSubjectID is assigned.");
+        if (AnimalSubjectID == -1) throw new System.Exception(gameObject.name + ": No AnimalSubjectID is assigned for the Prefab.");
         AnimalSubject animalSubject = masterSubjectList.GetSubject(AnimalSubjectID) as AnimalSubject;
         npcCharacter = new NpcCharacter(this, ref masterSubjectList, animalSubject);
     }
@@ -42,10 +42,10 @@ public class AnimalObjectScript : SubjectObjectScript
     void Update()
     {
         AiCoreTickTime += Time.deltaTime;
-        if (AiCoreTickTime > 0.5f)
+        if (AiCoreTickTime > 1.0f)
         {
             npcCharacter.AiCoreProcess();
-            AiCoreTickTime -= 0.5f;
+            AiCoreTickTime -= 1.0f;
         }
 
         if (destination != null)
@@ -76,36 +76,34 @@ public class AnimalObjectScript : SubjectObjectScript
     public List<GameObject> Observe()
     {
         List<GameObject> nearList = new List<GameObject>();
-        List<GameObject> farList = new List<GameObject>();
+        List<GameObject> seenLocationList = new List<GameObject>();
 
         // only locations
         int layerMask = (1 << 9);
-
-        //first we can add the contents of far
-        Collider[] hitColliders = Physics.OverlapSphere(gameObject.transform.position, npcCharacter.SightRangeFar, layerMask);
-        for (int i = 0; i < hitColliders.Length; i++)
-        {
-            farList.Add(hitColliders[i].gameObject);
-
-        }
+        // scan far sight area for locations to explore later
+        seenLocationList = Physics.OverlapSphere(gameObject.transform.position, npcCharacter.SightRangeFar, layerMask).Select(o => o.gameObject).ToList();
 
         // filter out terrain and locations
         layerMask = ~((1 << 8) | (1 << 9));
-        //now let's grab collides within the near area and remove them from the "far" list
-        hitColliders = Physics.OverlapSphere(gameObject.transform.position, npcCharacter.SightRangeNear, layerMask);
-        for (int i = 0; i < hitColliders.Length; i++)
-        {
-            nearList.Add(hitColliders[i].gameObject);
-            farList.Remove(hitColliders[i].gameObject);
-        }
+        // now let's grab collides in the near area
+        nearList = Physics.OverlapSphere(gameObject.transform.position, npcCharacter.SightRangeNear, layerMask).Select(o => o.gameObject).ToList();
 
-        // remove this object itself.
+        // remove this object from the lists
         nearList.Remove(this.gameObject);
-        farList.Remove(this.gameObject);
+        seenLocationList.Remove(this.gameObject);
 
-        //store the observations locally
+        // store the observations locally
         nearObjects = nearList.ToArray();
-        farObjects = farList.ToArray();
+        seenLocationObjects = seenLocationList.ToArray();
+
+        //TODO: if our position is within 1 unit of a location center add the location to our memory.
+        foreach (GameObject locationObject in seenLocationObjects)
+        {
+            if(Vector3.Distance(locationObject.transform.position, transform.position) < 1)
+            {
+                npcCharacter.Inspect(locationObject);
+            }
+        }
 
         // return a list of observed objects
         nearList.OrderBy(o => Vector3.Distance(transform.position, o.transform.position));
@@ -114,7 +112,7 @@ public class AnimalObjectScript : SubjectObjectScript
 
     internal List<LocationSubject> GetFarObjects()
     {
-        List<GameObject> farObjectList = farObjects.ToList();
+        List<GameObject> farObjectList = seenLocationObjects.ToList();
         if (farObjectList.Count() > 0)
             return farObjectList.Select(o => o.GetComponent<SubjectObjectScript>().Location).ToList();
         else

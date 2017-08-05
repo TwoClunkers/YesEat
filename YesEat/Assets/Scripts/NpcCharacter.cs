@@ -78,12 +78,21 @@ public partial class NpcCharacter
         /// <summary>
         /// Find the nearest location where subjectToFind can be found.
         /// </summary>
-        /// <param name="subjectToFind">The subject to search for.</param>
+        /// <param name="SubjectToFind">The subject to search for.</param>
         /// <returns>The found location or null if no location was found.</returns>
-        internal static LocationSubject FindNearestSubject(Subject subjectToFind)
+        internal static NpcObjectMemory FindNearestObject(NpcDefinition npcDefinition, Subject SubjectToFind, Vector3 CurrentPosition)
         {
-            //TODO: Find nearest location where subjectToFind can be found.
-            throw new NotImplementedException();
+            // Find nearest location where subjectToFind can be found.
+            List<NpcObjectMemory> foundObjects;
+            foundObjects = npcDefinition.LocationMemories
+                                .SelectMany(o => o.ObjectMemories)
+                                .Where(o => o.SubjectID == SubjectToFind.SubjectID)
+                                .OrderBy(o => Vector3.Distance(CurrentPosition, o.Position)).ToList();
+
+            if (foundObjects.Count > 0)
+                return foundObjects[0];
+            else
+                return null;
         }
 
         /// <summary>
@@ -130,32 +139,41 @@ public partial class NpcCharacter
                     if (IsSubjectKnown(definition, subject))
                     {
                         //known hurts, bad.
-                        SubjectAttitude attackerSubjectAttitude = definition.Attitudes.Find(o => o.SubjectID == subject.SubjectID);
-                        attackerSubjectAttitude.AddSafety(-1);
+                        definition.Attitudes.Find(o => o.SubjectID == subject.SubjectID).AddSafety(-1);
                     }
                     else
                     {
                         //new thing hurts me, bad.
-                        SubjectAttitude subjectAttitude = new SubjectAttitude(subject.SubjectID, -1, 0);
-                        definition.Attitudes.Add(subjectAttitude);
+                        definition.Attitudes.Add(new SubjectAttitude(subject.SubjectID, -1, 0));
                     }
                     break;
                 case NpcAttitudeChangeEvent.FoodEaten:
                     if (IsSubjectKnown(definition, subject))
                     {
                         //known food, good.
-                        SubjectAttitude foodSubjectAttitude = definition.Attitudes.Find(o => o.SubjectID == subject.SubjectID);
-                        foodSubjectAttitude.AddFood(1);
+                        definition.Attitudes.Find(o => o.SubjectID == subject.SubjectID).AddFood(1);
                     }
                     else
                     {
                         //new food, good.
-                        SubjectAttitude subjectAttitude = new SubjectAttitude(subject.SubjectID, 1, 1);
-                        definition.Attitudes.Add(subjectAttitude);
+                        definition.Attitudes.Add(new SubjectAttitude(subject.SubjectID, 1, 1));
                     }
                     break;
                 case NpcAttitudeChangeEvent.LocationFound:
-                    // TODO: look at everything in this location and decide how to effect goodness and importance for this location.
+                    // look at everything in this location and decide how to effect attitude for this location.
+                    if (IsSubjectKnown(definition, subject))
+                    {
+                        // known location
+                        NpcLocationMemory locationMemory = definition.LocationMemories.Find(o => o.LocationSubjectID == subject.SubjectID);
+                        int foodValue = locationMemory.ObjectMemories.Count(o => definition.Attitudes.Find(att => att.SubjectID == o.SubjectID).Food > 0);
+                        int safetyValue = locationMemory.ObjectMemories.Count(o => definition.Attitudes.Find(att => att.SubjectID == o.SubjectID).Safety > 0);
+                        definition.Attitudes.Find(o => o.SubjectID == subject.SubjectID).SetValues((sbyte)foodValue, (sbyte)safetyValue);
+                    }
+                    else
+                    {
+                        //unknown location
+                        definition.Attitudes.Add(new SubjectAttitude(subject.SubjectID, 0, 0));
+                    }
                     break;
                 default:
                     throw new Exception("Invalid NpcAttitudeChangeEvent");
@@ -366,6 +384,17 @@ public partial class NpcCharacter
             status.UnsetState(NpcStates.Fighting);
             drivers.SetTopDriver(NpcDrivers.Safety);
         }
+    }
+
+    /// <summary>
+    /// Add objectToInspect to the NPC's LocationMemories & add it to subejct attitudes.
+    /// </summary>
+    /// <param name="objectToInspect">The GameObject to learn about.</param>
+    internal void Inspect(GameObject objectToInspect)
+    {
+        // TODO: inspect the object, add to memories.
+        SubjectObjectScript objectScript = objectToInspect.GetComponent<SubjectObjectScript>();
+        objectScript.Subject.TeachNpc(this);
     }
 
     /// <summary>

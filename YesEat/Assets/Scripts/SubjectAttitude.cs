@@ -1,4 +1,5 @@
 ﻿
+using System;
 /// <summary>
 /// A Character's attitude about a specific subject.
 /// </summary>
@@ -76,5 +77,17 @@ public class SubjectAttitude
         {
             safety += value;
         }
+    }
+
+    internal void AddValues(sbyte FoodValue, sbyte SafetyValue)
+    {
+        AddFood(FoodValue);
+        AddSafety(SafetyValue);
+    }
+
+    internal void SetValues(sbyte FoodValue, sbyte SafetyValue)
+    {
+        Food = FoodValue;
+        Safety = SafetyValue;
     }
 }
