@@ -22,8 +22,8 @@ public class ItemSubject : Subject
         icon = new Sprite();
 
         //qualities = new int[2];
-        buildDirections = new BuildRecipe();
-
+        buildDirections = null;
+        maxStack = 10;
     }
 
     /// <summary>
