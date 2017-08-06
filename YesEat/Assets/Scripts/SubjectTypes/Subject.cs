@@ -86,6 +86,16 @@ public class Subject
     {
         throw new NotImplementedException();
     }
+
+    /// <summary>
+    /// Prefab used by this subject
+    /// </summary>
+    public GameObject Prefab
+    {
+        get { return prefab; }
+        set { prefab = value; }
+    }
+
 }
 
 

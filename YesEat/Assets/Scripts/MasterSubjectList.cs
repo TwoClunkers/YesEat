@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using UnityEngine;
 
 /// <summary>
 /// A Character's attitude about a specific subject.
@@ -47,8 +48,9 @@ public class MasterSubjectList
             MaxGrowth = 400,
             Name = "Plinkett",
             RelatedSubjects = new int[0],
-            SubjectID = maxID
-        };
+            SubjectID = maxID,
+            Prefab = Resources.Load("GameObjects/Plinkett") as GameObject
+    };
 
         masterSubjectList.Add(plinkett);
         
@@ -64,7 +66,8 @@ public class MasterSubjectList
             Name = "Location",
             Radius = 2,
             RelatedSubjects = new int[0],
-            SubjectID = maxID
+            SubjectID = maxID,
+            Prefab = Resources.Load("GameObjects/LocationMarker") as GameObject
         };
         masterSubjectList.Add(NewLocationOne);
 
@@ -78,6 +81,7 @@ public class MasterSubjectList
             Description = "A Berry Bush",
             Icon = new UnityEngine.Sprite(),
             RelatedSubjects = new int[0],
+            Prefab = Resources.Load("GameObjects/Bush") as GameObject,
 
             ProduceID = 4,
             ProduceTime = 10,
@@ -156,7 +160,8 @@ public class MasterSubjectList
             MaxGrowth = 400,
             Name = "Gobber",
             RelatedSubjects = new int[0],
-            SubjectID = maxID
+            SubjectID = maxID,
+            Prefab = Resources.Load("GameObjects/Gobber") as GameObject
         };
 
         masterSubjectList.Add(gobber);
