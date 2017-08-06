@@ -2,7 +2,7 @@
 /// <summary>
 /// All possible events for which an NPC will Think.UpdateAttitude() for.
 /// </summary>
-public enum NpcAttitudeChangeEvent
+public enum NpcMemoryChangeEvent
 {
     /// <summary>
     /// Received damage from something.

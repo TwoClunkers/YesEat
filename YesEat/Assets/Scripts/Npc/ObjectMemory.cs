@@ -21,9 +21,9 @@ public class ObjectMemory
     }
 
     /// <summary>
-    /// Position of the object in the game world.
+    /// Quantity of this object.
     /// </summary>
-    public int Count
+    public int Quantity
     {
         get { return count; }
         set { count = value; }

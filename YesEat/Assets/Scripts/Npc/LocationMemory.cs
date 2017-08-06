@@ -4,7 +4,7 @@ using System.Collections.Generic;
 /// <summary>
 /// A memory of single location and the objects that were observed there.
 /// </summary>
-public class LocationMemory
+public class LocationMemory : SubjectMemory
 {
     #region Private members
     private List<ObjectMemory> objectMemories;
@@ -13,10 +13,7 @@ public class LocationMemory
     private MasterSubjectList masterSubjectList;
     #endregion
 
-    public LocationMemory(ref MasterSubjectList MasterSubjectListRef)
-    {
-        masterSubjectList = MasterSubjectListRef;
-    }
+    public LocationMemory(int SubjectID, sbyte SafetyValue, sbyte FoodValue) : base(SubjectID, SafetyValue, FoodValue) { }
 
     public LocationSubject LocationSubject { get { return masterSubjectList.GetSubject(locationSubjectID) as LocationSubject; } }
 
