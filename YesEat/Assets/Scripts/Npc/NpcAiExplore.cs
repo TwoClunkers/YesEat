@@ -14,7 +14,7 @@ public partial class NpcCore
         {
             // explore known locations for new stuff
             // populate locations to re-explore
-            if (reExploreLocations == null)
+            if (reExploreLocations.Count == 0)
             {
                 reExploreLocations = GetAllKnownLocations();
             }

@@ -33,7 +33,7 @@ public class MasterSubjectList
             Nest = null,
             SafetyDeadly = -10,
             SafetyHigh = 10,
-            SightRangeFar = 5,
+            SightRangeFar = 10,
             SightRangeNear = 2,
             StarvingDamage = 1,
             Traits = new NpcCharacterTraits(NpcTraits.NestMaker & NpcTraits.Herbivore)
@@ -145,7 +145,7 @@ public class MasterSubjectList
             Nest = null,
             SafetyDeadly = -10,
             SafetyHigh = 10,
-            SightRangeFar = 5,
+            SightRangeFar = 10,
             SightRangeNear = 2,
             StarvingDamage = 1,
             Traits = new NpcCharacterTraits(NpcTraits.Carnivore)

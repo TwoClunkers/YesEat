@@ -88,9 +88,11 @@ public partial class NpcCore
     /// <returns></returns>
     internal List<LocationSubject> GetAllKnownLocations()
     {
-        return definition.Memories
-                .Select(o => db.GetSubject(o.SubjectID) as LocationSubject)
-                .Where(o => db.GetSubject(o.SubjectID).GetType() == typeof(LocationSubject)).ToList();
+        List<SubjectMemory> locationMemories = definition.Memories
+                .FindAll(o => db.GetSubject(o.SubjectID).GetType() == typeof(LocationSubject));
+        List<LocationSubject> knownLocations = locationMemories
+                .Select(o => (db.GetSubject(o.SubjectID) as LocationSubject)).ToList();
+        return knownLocations;
     }
 
     /// <summary>
@@ -381,7 +383,8 @@ public partial class NpcCore
     public void AiCoreProcess()
     {
         considerObjects = objectScript.Observe();
-        unexploredLocations = objectScript.GetObservedLocations();
+        unexploredLocations = objectScript.GetObservedLocations()
+            .FindAll(o => !definition.Memories.Exists(x => x.SubjectID == o.SubjectID));
 
         // Consider each subject starting with the closest.
         bool dangerFound = false;

@@ -45,7 +45,6 @@ public abstract class Subject
         set { subjectID = value; }
     }
 
-
     /// <summary>
     /// This subject's name.
     /// </summary>
@@ -93,6 +92,24 @@ public abstract class Subject
         set { prefab = value; }
     }
 
+    public override bool Equals(object obj)
+    {
+        //Check for null and compare run-time types.
+        if ((obj == null) || !this.GetType().Equals(obj.GetType()))
+        {
+            return false;
+        }
+        else
+        {
+            Subject testObj = obj as Subject;
+            return (testObj.subjectID == subjectID);
+        }
+    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
 }
 
 
