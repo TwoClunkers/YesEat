@@ -22,7 +22,9 @@ public partial class NpcCore
     private AnimalObjectScript objectScript;
     private List<NpcCore> combatTargets;
     private List<LocationSubject> unexploredLocations;
-    private List<int> attemptedHarvest;
+    private List<LocationSubject> reExploreLocations;
+    private List<int> searchedObjects;
+    private List<int> searchedLocations;
     private float lastFoodSearch;
     #endregion
 
@@ -45,7 +47,9 @@ public partial class NpcCore
         combatTargets = new List<NpcCore>();
         unexploredLocations = new List<LocationSubject>();
         subjectID = -1;
-        attemptedHarvest = new List<int>();
+        searchedObjects = new List<int>();
+        searchedLocations = new List<int>();
+        reExploreLocations = new List<LocationSubject>();
     }
 
     /// <summary>
@@ -70,31 +74,52 @@ public partial class NpcCore
             drivers = new NpcDriversList();
             combatTargets = new List<NpcCore>();
             unexploredLocations = new List<LocationSubject>();
-            attemptedHarvest = new List<int>();
+            searchedObjects = new List<int>();
+            searchedLocations = new List<int>();
+            reExploreLocations = new List<LocationSubject>();
         }
     }
     #endregion
 
     #region Private Methods
+    /// <summary>
+    /// Get a list of all known locations.
+    /// </summary>
+    /// <returns></returns>
+    internal List<LocationSubject> GetAllKnownLocations()
+    {
+        return definition.Memories
+                .Select(o => db.GetSubject(o.SubjectID) as LocationSubject)
+                .Where(o => db.GetSubject(o.SubjectID).GetType() == typeof(LocationSubject)).ToList();
+    }
 
     /// <summary>
     /// Find the nearest location where subjectToFind can be found.
     /// </summary>
     /// <param name="SubjectToFind">The subject to search for.</param>
-    /// <returns>The found location or null if no location was found.</returns>
-    internal LocationSubject FindNearestLocationOfObject(Subject SubjectToFind, Vector3 CurrentPosition)
+    /// <param name="CurrentPosition">The current position of this game object.</param>
+    /// <param name="ExcludeLocationIDs">The locations to exclude from the results.</param>
+    /// <returns>The found locations or null if no locations were found.</returns>
+    internal List<LocationSubject> FindObject(Subject SubjectToFind, Vector3 CurrentPosition, List<int> ExcludeLocationIDs = null)
     {
-        // Find nearest location where subjectToFind can be found.
         List<LocationSubject> foundObjects;
-        foundObjects = definition.Memories
-                            .FindAll(o => o.SubjectID == SubjectToFind.SubjectID)
-                            .Select(o => db.GetSubject((o as LocationMemory).SubjectID) as LocationSubject)
-                            .OrderBy(o => Vector3.Distance(CurrentPosition, o.Coordinates)).ToList();
-
-        if (foundObjects.Count > 0)
-            return foundObjects[0];
+        if (ExcludeLocationIDs == null)
+        {
+            // Find nearest location where subjectToFind can be found.
+            foundObjects = definition.Memories
+                                .FindAll(o => o.SubjectID == SubjectToFind.SubjectID)
+                                .Select(o => db.GetSubject((o as LocationMemory).SubjectID) as LocationSubject)
+                                .OrderBy(o => Vector3.Distance(CurrentPosition, o.Coordinates)).ToList();
+        }
         else
-            return null;
+        {
+            foundObjects = definition.Memories
+                                .FindAll(o => o.SubjectID == SubjectToFind.SubjectID)
+                                .Select(o => db.GetSubject((o as LocationMemory).SubjectID) as LocationSubject)
+                                .Where(o => !ExcludeLocationIDs.Contains(o.SubjectID))
+                                .OrderBy(o => Vector3.Distance(CurrentPosition, o.Coordinates)).ToList();
+        }
+        return foundObjects;
     }
 
     /// <summary>
@@ -247,7 +272,7 @@ public partial class NpcCore
     /// <summary>
     /// Update drivers based on current values.
     /// </summary>
-    private void UpdateDrivers()
+    internal void UpdateDrivers()
     {
         // Default driver: Explore.
         if (drivers.Count == 0) drivers.Add(NpcDrivers.Explore);
@@ -293,7 +318,7 @@ public partial class NpcCore
     /// <summary>
     /// Character has died, set Dead status and clear out all drivers.
     /// </summary>
-    private void Die()
+    internal void Die()
     {
         status.SetState(NpcStates.Dead);
         drivers.Clear();
@@ -302,16 +327,17 @@ public partial class NpcCore
     #endregion
 
     #region Public Methods
-    /// <summary>
-    /// This NPC's Definition.
-    /// </summary>
-    public NpcDefinition Definition { get { return definition; } }
 
     #region Expose Definition values as read only
     public float SightRangeFar { get { return definition.SightRangeFar; } }
     public float SightRangeNear { get { return definition.SightRangeNear; } }
     public float MoveSpeed { get { return definition.MoveSpeed; } }
     #endregion
+
+    /// <summary>
+    /// This NPC's Definition.
+    /// </summary>
+    public NpcDefinition Definition { get { return definition; } }
 
     /// <summary>
     /// This NPC's associated subject.
@@ -355,7 +381,7 @@ public partial class NpcCore
     public void AiCoreProcess()
     {
         considerObjects = objectScript.Observe();
-        unexploredLocations = objectScript.GetFarObjects();
+        unexploredLocations = objectScript.GetObservedLocations();
 
         // Consider each subject starting with the closest.
         bool dangerFound = false;
@@ -400,7 +426,6 @@ public partial class NpcCore
 
     }
 
-
     /// <summary>
     /// Add objectToInspect to the NPC's Memories.
     /// </summary>
@@ -410,6 +435,11 @@ public partial class NpcCore
         // inspect the object, add to memories.
         SubjectObjectScript objectScript = objectToInspect.GetComponent<SubjectObjectScript>();
         objectScript.Subject.TeachNpc(this);
+        if (objectScript.GetType() == typeof(LocationObjectScript))
+        {
+            // if it's in the reExploreLocations list, remove it.
+            reExploreLocations.Remove(objectScript.Subject as LocationSubject);
+        }
     }
 
     /// <summary>
