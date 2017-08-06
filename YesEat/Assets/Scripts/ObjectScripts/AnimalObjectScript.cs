@@ -38,6 +38,7 @@ public class AnimalObjectScript : SubjectObjectScript
         AiTickRate = 1.0f;
         isCarcass = false;
         AnimalSubject animalSubject = newSubject as AnimalSubject;
+        Subject = newSubject as AnimalSubject;
         npcCharacter = new NpcCore(this, ref masterSubjectList, animalSubject);
         Inventory = new Inventory(animalSubject.InventorySize, ref masterSubjectList);
     }
