@@ -72,6 +72,13 @@ public class PlacementControllerScript : MonoBehaviour
                     if (CheckPlacementPosition(centerPosition, distance, placedObject))
                     {
                         placedObject.transform.localScale = new Vector3(distance * 2, 0.1f, distance * 2);
+                    }
+
+                    //Look for a second mouse click to finalize the location
+                    if (!IsOverMenu() && (Input.GetMouseButtonDown(0)))
+                    {
+                        placementStarted = false;
+                        //grab the script, and we will place a new LocationSubject in it.
                         SubjectObjectScript script = placedObject.GetComponent<SubjectObjectScript>() as SubjectObjectScript;
                         LocationSubject newLocation = script.Subject as LocationSubject;
                         if (newLocation != null)
@@ -85,16 +92,10 @@ public class PlacementControllerScript : MonoBehaviour
                                 centerPosition.x.ToString().Substring(0, 4) + "," +
                                 centerPosition.y.ToString().Substring(0, 4) + "," +
                                 centerPosition.z.ToString().Substring(0, 4);
+                            //add the next id available
                             newLocation.SubjectID = masterSubjectList.GetNextID();
-                            if(!masterSubjectList.AddSubject(newLocation)) Debug.Log("FAIL ADD");
+                            if (!masterSubjectList.AddSubject(newLocation)) Debug.Log("FAIL ADD");
                         }
-
-                    }
-
-                    //Look for a second mouse click to finalize the location
-                    if (!IsOverMenu() && (Input.GetMouseButtonDown(0)))
-                    {
-                        placementStarted = false;
                     }
                 }
                 else
