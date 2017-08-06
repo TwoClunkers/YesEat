@@ -223,4 +223,9 @@ public class AnimalObjectScript : SubjectObjectScript
             return new List<LocationSubject>();
         }
     }
+
+    public bool Damage(Subject subjectAttacker, int damageAmount, NpcCore NpcAttacker = null)
+    {
+        return npcCharacter.Damage(subjectAttacker, damageAmount, NpcAttacker);
+    }
 }
