@@ -1,21 +1,22 @@
 ﻿using UnityEngine;
 using System.Collections;
 using System.Collections.Generic;
+using System;
 
 public class LocationObjectScript : SubjectObjectScript
 {
     #region Private members
     private bool isChanged = false;
     private int count;
+    private List<ObjectMemory> localObjects;
     #endregion
-    public int SubjectID = -1;
-    
+
     // Use this for initialization
     void Start()
     {
         subject = new LocationSubject();
-        subject.SubjectID = SubjectID;
         count = 0;
+        localObjects = new List<ObjectMemory>();
     }
 
     // Update is called once per frame
@@ -35,7 +36,7 @@ public class LocationObjectScript : SubjectObjectScript
             UpdateRelatedInLocation();
             count = 0;
         }
-        
+
     }
 
     /// <summary>
@@ -61,24 +62,39 @@ public class LocationObjectScript : SubjectObjectScript
         if (locationSubject == null) return;
 
         //grab collides within the area of our location and create a list of objects
-        Collider[] hitColliders = Physics.OverlapSphere(locationSubject.Coordinates, locationSubject.Radius);
+        int layerMask = ~((1 << 8) | (1 << 9)); // filter out terrain and locations
+        Collider[] hitColliders = Physics.OverlapSphere(locationSubject.Coordinates, locationSubject.Radius, layerMask);
 
-        
         List<int> foundSubjectIDs = new List<int>();
         for (int i = 0; i < hitColliders.Length; i++)
         {
-            //this tries to grab the base script class for our objects, move along if null
+            // get the base script class for our objects
             SubjectObjectScript script = hitColliders[i].GetComponent<SubjectObjectScript>() as SubjectObjectScript;
-            if (script == null) continue;
+            if (script == null)
+            {
+                Debug.Log("SubjectObjectScript was not assigned to " + hitColliders[i].name);
+                continue;
+            }
 
             //tell each Object that it is within our location
-            script.Location = locationSubject;
-    
+            script.Location = subject as LocationSubject;
+
             //record each subjectID found if not already recorded
             int foundID = script.Subject.SubjectID;
-            if(!foundSubjectIDs.Contains(foundID))
+            if (!foundSubjectIDs.Contains(foundID))
             {
                 foundSubjectIDs.Add(foundID);
+            }
+
+            //record object quantites for NPC memory
+            ObjectMemory existingMemory = localObjects.Find(o => o.SubjectID == script.Subject.SubjectID);
+            if (existingMemory != null)
+            {
+                existingMemory.Quantity++;
+            }
+            else
+            {
+                localObjects.Add(new ObjectMemory() { Quantity = 1, SubjectID = script.Subject.SubjectID });
             }
         }
 
@@ -88,7 +104,7 @@ public class LocationObjectScript : SubjectObjectScript
 
         if (newRelated.Length != subject.RelatedSubjects.Length)
             isChanged = true;
-        else 
+        else
         {
             for (int i = 0; i < newRelated.Length; i++)
             {
@@ -117,5 +133,12 @@ public class LocationObjectScript : SubjectObjectScript
     {
         subject = newSubject as LocationSubject;
         count = 0;
+    }
+
+    internal void TeachNpc(NpcCore npc)
+    {
+        subject.TeachNpc(npc);
+        LocationMemory locationMemory = npc.Definition.Memories.Find(o => o.SubjectID == Subject.SubjectID) as LocationMemory;
+        locationMemory.ObjectMemories = localObjects;
     }
 }

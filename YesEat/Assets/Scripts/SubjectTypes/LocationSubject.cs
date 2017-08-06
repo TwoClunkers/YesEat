@@ -56,7 +56,10 @@ public class LocationSubject : Subject
 
     public override void TeachNpc(NpcCore npcCharacter)
     {
-        npcCharacter.Definition.Memories.Add(new LocationMemory(subjectID, 0, 0));
+        if (!npcCharacter.Definition.Memories.Exists(o => o.SubjectID == this.subjectID))
+        {
+            npcCharacter.Definition.Memories.Add(new LocationMemory(subjectID, 0, 0));
+        }
     }
 }
 

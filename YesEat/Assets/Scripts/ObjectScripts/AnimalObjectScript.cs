@@ -37,10 +37,10 @@ public class AnimalObjectScript : SubjectObjectScript
     {
         AiTickRate = 1.0f;
         isCarcass = false;
-        AnimalSubject animalSubject = newSubject as AnimalSubject;
-        Subject = newSubject as AnimalSubject;
-        npcCharacter = new NpcCore(this, ref masterSubjectList, animalSubject);
-        Inventory = new Inventory(animalSubject.InventorySize, ref masterSubjectList);
+        subject = newSubject as AnimalSubject;
+        masterSubjectList = _masterSubjectList;
+        npcCharacter = new NpcCore(this, ref masterSubjectList, subject);
+        Inventory = new Inventory((subject as AnimalSubject).InventorySize, ref masterSubjectList);
     }
 
     /// <summary>
@@ -195,7 +195,7 @@ public class AnimalObjectScript : SubjectObjectScript
         // if our position is within 1 unit of a location center add the location to our memory.
         foreach (GameObject locationObject in seenLocationObjects)
         {
-            if (Vector3.Distance(locationObject.transform.position, transform.position) < 1)
+            if (Vector3.Distance(locationObject.transform.position, transform.position) <= 1)
             {
                 npcCharacter.Inspect(locationObject);
             }
@@ -214,8 +214,18 @@ public class AnimalObjectScript : SubjectObjectScript
     {
         List<GameObject> farObjectList = seenLocationObjects.ToList();
         if (farObjectList.Count() > 0)
-            return farObjectList.Select(o => o.GetComponent<SubjectObjectScript>().Location).ToList();
+        {
+            List<LocationSubject> observedLocations = farObjectList.Select(o => o.GetComponent<SubjectObjectScript>().Subject as LocationSubject).ToList();
+            return observedLocations;
+        }
         else
+        {
             return new List<LocationSubject>();
+        }
+    }
+
+    public bool Damage(Subject subjectAttacker, int damageAmount, NpcCore NpcAttacker = null)
+    {
+        return npcCharacter.Damage(subjectAttacker, damageAmount, NpcAttacker);
     }
 }
