@@ -5,10 +5,8 @@ public class PlacementControllerScript : MonoBehaviour
 {
     public MasterSubjectList masterSubjectList;
     public GameObject currentSelection;
-    public GameObject locationPrefab;
-    public GameObject bushPrefab;
-    public GameObject plinketPrefab;
-    public GameObject gobberPrefab;
+
+    public int placeID;
     private bool placementStarted;
     private Vector3 centerPosition;
     private Vector3 edgePosition;
@@ -21,12 +19,13 @@ public class PlacementControllerScript : MonoBehaviour
         centerPosition = new Vector3();
         edgePosition = new Vector3();
         currentSelection = null;
+        placeID = 3;
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (currentSelection == null)
+        if (placeID == 0)
         {
             //setting to delete objects
         }
@@ -43,22 +42,31 @@ public class PlacementControllerScript : MonoBehaviour
                     //We will let everything start with a radius of 1.0
                     if (CheckPlacementPosition(centerPosition, 1.0f, null))
                     {
-                        placedObject = Instantiate(currentSelection, centerPosition, Quaternion.identity);
-                        SubjectObjectScript script = placedObject.GetComponent<SubjectObjectScript>() as SubjectObjectScript;
-                        LocationSubject newLocation = new LocationSubject();
-                        newLocation.Coordinates = centerPosition;
-                        newLocation.Radius = 0.5f;
-                        script.InitializeFromSubject(masterSubjectList, new Subject());
-                        placedObject.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
-                        placementStarted = true;
+                        //Use the id to pull the Subject card
+                        Subject newSubject = masterSubjectList.GetSubject(placeID);
+                        if(newSubject != null)
+                        {
+                            placedObject = Instantiate(newSubject.Prefab, centerPosition, Quaternion.identity);
+                            if(placedObject != null)
+                            {
+                                SubjectObjectScript script = placedObject.GetComponent<SubjectObjectScript>() as SubjectObjectScript;
+                                LocationSubject newLocation = new LocationSubject();
+                                newLocation.Coordinates = centerPosition;
+                                newLocation.Radius = 0.5f;
+                                script.InitializeFromSubject(masterSubjectList, newSubject);
+                                placedObject.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
+                                placementStarted = true;
+                            }
+                        }
+                        
+                        
                     }
                 }
             }
             else
             {
-
-                //We have started to place
-                if (currentSelection.tag == "Location")
+                //We have started to place - is it a location?
+                if (placeID == 2)
                 {
                     //calculate our edge and manipulate the scale until finalized
                     edgePosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y));
@@ -103,7 +111,7 @@ public class PlacementControllerScript : MonoBehaviour
     public bool CheckPlacementPosition(Vector3 center, float radius, GameObject excludeObject)
     {
 
-        if (currentSelection == null) return false; //nothing to place;
+        //if (currentSelection == null) return false; //nothing to place;
         //First we catch all the colliders in our area
         Collider[] hitColliders = Physics.OverlapSphere(center, radius);
 
@@ -114,7 +122,7 @@ public class PlacementControllerScript : MonoBehaviour
             if (hitColliders[i].gameObject == excludeObject) continue;
             //Are any Colliders a LocationObject?
             //If we have one location, (not two) we are fine to place
-            if ((hitColliders[i].tag == "Location") ^ (currentSelection.tag == "Location"))
+            if ((hitColliders[i].tag == "Location") ^ (placeID == 2))
             {
                 continue;
             }
@@ -137,36 +145,31 @@ public class PlacementControllerScript : MonoBehaviour
 
     public void OnSelectLocation(bool isClicked)
     {
-        currentSelection = locationPrefab;
+        placeID = 2;
         placementStarted = false;
-        Debug.Log("You have clicked Location!");
     }
 
     public void OnSelectBush(bool isClicked)
     {
-        currentSelection = bushPrefab;
+        placeID = 3;
         placementStarted = false;
-        Debug.Log("You have clicked Bush!");
     }
 
     public void OnSelectPlinket()
     {
-        currentSelection = plinketPrefab;
+        placeID = 1;
         placementStarted = false;
-        Debug.Log("You have clicked Plink!");
     }
 
     public void OnSelectGobber()
     {
-        currentSelection = gobberPrefab;
+        placeID = 6;
         placementStarted = false;
-        Debug.Log("You have clicked Goober!");
     }
 
     public void OnSelectDelete()
     {
-        currentSelection = null;
+        placeID = 0;
         placementStarted = false;
-        Debug.Log("You have clicked Delete!");
     }
 }
