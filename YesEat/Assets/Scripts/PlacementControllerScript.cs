@@ -26,15 +26,29 @@ public class PlacementControllerScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (placeID == 0)
+        if (placeID < 1)
         {
-            //setting to delete objects
-            if (!IsOverMenu() && (Input.GetMouseButtonDown(0)))
+            if (placeID < 0) //setting to kill
             {
-                centerPosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y));
-                if (DeleteAtPosition(centerPosition, 1.0f))
+                if (!IsOverMenu() && (Input.GetMouseButtonDown(0)))
                 {
-                    Debug.Log("destroy!");
+                    centerPosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y));
+                    if (HarmAtPosition(centerPosition, 1.0f))
+                    {
+                        Debug.Log("kill!");
+                    }
+                }
+            }
+            else
+            {
+                //setting to delete objects
+                if (!IsOverMenu() && (Input.GetMouseButtonDown(0)))
+                {
+                    centerPosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y));
+                    if (DeleteAtPosition(centerPosition, 1.0f))
+                    {
+                        Debug.Log("destroy!");
+                    }
                 }
             }
         }
@@ -169,6 +183,30 @@ public class PlacementControllerScript : MonoBehaviour
         return false;
     }
 
+    public bool HarmAtPosition(Vector3 center, float radius)
+    {
+        //if (currentSelection == null) return false; //nothing to place;
+        //First we catch all the colliders in our area
+        Collider[] hitColliders = Physics.OverlapSphere(center, radius);
+        
+        //If we caught any, will have to check them
+        for (int i = 0; i < hitColliders.Length; i++)
+        {
+            if (hitColliders[i].tag == "Ground") continue;
+            else
+            {
+                AnimalObjectScript script = hitColliders[i].GetComponent<AnimalObjectScript>() as AnimalObjectScript;
+                if (script != null)
+                {
+                    if (script.Damage(script.Subject, 10000)) return true;
+                }
+                else continue;
+            }
+        }
+        //if we are not bumped prior to here, we are still good
+        return false;
+    }
+
     /// <summary>
     /// Shortened access to an eventsystem check
     /// </summary>
@@ -205,6 +243,12 @@ public class PlacementControllerScript : MonoBehaviour
     public void OnSelectDelete()
     {
         placeID = 0;
+        placementStarted = false;
+    }
+
+    public void OnSelectSmite()
+    {
+        placeID = -1;
         placementStarted = false;
     }
 }
