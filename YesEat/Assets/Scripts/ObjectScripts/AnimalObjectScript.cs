@@ -126,7 +126,8 @@ public class AnimalObjectScript : SubjectObjectScript
         }
         else // this animal is dead
         {
-            Inventory.Add(new InventoryItem(ref masterSubjectList, npcCharacter.Subject.LootID, 1));
+            // SubjectID #5 = meat
+            Inventory.Add(new InventoryItem(5, 1));
             isCarcass = true;
         }
     }
@@ -142,7 +143,7 @@ public class AnimalObjectScript : SubjectObjectScript
     {
         if (isCarcass)
         {
-            return Inventory.Take(new InventoryItem(ref masterSubjectList, npcCharacter.Subject.LootID, 1));
+            return Inventory.Take(new InventoryItem(5, 1));
         }
         else return null;
     }

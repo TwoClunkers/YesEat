@@ -20,7 +20,7 @@ class Inventory
         inventorySlots = new InventoryItem[size];
         for (int i = 0; i < size; i++)
         {
-            inventorySlots[i] = new InventoryItem(ref masterSubjectList);
+            inventorySlots[i] = new InventoryItem();
         }
         masterSubjectList = masterSubjectListRef;
     }
@@ -42,7 +42,7 @@ class Inventory
             {
                 newInventorySlots[i] = inventorySlots[i];
             }
-            else newInventorySlots[i] = new InventoryItem(ref masterSubjectList);
+            else newInventorySlots[i] = new InventoryItem();
         }
         //set the new array as the one for this object
         inventorySlots = newInventorySlots;
@@ -81,13 +81,14 @@ class Inventory
             //If this slot matches, we can stack on top of it
             if(inventorySlots[i].SubjectID == newInventoryItem.SubjectID)
             {
-                int remainder = inventorySlots[i].Add(newInventoryItem);
+                int remainder = inventorySlots[i].Add(newInventoryItem, ref masterSubjectList);
                 newInventoryItem.StackSize = remainder;
             }
             //If we still have some, and have an empty slot, we can make a new stack.
-            if(inventorySlots[i].SubjectID == 0)
+            if(inventorySlots[i].StackSize < 1)
             {
-                int remainder = inventorySlots[i].Add(newInventoryItem);
+                inventorySlots[i].SubjectID = newInventoryItem.SubjectID;
+                int remainder = inventorySlots[i].Add(newInventoryItem, ref masterSubjectList);
                 newInventoryItem.StackSize = remainder;
             }
             //If the passed InventoryItem is empty, we can reset the subject id and break
@@ -173,7 +174,7 @@ class Inventory
             if(newSubject != null)
             {
                 //this creates an InventoryItem to hold our specific request and pass results into our reservedItems list
-                InventoryItem neededItem = new InventoryItem(ref masterSubjectList);
+                InventoryItem neededItem = new InventoryItem();
                 neededItem.SubjectID = newSubject.SubjectID;
                 neededItem.StackSize = limitStack;
                 //this reduces our inventory and places it into the reserved list
@@ -191,4 +192,19 @@ class Inventory
         
         return reservedItems;
     }
+
+    public float FillRatio()
+    {
+        float filled = 0.0f;
+        for (int i = 0; i < inventorySlots.Length; i++)
+        {
+            if (inventorySlots[i].StackSize > 0)
+            {
+                filled += 1.0f;
+            }
+                
+        }
+        return filled / (float)size;
+    }
+
 }

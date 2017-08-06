@@ -24,7 +24,7 @@ public partial class NpcCore
             foodSourceID = 1; // plinkett
         }
 
-        InventoryItem foodItem = objectScript.Inventory.Take(new InventoryItem(ref db, foodSubjectID, 1));
+        InventoryItem foodItem = objectScript.Inventory.Take(new InventoryItem(foodSubjectID, 1));
         if (foodItem.StackSize > 0)
         {
             // eat food in inventory

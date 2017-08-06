@@ -9,30 +9,25 @@ public class InventoryItem
     #region Private members
     private int subjectID;
     private int stackSize;
-    private MasterSubjectList masterSubjectList;
     #endregion
 
     /// <summary>
-    /// New InventoryItem.
+    /// Empty Inventory Item
     /// </summary>
-    /// <param name="masterSubjectListRef">reference to the MasterSubjectList</param>
-    public InventoryItem(ref MasterSubjectList masterSubjectListRef)
+    public InventoryItem()
     {
-        masterSubjectList = masterSubjectListRef;
-        subjectID = -1;
+        subjectID = 0;
         stackSize = 0;
     }
 
 
     /// <summary>
-    /// New InventoryItem constructor
+    /// InventoryItem constructor setting ID and size
     /// </summary>
-    /// <param name="masterSubjectListRef"></param>
     /// <param name="_subjectID"></param>
     /// <param name="_stackSize"></param>
-    public InventoryItem(ref MasterSubjectList masterSubjectListRef, int _subjectID, int _stackSize)
+    public InventoryItem(int _subjectID, int _stackSize)
     {
-        masterSubjectList = masterSubjectListRef;
         subjectID = _subjectID;
         stackSize = _stackSize;
     }
@@ -56,12 +51,13 @@ public class InventoryItem
     }
 
     /// <summary>
-    /// SetStack will set the value of the Inventory Item and only return false if we set an invalid subject
+    /// Sets the stack, but limits based on subject MaxStack
     /// </summary>
     /// <param name="newSubjectID"></param>
     /// <param name="newStackSize"></param>
+    /// <param name="masterSubjectList"></param>
     /// <returns></returns>
-    public bool SetStack (int newSubjectID, int newStackSize)
+    public bool SetStack (int newSubjectID, int newStackSize, ref MasterSubjectList masterSubjectList)
     {
         ItemSubject newSubject = masterSubjectList.GetSubject(newSubjectID, typeof(ItemSubject)) as ItemSubject;
 
@@ -75,16 +71,17 @@ public class InventoryItem
     }
 
     /// <summary>
-    /// Add will return the number remaining that would not fit based on ItemSubject.maxStack
+    /// Adds to the stack, limits based on the subject MaxStack
     /// </summary>
     /// <param name="newSubjectID"></param>
     /// <param name="newStackSize"></param>
+    /// <param name="masterSubjectList"></param>
     /// <returns></returns>
-    public int Add(int newSubjectID, int newStackSize)
+    public int Add(int newSubjectID, int newStackSize, ref MasterSubjectList masterSubjectList)
     {
         if (newSubjectID != subjectID) return newStackSize; //reject entire amount
 
-        ItemSubject newSubject = masterSubjectList.GetSubject(newSubjectID, typeof(ItemSubject)) as ItemSubject;
+        ItemSubject newSubject = masterSubjectList.GetSubject(newSubjectID) as ItemSubject;
 
         if (newSubject != null)
         {
@@ -97,15 +94,16 @@ public class InventoryItem
     }
 
     /// <summary>
-    /// Override for Add takes an Inventory Item to add to this Inventory Item and returns amount that would not fit
+    /// Adds to the stack, limits based on the subject MaxStack
     /// </summary>
     /// <param name="addedInvItem"></param>
+    /// <param name="masterSubjectList"></param>
     /// <returns></returns>
-    public int Add(InventoryItem addedInvItem)
+    public int Add(InventoryItem addedInvItem, ref MasterSubjectList masterSubjectList)
     {
         if (addedInvItem.subjectID != subjectID) return addedInvItem.stackSize; //reject entire amount
 
-        ItemSubject newSubject = masterSubjectList.GetSubject(addedInvItem.subjectID, typeof(ItemSubject)) as ItemSubject;
+        ItemSubject newSubject = masterSubjectList.GetSubject(addedInvItem.subjectID) as ItemSubject;
 
         if (newSubject != null)
         {

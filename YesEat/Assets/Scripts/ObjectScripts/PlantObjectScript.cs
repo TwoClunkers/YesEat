@@ -29,16 +29,19 @@ public class PlantObjectScript : SubjectObjectScript
     void Update()
     {
         age += Time.deltaTime;
+        //we grow
         if (currentGrowth < maxGrowth)
         {
             if (Mathf.FloorToInt(age) > (currentGrowth * growthTime))
                 GrowthStep();
         }
+        //we produce
         if (mature)
         {
             if ((Time.time - lastProduce) > produceTime)
             {
                 ProduceStep();
+                UpdateFullnessColor();
             }
         }
         else
@@ -54,7 +57,7 @@ public class PlantObjectScript : SubjectObjectScript
 
     public override InventoryItem Harvest()
     {
-        return inventory.Take(new InventoryItem(ref masterSubjectList, produceID, 1));
+        return inventory.Take(new InventoryItem(produceID, 1));
     }
 
 
@@ -63,8 +66,8 @@ public class PlantObjectScript : SubjectObjectScript
     /// </summary>
     void ProduceStep()
     {
-        InventoryItem producedItem = new InventoryItem(ref masterSubjectList, produceID, 1);
-        inventory.Add(producedItem);
+        InventoryItem producedItem = new InventoryItem(produceID, 1);
+        producedItem = inventory.Add(producedItem);
         lastProduce = Time.time;
     }
 
@@ -75,6 +78,11 @@ public class PlantObjectScript : SubjectObjectScript
     {
         currentGrowth += 1;
         gameObject.transform.localScale = new Vector3(currentGrowth * 0.04f + 0.5f, currentGrowth * 0.03f + 0.5f, currentGrowth * 0.04f + 0.5f);
+    }
+
+    void UpdateFullnessColor()
+    {
+        transform.GetComponent<Renderer>().material.color = Color.Lerp(new Color(0.2F, 0.9F, 0.3F, 0.8F), new Color(0.8F, 0.2F, 0.8F, 0.8F), inventory.FillRatio());
     }
 
     /// <summary>
