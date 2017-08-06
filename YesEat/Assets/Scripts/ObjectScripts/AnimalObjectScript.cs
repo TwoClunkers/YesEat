@@ -12,16 +12,28 @@ public class AnimalObjectScript : SubjectObjectScript
     private GameObject[] seenLocationObjects;
     private LocationSubject destination;
     private NpcCore npcCharacter;
+    private bool isCarcass;
+    private Inventory inventory;
     #endregion
 
-    public int AnimalSubjectID = -1;
+    internal Inventory Inventory
+    {
+        get { return inventory; }
+        set { inventory = value; }
+    }
 
     // Use this for initialization
     void Start()
     {
-        if (AnimalSubjectID == -1) throw new System.Exception(gameObject.name + ": No AnimalSubjectID is assigned for the Prefab.");
-        AnimalSubject animalSubject = masterSubjectList.GetSubject(AnimalSubjectID) as AnimalSubject;
+
+    }
+
+    public override void InitializeFromSubject(MasterSubjectList _masterSubjectList, Subject newSubject)
+    {
+        isCarcass = false;
+        AnimalSubject animalSubject = newSubject as AnimalSubject;
         npcCharacter = new NpcCore(this, ref masterSubjectList, animalSubject);
+        Inventory = new Inventory(animalSubject.InventorySize, ref masterSubjectList);
     }
 
     /// <summary>
@@ -41,20 +53,39 @@ public class AnimalObjectScript : SubjectObjectScript
     // Update is called once per frame
     void Update()
     {
-        AiCoreTickTime += Time.deltaTime;
-        if (AiCoreTickTime > 1.0f)
+        if (!npcCharacter.IsDead)
         {
-            npcCharacter.AiCoreProcess();
-            AiCoreTickTime -= 1.0f;
-        }
 
-        if (destination != null)
-        {
-            float distance = Vector3.Distance(destination.Coordinates, transform.position);
-            if (distance > npcCharacter.SightRangeFar) MoveTowardsPoint(destination.Coordinates, npcCharacter.MoveSpeed);
-            else if (distance > 1) MoveTowardsPoint(destination.Coordinates, npcCharacter.MoveSpeed / 3);
-            else destination = null;
+            AiCoreTickTime += Time.deltaTime;
+            if (AiCoreTickTime > 1.0f)
+            {
+                npcCharacter.AiCoreProcess();
+                AiCoreTickTime -= 1.0f;
+            }
+
+            if (destination != null)
+            {
+                float distance = Vector3.Distance(destination.Coordinates, transform.position);
+                if (distance > npcCharacter.SightRangeFar) MoveTowardsPoint(destination.Coordinates, npcCharacter.MoveSpeed);
+                else if (distance > 1) MoveTowardsPoint(destination.Coordinates, npcCharacter.MoveSpeed / 3);
+                else destination = null;
+            }
         }
+        else
+        {
+            // SubjectID #5 = meat
+            Inventory.Add(new InventoryItem(ref masterSubjectList, 5, 1));
+            isCarcass = true;
+        }
+    }
+
+    public override InventoryItem Harvest()
+    {
+        if (isCarcass)
+        {
+            return Inventory.Take(new InventoryItem(ref masterSubjectList, 5, 1));
+        }
+        else return null;
     }
 
     /// <summary>
@@ -96,10 +127,10 @@ public class AnimalObjectScript : SubjectObjectScript
         nearObjects = nearList.ToArray();
         seenLocationObjects = seenLocationList.ToArray();
 
-        //TODO: if our position is within 1 unit of a location center add the location to our memory.
+        // if our position is within 1 unit of a location center add the location to our memory.
         foreach (GameObject locationObject in seenLocationObjects)
         {
-            if(Vector3.Distance(locationObject.transform.position, transform.position) < 1)
+            if (Vector3.Distance(locationObject.transform.position, transform.position) < 1)
             {
                 npcCharacter.Inspect(locationObject);
             }

@@ -13,7 +13,7 @@ public partial class NpcCore
             // if not at nest move there first
             if (objectScript.Location.SubjectID != definition.Nest.LocationSubjectID)
             {
-                objectScript.MoveToNewLocation(definition.Nest.LocationSubject);
+                objectScript.MoveToNewLocation(db.GetSubject(definition.Nest.SubjectID) as LocationSubject);
                 return;
             }
         }

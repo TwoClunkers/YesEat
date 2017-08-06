@@ -10,12 +10,9 @@ public class LocationMemory : SubjectMemory
     private List<ObjectMemory> objectMemories;
     private int locationSubjectID;
     private DateTime lastTimeSeen;
-    private MasterSubjectList masterSubjectList;
     #endregion
 
     public LocationMemory(int SubjectID, sbyte SafetyValue, sbyte FoodValue) : base(SubjectID, SafetyValue, FoodValue) { }
-
-    public LocationSubject LocationSubject { get { return masterSubjectList.GetSubject(locationSubjectID) as LocationSubject; } }
 
     /// <summary>
     /// MasterSubjectList.SubjectID for this location.

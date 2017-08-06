@@ -8,13 +8,13 @@ using UnityEngine;
 /// </summary>
 public partial class NpcCore
 {
-    #region private member declarations
+    #region Private member declarations
     private int health;
     private int food;
     private int safety;
 
     private int subjectID;
-    private MasterSubjectList masterSubjectList;
+    private MasterSubjectList db;
     private NpcStatus status;
     private NpcDefinition definition;
     private NpcDriversList drivers;
@@ -22,8 +22,11 @@ public partial class NpcCore
     private AnimalObjectScript objectScript;
     private List<NpcCore> combatTargets;
     private List<LocationSubject> unexploredLocations;
+    private List<int> attemptedHarvest;
+    private float lastFoodSearch;
     #endregion
 
+    #region Constructors
     /// <summary>
     /// Create a generic NpcCharacter.
     /// </summary>
@@ -31,7 +34,7 @@ public partial class NpcCore
     /// <param name="MasterSubjectListRef">A reference to the main MasterSubjectList.</param>
     public NpcCore(AnimalObjectScript ParentObjectScript, ref MasterSubjectList MasterSubjectListRef)
     {
-        masterSubjectList = MasterSubjectListRef;
+        db = MasterSubjectListRef;
         objectScript = ParentObjectScript;
         health = 100;
         food = 100;
@@ -42,6 +45,7 @@ public partial class NpcCore
         combatTargets = new List<NpcCore>();
         unexploredLocations = new List<LocationSubject>();
         subjectID = -1;
+        attemptedHarvest = new List<int>();
     }
 
     /// <summary>
@@ -52,7 +56,7 @@ public partial class NpcCore
     /// <param name="BasedOnSubject">Subject's NpcDefinition will define the character's initial resource pools, thresholds for fulfilling basic needs, and memories.</param>
     public NpcCore(AnimalObjectScript ParentObjectScript, ref MasterSubjectList MasterSubjectListRef, Subject BasedOnSubject)
     {
-        masterSubjectList = MasterSubjectListRef;
+        db = MasterSubjectListRef;
         if (BasedOnSubject is AnimalSubject)
         {
             objectScript = ParentObjectScript;
@@ -66,13 +70,12 @@ public partial class NpcCore
             drivers = new NpcDriversList();
             combatTargets = new List<NpcCore>();
             unexploredLocations = new List<LocationSubject>();
+            attemptedHarvest = new List<int>();
         }
     }
+    #endregion
 
-    #region Think { ... }
-    /// <summary>
-    /// Contains methods for extensive parsing and evaluation of subjects and memories.
-    /// </summary>
+    #region Private Methods
 
     /// <summary>
     /// Find the nearest location where subjectToFind can be found.
@@ -85,7 +88,7 @@ public partial class NpcCore
         List<LocationSubject> foundObjects;
         foundObjects = definition.Memories
                             .FindAll(o => o.SubjectID == SubjectToFind.SubjectID)
-                            .Select(o => (o as LocationMemory).LocationSubject)
+                            .Select(o => db.GetSubject((o as LocationMemory).SubjectID) as LocationSubject)
                             .OrderBy(o => Vector3.Distance(CurrentPosition, o.Coordinates)).ToList();
 
         if (foundObjects.Count > 0)
@@ -119,7 +122,10 @@ public partial class NpcCore
     /// <returns>True: known. False: not known.</returns>
     internal bool IsSubjectKnown(Subject conSubject)
     {
-        return definition.Memories.Exists(o => o.SubjectID == conSubject.SubjectID);
+        if (conSubject != null)
+            return definition.Memories.Exists(o => o.SubjectID == conSubject.SubjectID);
+        else
+            return false;
     }
 
     /// <summary>
@@ -230,15 +236,72 @@ public partial class NpcCore
         // get a list of all safe locations we remember
         List<SubjectMemory> foundLocations = definition.Memories
                                             .FindAll(o => (o.Safety > 0))
-                                            .OrderBy(o => Vector3.Distance((masterSubjectList.GetSubject(o.SubjectID) as LocationSubject).Coordinates,
+                                            .OrderBy(o => Vector3.Distance((db.GetSubject(o.SubjectID) as LocationSubject).Coordinates,
                                                 objectScript.gameObject.transform.position)).ToList();
         if (foundLocations.Count > 0)
-            return masterSubjectList.GetSubject(foundLocations[0].SubjectID) as LocationSubject;
+            return db.GetSubject(foundLocations[0].SubjectID) as LocationSubject;
         else
             return null;
     }
+
+    /// <summary>
+    /// Update drivers based on current values.
+    /// </summary>
+    private void UpdateDrivers()
+    {
+        // Default driver: Explore.
+        if (drivers.Count == 0) drivers.Add(NpcDrivers.Explore);
+
+        if (definition.Traits.IsNestMaker)
+        {
+            // Are we fed, healthy, & safe?
+            if (food > definition.FoodHungry && health > definition.HealthDanger && safety > definition.SafetyDeadly)
+            {
+                // if we do not have a nest, make one.
+                if (!HaveNest())
+                {
+                    drivers.SetTopDriver(NpcDrivers.Nest);
+                }
+            }
+        }
+
+        // of the basic needs hunger is lowest priority
+        if (food <= definition.FoodHungry)
+        {
+            drivers.SetTopDriver(NpcDrivers.Hunger);
+        }
+
+        // of the basic needs health is 2nd lowest priority
+        if (health <= 0)
+        {
+            Die();
+        }
+        else if (health <= definition.HealthDanger)
+        {
+            // dangerously low on health, safety is now max priority
+            drivers.SetTopDriver(NpcDrivers.Safety);
+        }
+
+        // of the basic needs safety is the highest priority
+        if (safety <= definition.SafetyDeadly)
+        {
+            status.UnsetState(NpcStates.Fighting);
+            drivers.SetTopDriver(NpcDrivers.Safety);
+        }
+    }
+
+    /// <summary>
+    /// Character has died, set Dead status and clear out all drivers.
+    /// </summary>
+    private void Die()
+    {
+        status.SetState(NpcStates.Dead);
+        drivers.Clear();
+    }
+
     #endregion
 
+    #region Public Methods
     /// <summary>
     /// This NPC's Definition.
     /// </summary>
@@ -262,7 +325,7 @@ public partial class NpcCore
     /// <summary>
     /// This NPC's subject.
     /// </summary>
-    public AnimalSubject Subject { get { return masterSubjectList.GetSubject(subjectID, typeof(AnimalSubject)) as AnimalSubject; } }
+    public AnimalSubject Subject { get { return db.GetSubject(subjectID, typeof(AnimalSubject)) as AnimalSubject; } }
 
     /// <summary>
     /// Reduce food. Reduce health if starving. Regenerate health if not starving.
@@ -337,51 +400,6 @@ public partial class NpcCore
 
     }
 
-    /// <summary>
-    /// Update drivers based on current values.
-    /// </summary>
-    private void UpdateDrivers()
-    {
-        // Default driver: Explore.
-        if (drivers.Count == 0) drivers.Add(NpcDrivers.Explore);
-
-        if (definition.Traits.IsNestMaker)
-        {
-            // Are we fed, healthy, & safe?
-            if (food > definition.FoodHungry && health > definition.HealthDanger && safety > definition.SafetyDeadly)
-            {
-                // if we do not have a nest, make one.
-                if (!HaveNest())
-                {
-                    drivers.SetTopDriver(NpcDrivers.Nest);
-                }
-            }
-        }
-
-        // of the basic needs hunger is lowest priority
-        if (food <= definition.FoodHungry)
-        {
-            drivers.SetTopDriver(NpcDrivers.Hunger);
-        }
-
-        // of the basic needs health is 2nd lowest priority
-        if (health <= 0)
-        {
-            Die();
-        }
-        else if (health <= definition.HealthDanger)
-        {
-            // dangerously low on health, safety is now max priority
-            drivers.SetTopDriver(NpcDrivers.Safety);
-        }
-
-        // of the basic needs safety is the highest priority
-        if (safety <= definition.SafetyDeadly)
-        {
-            status.UnsetState(NpcStates.Fighting);
-            drivers.SetTopDriver(NpcDrivers.Safety);
-        }
-    }
 
     /// <summary>
     /// Add objectToInspect to the NPC's Memories.
@@ -389,7 +407,7 @@ public partial class NpcCore
     /// <param name="objectToInspect">The GameObject to learn about.</param>
     internal void Inspect(GameObject objectToInspect)
     {
-        // TODO: inspect the object, add to memories.
+        // inspect the object, add to memories.
         SubjectObjectScript objectScript = objectToInspect.GetComponent<SubjectObjectScript>();
         objectScript.Subject.TeachNpc(this);
     }
@@ -409,7 +427,7 @@ public partial class NpcCore
             if (food < definition.FoodMax)
             {
                 status.SetState(NpcStates.Eating); //set eating flag
-                FoodSubject foodSubject = masterSubjectList.GetSubject(FoodItem.SubjectID, typeof(FoodSubject)) as FoodSubject;
+                FoodSubject foodSubject = db.GetSubject(FoodItem.SubjectID, typeof(FoodSubject)) as FoodSubject;
                 if (foodSubject != null)
                 {
                     food += foodSubject.FoodValue;
@@ -477,13 +495,5 @@ public partial class NpcCore
     /// True = Dead. False = Not dead.
     /// </summary>
     public bool IsDead { get { return status.IsStateSet(NpcStates.Dead); } }
-
-    /// <summary>
-    /// Character has died, set Dead status and clear out all drivers.
-    /// </summary>
-    private void Die()
-    {
-        status.SetState(NpcStates.Dead);
-        drivers.Clear();
-    }
+    #endregion
 }

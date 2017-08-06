@@ -11,6 +11,7 @@ public class AnimalSubject : Subject
     private int maxGrowth;
     private int growthTime;
     private int matureTime;
+    private int inventorySize;
     private NpcDefinition definition;
     #endregion
 
@@ -53,6 +54,11 @@ public class AnimalSubject : Subject
         set { matureTime = value; }
     }
 
+    public override void TeachNpc(NpcCore npcCharacter)
+    {
+        npcCharacter.Definition.Memories.Add(new SubjectMemory(subjectID, 0, 0));
+    }
+
     /// <summary>
     /// Main definition information for NpcCharacter.
     /// </summary>
@@ -62,4 +68,12 @@ public class AnimalSubject : Subject
         set { definition = value; }
     }
 
+    /// <summary>
+    /// InventorySize tells us how big the inventory is
+    /// </summary>
+    public int InventorySize
+    {
+        get { return inventorySize; }
+        set { inventorySize = value; }
+    }
 }

@@ -6,7 +6,7 @@ using UnityEngine;
 /// Base Class for all subject types. 
 /// </summary>
 
-public class Subject
+public abstract class Subject
 {
     #region Private members
     protected int subjectID;
@@ -82,10 +82,7 @@ public class Subject
         set { relatedSubjects = value; }
     }
 
-    internal void TeachNpc(NpcCore npcCharacter)
-    {
-        throw new NotImplementedException();
-    }
+    public abstract void TeachNpc(NpcCore npcCharacter);
 
     /// <summary>
     /// Prefab used by this subject

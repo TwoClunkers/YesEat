@@ -54,7 +54,10 @@ public class LocationSubject : Subject
         set { layer = value; }
     }
 
-
+    public override void TeachNpc(NpcCore npcCharacter)
+    {
+        npcCharacter.Definition.Memories.Add(new LocationMemory(subjectID, 0, 0));
+    }
 }
 
 

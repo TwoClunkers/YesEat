@@ -57,6 +57,10 @@ public class ItemSubject : Subject
         }
     }
 
+    public override void TeachNpc(NpcCore npcCharacter)
+    {
+        npcCharacter.Definition.Memories.Add(new SubjectMemory(subjectID, 0, 0));
+    }
 }
 
 
