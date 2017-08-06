@@ -1,14 +1,23 @@
 ﻿using System;
+using System.Collections.Generic;
 
 public partial class NpcCore
 {
     private void AiCoreSubprocessExplore()
     {
-        // TODO: explore for unknown locations
-        // TODO: explore known locations for new stuff
+        // explore unknown locations
         if (unexploredLocations.Count > 0)
+        {
             objectScript.MoveToNewLocation(unexploredLocations[0]);
+        }
         else
-            UnityEngine.Debug.Log("No unexplored location to go to.");
+        {
+            // explore known locations for new stuff
+            // populate locations to re-explore
+            if (reExploreLocations == null)
+            {
+                reExploreLocations = GetAllKnownLocations();
+            }
+        }
     }
 }

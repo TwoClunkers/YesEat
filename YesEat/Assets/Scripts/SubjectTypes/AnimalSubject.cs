@@ -12,6 +12,7 @@ public class AnimalSubject : Subject
     private int growthTime;
     private int matureTime;
     private int inventorySize;
+    private int lootID;
     private NpcDefinition definition;
     #endregion
 
@@ -24,6 +25,7 @@ public class AnimalSubject : Subject
         maxGrowth = 3;
         growthTime = 0;
         matureTime = 1;
+        LootID = 5; // 5 = meat
     }
 
     /// <summary>
@@ -75,5 +77,14 @@ public class AnimalSubject : Subject
     {
         get { return inventorySize; }
         set { inventorySize = value; }
+    }
+
+    /// <summary>
+    /// The loot this animal 'drops' when it dies.
+    /// </summary>
+    public int LootID
+    {
+        get { return lootID; }
+        set { lootID = value; }
     }
 }

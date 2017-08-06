@@ -4,16 +4,21 @@ using System.Collections.Generic;
 using System.Linq;
 using System;
 
+/// <summary>
+/// The script attached to the GameObject for controlling movement, collecting world data, and interacting with other game objects.
+/// </summary>
 public class AnimalObjectScript : SubjectObjectScript
 {
     #region Private members
-    private float AiCoreTickTime;
-    private GameObject[] nearObjects;
+    private float AiCoreTickCounter;
+    private float AiTickRate;
+    private float MetabolizeTickCounter;
     private GameObject[] seenLocationObjects;
     private LocationSubject destination;
     private NpcCore npcCharacter;
     private bool isCarcass;
     private Inventory inventory;
+    private SubjectObjectScript chaseTarget;
     #endregion
 
     internal Inventory Inventory
@@ -30,6 +35,7 @@ public class AnimalObjectScript : SubjectObjectScript
 
     public override void InitializeFromSubject(MasterSubjectList _masterSubjectList, Subject newSubject)
     {
+        AiTickRate = 1.0f;
         isCarcass = false;
         AnimalSubject animalSubject = newSubject as AnimalSubject;
         npcCharacter = new NpcCore(this, ref masterSubjectList, animalSubject);
@@ -44,10 +50,43 @@ public class AnimalObjectScript : SubjectObjectScript
     {
         if (destination != null)
         {
+            // if we are not already at the location set it as the destination
             if (destination.SubjectID != newLocation.SubjectID)
+            {
+                // remove chase target if we're moving to a location
+                chaseTarget = null;
                 destination = newLocation;
+            }
         }
-        else destination = newLocation;
+        else
+        {
+            chaseTarget = null;
+            destination = newLocation;
+        }
+    }
+
+    /// <summary>
+    /// Chase the target until ChaseStop() is called.
+    /// </summary>
+    /// <param name="target">The object scripte of the game object to chase.</param>
+    internal void ChaseStart(SubjectObjectScript target)
+    {
+        // remove destination while chasing a target
+        destination = null;
+        if (chaseTarget != null)
+        {
+            if (chaseTarget.GetInstanceID() != target.GetInstanceID())
+                chaseTarget = target;
+        }
+        else chaseTarget = target;
+    }
+
+    /// <summary>
+    /// Stop chasing a target.
+    /// </summary>
+    internal void ChaseStop()
+    {
+        chaseTarget = null;
     }
 
     // Update is called once per frame
@@ -55,35 +94,54 @@ public class AnimalObjectScript : SubjectObjectScript
     {
         if (!npcCharacter.IsDead)
         {
-
-            AiCoreTickTime += Time.deltaTime;
-            if (AiCoreTickTime > 1.0f)
+            MetabolizeTickCounter += Time.deltaTime;
+            if (MetabolizeTickCounter >= npcCharacter.Definition.MetabolizeInterval)
             {
-                npcCharacter.AiCoreProcess();
-                AiCoreTickTime -= 1.0f;
+                npcCharacter.Metabolize();
+                MetabolizeTickCounter -= npcCharacter.Definition.MetabolizeInterval;
             }
 
-            if (destination != null)
+            AiCoreTickCounter += Time.deltaTime;
+            if (AiCoreTickCounter > AiTickRate)
+            {
+                npcCharacter.AiCoreProcess();
+                AiCoreTickCounter -= AiTickRate;
+            }
+
+            // ===  Movement ===
+            if (destination != null) // traveling to a new location
             {
                 float distance = Vector3.Distance(destination.Coordinates, transform.position);
                 if (distance > npcCharacter.SightRangeFar) MoveTowardsPoint(destination.Coordinates, npcCharacter.MoveSpeed);
                 else if (distance > 1) MoveTowardsPoint(destination.Coordinates, npcCharacter.MoveSpeed / 3);
                 else destination = null;
             }
+            else if (chaseTarget != null) // chase the target
+            {
+                float distance = Vector3.Distance(chaseTarget.transform.position, transform.position);
+                if (distance > 0.5) MoveTowardsPoint(chaseTarget.transform.position, npcCharacter.MoveSpeed);
+                else chaseTarget = null;
+            }
         }
-        else
+        else // this animal is dead
         {
-            // SubjectID #5 = meat
-            Inventory.Add(new InventoryItem(ref masterSubjectList, 5, 1));
+            Inventory.Add(new InventoryItem(ref masterSubjectList, npcCharacter.Subject.LootID, 1));
             isCarcass = true;
         }
     }
 
+    /// <summary>
+    /// Attempt to harvest an item from this animal. <para/>
+    /// Returns: One of this animal's loot if it is dead and has loot in its inventory. <para/>
+    /// Returns: NULL if this animal is not dead.
+    /// </summary>
+    /// <returns>Returns: One of this animal's loot if it is dead and has loot in its inventory. <para/>
+    /// Returns: NULL if this animal is not dead.</returns>
     public override InventoryItem Harvest()
     {
         if (isCarcass)
         {
-            return Inventory.Take(new InventoryItem(ref masterSubjectList, 5, 1));
+            return Inventory.Take(new InventoryItem(ref masterSubjectList, npcCharacter.Subject.LootID, 1));
         }
         else return null;
     }
@@ -104,6 +162,12 @@ public class AnimalObjectScript : SubjectObjectScript
         transform.position += (transform.forward * step);
     }
 
+    /// <summary>
+    /// Uses Physics.OverlapSphere() to collect and return a list of all within npcCharacter.SightRangeNear, the list 
+    /// excludes these game world layers: Terrain(8), Locations(9).
+    /// Also populates a list of Locations within npcCharacter.SightRangeFar which can be retrieved using GetObservedLocations(). 
+    /// </summary>
+    /// <returns></returns>
     public List<GameObject> Observe()
     {
         List<GameObject> nearList = new List<GameObject>();
@@ -124,7 +188,6 @@ public class AnimalObjectScript : SubjectObjectScript
         seenLocationList.Remove(this.gameObject);
 
         // store the observations locally
-        nearObjects = nearList.ToArray();
         seenLocationObjects = seenLocationList.ToArray();
 
         // if our position is within 1 unit of a location center add the location to our memory.
@@ -141,7 +204,11 @@ public class AnimalObjectScript : SubjectObjectScript
         return nearList;
     }
 
-    internal List<LocationSubject> GetFarObjects()
+    /// <summary>
+    /// Return list of all locations observed within npcCharacter.SightRangeFar.
+    /// </summary>
+    /// <returns></returns>
+    internal List<LocationSubject> GetObservedLocations()
     {
         List<GameObject> farObjectList = seenLocationObjects.ToList();
         if (farObjectList.Count() > 0)
