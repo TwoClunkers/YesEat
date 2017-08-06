@@ -29,6 +29,14 @@ public class PlacementControllerScript : MonoBehaviour
         if (placeID == 0)
         {
             //setting to delete objects
+            if (!IsOverMenu() && (Input.GetMouseButtonDown(0)))
+            {
+                centerPosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y));
+                if (DeleteAtPosition(centerPosition, 1.0f))
+                {
+                    Debug.Log("destroy!");
+                }
+            }
         }
         else //currentSelection is placeable
         {
@@ -108,6 +116,13 @@ public class PlacementControllerScript : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// Returns whether our item can be placed here
+    /// </summary>
+    /// <param name="center"></param>
+    /// <param name="radius"></param>
+    /// <param name="excludeObject"></param>
+    /// <returns></returns>
     public bool CheckPlacementPosition(Vector3 center, float radius, GameObject excludeObject)
     {
 
@@ -132,6 +147,26 @@ public class PlacementControllerScript : MonoBehaviour
         //if we are not bumped prior to here, we are still good
         return true;
 
+    }
+
+    public bool DeleteAtPosition(Vector3 center, float radius)
+    {
+        //if (currentSelection == null) return false; //nothing to place;
+        //First we catch all the colliders in our area
+        Collider[] hitColliders = Physics.OverlapSphere(center, radius);
+
+        //If we caught any, will have to check them
+        for (int i = 0; i < hitColliders.Length; i++)
+        {
+            if (hitColliders[i].tag == "Ground") continue;
+            else
+            {
+                Destroy(hitColliders[i].gameObject);
+                return true;
+            }
+        }
+        //if we are not bumped prior to here, we are still good
+        return false;
     }
 
     /// <summary>

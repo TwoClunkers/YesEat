@@ -103,4 +103,19 @@ public class LocationObjectScript : SubjectObjectScript
         //Store output in local subject copy
         subject.RelatedSubjects = foundSubjectIDs.ToArray();
     }
+
+    /// <summary>
+    /// No harvest for a location!
+    /// </summary>
+    /// <returns></returns>
+    public override InventoryItem Harvest()
+    {
+        return null;
+    }
+
+    public override void InitializeFromSubject(MasterSubjectList _masterSubjectList, Subject newSubject)
+    {
+        subject = newSubject as LocationSubject;
+        count = 0;
+    }
 }

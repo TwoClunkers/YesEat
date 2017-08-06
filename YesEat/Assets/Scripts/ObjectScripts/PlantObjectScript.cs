@@ -52,7 +52,7 @@ public class PlantObjectScript : SubjectObjectScript
         
     }
 
-    public InventoryItem Harvest()
+    public override InventoryItem Harvest()
     {
         return inventory.Take(new InventoryItem(ref masterSubjectList, produceID, 1));
     }

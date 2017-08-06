@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using System.Collections;
 
-public class SubjectObjectScript : MonoBehaviour
+public abstract class SubjectObjectScript : MonoBehaviour
 {
     #region Private members
     protected Subject subject;
@@ -36,10 +36,12 @@ public class SubjectObjectScript : MonoBehaviour
         set { location = value; }
     }
 
-    public virtual void InitializeFromSubject(MasterSubjectList _masterSubjectList, Subject newSubject)
-    {
-        subject = newSubject;
-        masterSubjectList = _masterSubjectList;
-    }
+    /// <summary>
+    /// Will be used by derived classes
+    /// </summary>
+    /// <param name="_masterSubjectList"></param>
+    /// <param name="newSubject"></param>
+    public abstract void InitializeFromSubject(MasterSubjectList _masterSubjectList, Subject newSubject);
 
+    public abstract InventoryItem Harvest();
 }
