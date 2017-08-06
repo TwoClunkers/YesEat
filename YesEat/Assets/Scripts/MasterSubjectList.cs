@@ -15,7 +15,7 @@ public class MasterSubjectList
     public MasterSubjectList()
     {
         masterSubjectList = new List<Subject>();
-        
+
         //`-.,.-'-.,.-'-.,.-'-.,.-'-.,.-'
         maxID = 1; // == Plinkett
         //,.-`-.,.-`-.,.-`-.,.-`-.,.-`-.,
@@ -28,7 +28,7 @@ public class MasterSubjectList
             HealthDanger = 40,
             HealthMax = 100,
             HealthRegen = 1,
-            MetabolizeInterval = 10,
+            MetabolizeInterval = 1,
             MoveSpeed = 5,
             Nest = null,
             SafetyDeadly = -10,
@@ -50,10 +50,10 @@ public class MasterSubjectList
             RelatedSubjects = new int[0],
             SubjectID = maxID,
             Prefab = Resources.Load("GameObjects/Plinkett") as GameObject
-    };
+        };
 
         masterSubjectList.Add(plinkett);
-        
+
         //`-.,.-'-.,.-'-.,.-'-.,.-'-.,.-'
         maxID = 2; // == Location
         //,.-`-.,.-`-.,.-`-.,.-`-.,.-`-.,
@@ -140,7 +140,7 @@ public class MasterSubjectList
             HealthDanger = 40,
             HealthMax = 100,
             HealthRegen = 1,
-            MetabolizeInterval = 10,
+            MetabolizeInterval = 1,
             MoveSpeed = 5,
             Nest = null,
             SafetyDeadly = -10,
@@ -167,13 +167,13 @@ public class MasterSubjectList
         masterSubjectList.Add(gobber);
     }
 
-/// <summary>
-/// Get Subject using subjectID.
-/// </summary>
-/// <param name="subjectID">subjectID of Subject to find.</param>
-/// <param name="subjectType">Required type of subject.</param>
-/// <returns>Returns null if subject is not found or the type of the returned subject does not match subjectType.</returns>
-public Subject GetSubject(int subjectID, Type subjectType = null)
+    /// <summary>
+    /// Get Subject using subjectID.
+    /// </summary>
+    /// <param name="subjectID">subjectID of Subject to find.</param>
+    /// <param name="subjectType">Required type of subject.</param>
+    /// <returns>Returns null if subject is not found or the type of the returned subject does not match subjectType.</returns>
+    public Subject GetSubject(int subjectID, Type subjectType = null)
     {
         if (masterSubjectList.Exists(o => o.SubjectID == subjectID))
         {

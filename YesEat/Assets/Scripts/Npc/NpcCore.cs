@@ -370,8 +370,8 @@ public partial class NpcCore
             if (health < definition.HealthMax)
             {
                 health += definition.HealthRegen;
-                food -= definition.FoodMetabolizeRate;
             }
+            food -= definition.FoodMetabolizeRate;
         }
     }
 
@@ -395,6 +395,10 @@ public partial class NpcCore
                     dangerFound = true;
                     safety--;
                 }
+            }
+            else
+            {
+                Inspect(conObject);
             }
         }
         // increment safety if no danger was found near us
@@ -434,11 +438,17 @@ public partial class NpcCore
     {
         // inspect the object, add to memories.
         SubjectObjectScript objectScript = objectToInspect.GetComponent<SubjectObjectScript>();
-        objectScript.Subject.TeachNpc(this);
         if (objectScript.GetType() == typeof(LocationObjectScript))
         {
+            (objectScript as LocationObjectScript).TeachNpc(this);
+            // if it's in the unexploredLocations list, remove it.
+            unexploredLocations.Remove(objectScript.Subject as LocationSubject);
             // if it's in the reExploreLocations list, remove it.
             reExploreLocations.Remove(objectScript.Subject as LocationSubject);
+        }
+        else
+        {
+            objectScript.Subject.TeachNpc(this);
         }
     }
 
