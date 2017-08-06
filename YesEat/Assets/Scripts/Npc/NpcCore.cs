@@ -49,7 +49,7 @@ public partial class NpcCore
     /// </summary>
     /// <param name="ParentObject">The in-game object that represents this NPC.</param>
     /// <param name="MasterSubjectListRef">A reference to the main MasterSubjectList.</param>
-    /// <param name="BasedOnSubject">Subject's NpcDefinition will define the character's initial resource pools, thresholds for fulfilling basic needs, known subjects, and subject attitudes.</param>
+    /// <param name="BasedOnSubject">Subject's NpcDefinition will define the character's initial resource pools, thresholds for fulfilling basic needs, and memories.</param>
     public NpcCore(AnimalObjectScript ParentObjectScript, ref MasterSubjectList MasterSubjectListRef, Subject BasedOnSubject)
     {
         masterSubjectList = MasterSubjectListRef;
@@ -71,174 +71,171 @@ public partial class NpcCore
 
     #region Think { ... }
     /// <summary>
-    /// Contains methods for extensive parsing and evaluation of subjects and attitudes.
+    /// Contains methods for extensive parsing and evaluation of subjects and memories.
     /// </summary>
-    internal static class Think
+
+    /// <summary>
+    /// Find the nearest location where subjectToFind can be found.
+    /// </summary>
+    /// <param name="SubjectToFind">The subject to search for.</param>
+    /// <returns>The found location or null if no location was found.</returns>
+    internal LocationSubject FindNearestLocationOfObject(Subject SubjectToFind, Vector3 CurrentPosition)
     {
-        /// <summary>
-        /// Find the nearest location where subjectToFind can be found.
-        /// </summary>
-        /// <param name="SubjectToFind">The subject to search for.</param>
-        /// <returns>The found location or null if no location was found.</returns>
-        internal static ObjectMemory FindNearestObject(NpcDefinition npcDefinition, Subject SubjectToFind, Vector3 CurrentPosition)
-        {
-            // Find nearest location where subjectToFind can be found.
-            List<ObjectMemory> foundObjects;
-            foundObjects = npcDefinition.LocationMemories
-                                .SelectMany(o => o.ObjectMemories)
-                                .Where(o => o.SubjectID == SubjectToFind.SubjectID)
-                                .OrderBy(o => Vector3.Distance(CurrentPosition, o.Count)).ToList();
+        // Find nearest location where subjectToFind can be found.
+        List<LocationSubject> foundObjects;
+        foundObjects = definition.Memories
+                            .FindAll(o => o.SubjectID == SubjectToFind.SubjectID)
+                            .Select(o => (o as LocationMemory).LocationSubject)
+                            .OrderBy(o => Vector3.Distance(CurrentPosition, o.Coordinates)).ToList();
 
-            if (foundObjects.Count > 0)
-                return foundObjects[0];
-            else
-                return null;
+        if (foundObjects.Count > 0)
+            return foundObjects[0];
+        else
+            return null;
+    }
+
+    /// <summary>
+    /// Checks the attitude of the NPC towards conSubject. IsSubjectKnown() must be used to verify the Subject is known before IsSubjectDangerous().
+    /// </summary>
+    /// <param name="conSubject">The Subject to be considered.</param>
+    /// <returns>True = dangerous; False = not dangerous. If conSubject does not exist and Exception will be thrown.</returns>
+    internal bool IsSubjectDangerous(Subject conSubject)
+    {
+        if (IsSubjectKnown(conSubject))
+        {
+            SubjectMemory subjectAttitude = definition.Memories.Find(o => o.SubjectID == conSubject.SubjectID);
+            return (subjectAttitude.Safety < 0);
         }
-
-        /// <summary>
-        /// Checks the attitude of the NPC towards conSubject. IsSubjectKnown() must be used to verify the Subject is known before IsSubjectDangerous().
-        /// </summary>
-        /// <param name="definition">The NpcDefinition that contains the attitudes to check.</param>
-        /// <param name="conSubject">The Subject to be considered.</param>
-        /// <returns>True = dangerous; False = not dangerous. If conSubject does not exist and Exception will be thrown.</returns>
-        internal static bool IsSubjectDangerous(NpcDefinition definition, Subject conSubject)
+        else
         {
-            if (IsSubjectKnown(definition, conSubject))
-            {
-                SubjectMemory subjectAttitude = definition.Attitudes.Find(o => o.SubjectID == conSubject.SubjectID);
-                return (subjectAttitude.Safety < 0);
-            }
-            else
-            {
-                throw new Exception("The queried Subject is not in the attitudes list.");
-            }
+            throw new Exception("The queried Subject is not in the memories list.");
         }
+    }
 
-        /// <summary>
-        /// Checks if conSubject exists in the npcDefinition.
-        /// </summary>
-        /// <param name="npcDefinition">The NpcDefinition that contains the attitudes to check.</param>
-        /// <param name="conSubject">The Subject to be considered.</param>
-        /// <returns>True: known. False: not known.</returns>
-        internal static bool IsSubjectKnown(NpcDefinition npcDefinition, Subject conSubject)
+    /// <summary>
+    /// Checks if conSubject exists in the npcDefinition.
+    /// </summary>
+    /// <param name="conSubject">The Subject to be considered.</param>
+    /// <returns>True: known. False: not known.</returns>
+    internal bool IsSubjectKnown(Subject conSubject)
+    {
+        return definition.Memories.Exists(o => o.SubjectID == conSubject.SubjectID);
+    }
+
+    /// <summary>
+    /// Change attitude about a subject based on an event.
+    /// </summary>
+    /// <param name="memoryChangeEvent">The event that has occured.</param>
+    /// <param name="definition">The NPC to effect.</param>
+    /// <param name="subject">The subject to adjust attitude towards.</param>
+    internal void UpdateMemory(NpcMemoryChangeEvent memoryChangeEvent, Subject subject)
+    {
+        switch (memoryChangeEvent)
         {
-            return npcDefinition.Attitudes.Exists(o => o.SubjectID == conSubject.SubjectID);
-        }
-
-        /// <summary>
-        /// Change attitude about a subject based on an event.
-        /// </summary>
-        /// <param name="attitudeChangeEvent">The event that has occured.</param>
-        /// <param name="definition">The NPC to effect.</param>
-        /// <param name="subject">The subject to adjust attitude towards.</param>
-        internal static void UpdateAttitude(NpcAttitudeChangeEvent attitudeChangeEvent, NpcDefinition definition, Subject subject)
-        {
-            switch (attitudeChangeEvent)
-            {
-                case NpcAttitudeChangeEvent.HealthDamage:
-                    if (IsSubjectKnown(definition, subject))
-                    {
-                        //known hurts, bad.
-                        definition.Attitudes.Find(o => o.SubjectID == subject.SubjectID).AddSafety(-1);
-                    }
-                    else
-                    {
-                        //new thing hurts me, bad.
-                        definition.Attitudes.Add(new SubjectMemory(subject.SubjectID, -1, 0));
-                    }
-                    break;
-                case NpcAttitudeChangeEvent.FoodEaten:
-                    if (IsSubjectKnown(definition, subject))
-                    {
-                        //known food, good.
-                        definition.Attitudes.Find(o => o.SubjectID == subject.SubjectID).AddFood(1);
-                    }
-                    else
-                    {
-                        //new food, good.
-                        definition.Attitudes.Add(new SubjectMemory(subject.SubjectID, 1, 1));
-                    }
-                    break;
-                case NpcAttitudeChangeEvent.LocationFound:
-                    // look at everything in this location and decide how to effect attitude for this location.
-                    if (IsSubjectKnown(definition, subject))
-                    {
-                        // known location
-                        LocationMemory locationMemory = definition.LocationMemories.Find(o => o.LocationSubjectID == subject.SubjectID);
-                        int foodValue = locationMemory.ObjectMemories.Count(o => definition.Attitudes.Find(att => att.SubjectID == o.SubjectID).Food > 0);
-                        int safetyValue = locationMemory.ObjectMemories.Count(o => definition.Attitudes.Find(att => att.SubjectID == o.SubjectID).Safety > 0);
-                        definition.Attitudes.Find(o => o.SubjectID == subject.SubjectID).SetValues((sbyte)foodValue, (sbyte)safetyValue);
-                    }
-                    else
-                    {
-                        //unknown location
-                        definition.Attitudes.Add(new SubjectMemory(subject.SubjectID, 0, 0));
-                    }
-                    break;
-                default:
-                    throw new Exception("Invalid NpcAttitudeChangeEvent");
-            }
-        }
-
-        /// <summary>
-        /// Consider whether I should attack another NPC.
-        /// </summary>
-        /// <param name="npcToConsider">The NPC to consider attacking.</param>
-        /// <param name="damageAmount">The amount of damage we received from the NPC if applicable.</param>
-        /// <returns>True = attack, False = do not attack.</returns>
-        internal static bool ShouldFight(NpcCore npcToConsider, int? damageAmount = null)
-        {
-            bool shouldAttack = false;
-            if (damageAmount != null)
-            {
-                //we were attacked
-                //TODO: assess whether I should attack or not
-            }
-            else
-            {
-                //haven't been attacked by them
-                //TODO: assess whether I should attack or not
-            }
-            return shouldAttack;
-        }
-
-        /// <summary>
-        /// Check if the NPC has a nest.
-        /// </summary>
-        /// <returns>True: have nest, False: do not have nest</returns>
-        internal static bool HaveNest(NpcDefinition definition)
-        {
-            if (definition.Nest != null)
-                return (definition.Nest.ObjectMemories.Count > 0);
-            else
-                return false;
-        }
-
-        /// <summary>
-        /// Find a the nearest safe location.
-        /// </summary>
-        /// <param name="masterSubjectList">Reference to the MasterSubjectList</param>
-        /// <param name="definition">The NPC to check</param>
-        /// <param name="objectScript">The GameObject's script.</param>
-        /// <returns>The nearest safe location. Returns NULL if no safe locations are found.</returns>
-        internal static LocationSubject FindSafeLocation(NpcDefinition definition, AnimalObjectScript objectScript)
-        {
-            // get a list of all safe locations we remember
-            List<SubjectMemory> foundLocations = definition.Attitudes.FindAll(o => (o.Safety > 0));
-            if (foundLocations.Count > 0)
-            {
-                // get a list of the corresponding memories of the locations
-                List<LocationMemory> locMemoryList = definition.LocationMemories.FindAll(o => foundLocations.Exists(loc => loc.SubjectID == o.LocationSubjectID));
-                //sort the list
-                locMemoryList = locMemoryList.OrderBy(o => Vector3.Distance(o.LocationSubject.Coordinates, objectScript.gameObject.transform.position)) as List<LocationMemory>;
-
-                if (locMemoryList.Count > 0)
-                    return locMemoryList[0].LocationSubject;
+            case NpcMemoryChangeEvent.HealthDamage:
+                if (IsSubjectKnown(subject))
+                {
+                    //known hurts, bad.
+                    definition.Memories.Find(o => o.SubjectID == subject.SubjectID).AddSafety(-1);
+                }
                 else
-                    return null;
-            }
-            else return null;
+                {
+                    //new thing hurts me, bad.
+                    definition.Memories.Add(new SubjectMemory(subject.SubjectID, -1, 0));
+                }
+                break;
+            case NpcMemoryChangeEvent.FoodEaten:
+                if (IsSubjectKnown(subject))
+                {
+                    //known food, good.
+                    definition.Memories.Find(o => o.SubjectID == subject.SubjectID).AddFood(1);
+                }
+                else
+                {
+                    //new food, good.
+                    definition.Memories.Add(new SubjectMemory(subject.SubjectID, 1, 1));
+                }
+                break;
+            case NpcMemoryChangeEvent.LocationFound:
+                // look at everything in this location and decide how to effect attitude for this location.
+                if (IsSubjectKnown(subject))
+                {
+                    // known location
+                    LocationMemory locationMemory = definition.Memories.Find(o => o.SubjectID == subject.SubjectID) as LocationMemory;
+                    int foodValue = 0;
+                    int safetyValue = 0;
+                    foreach (ObjectMemory objMem in locationMemory.ObjectMemories)
+                    {
+                        if (definition.Memories.Find(o => o.SubjectID == objMem.SubjectID).Food > 0)
+                            foodValue += objMem.Quantity;
+                        if (definition.Memories.Find(o => o.SubjectID == objMem.SubjectID).Safety > 0)
+                            safetyValue += objMem.Quantity;
+                    }
+                    locationMemory.SetValues((sbyte)foodValue, (sbyte)safetyValue);
+                }
+                else
+                {
+                    //unknown location
+                    definition.Memories.Add(new SubjectMemory(subject.SubjectID, 0, 0));
+                }
+                break;
+            default:
+                throw new Exception("Invalid NpcAttitudeChangeEvent");
         }
+    }
+
+    /// <summary>
+    /// Consider whether I should attack another NPC.
+    /// </summary>
+    /// <param name="npcToConsider">The NPC to consider attacking.</param>
+    /// <param name="damageAmount">The amount of damage we received from the NPC if applicable.</param>
+    /// <returns>True = attack, False = do not attack.</returns>
+    internal bool ShouldFight(NpcCore npcToConsider, int? damageAmount = null)
+    {
+        bool shouldAttack = false;
+        if (damageAmount != null)
+        {
+            //we were attacked
+            //TODO: assess whether I should attack or not
+        }
+        else
+        {
+            //haven't been attacked by them
+            //TODO: assess whether I should attack or not
+        }
+        return shouldAttack;
+    }
+
+    /// <summary>
+    /// Check if the NPC has a nest.
+    /// </summary>
+    /// <returns>True: have nest, False: do not have nest</returns>
+    internal bool HaveNest()
+    {
+        if (definition.Nest != null)
+            return (definition.Nest.ObjectMemories.Count > 0);
+        else
+            return false;
+    }
+
+    /// <summary>
+    /// Find a the nearest safe location.
+    /// </summary>
+    /// <param name="masterSubjectList">Reference to the MasterSubjectList</param>
+    /// <param name="definition">The NPC to check</param>
+    /// <param name="objectScript">The GameObject's script.</param>
+    /// <returns>The nearest safe location. Returns NULL if no safe locations are found.</returns>
+    internal LocationSubject FindSafeLocation(AnimalObjectScript objectScript)
+    {
+        // get a list of all safe locations we remember
+        List<SubjectMemory> foundLocations = definition.Memories
+                                            .FindAll(o => (o.Safety > 0))
+                                            .OrderBy(o => Vector3.Distance((masterSubjectList.GetSubject(o.SubjectID) as LocationSubject).Coordinates,
+                                                objectScript.gameObject.transform.position)).ToList();
+        if (foundLocations.Count > 0)
+            return masterSubjectList.GetSubject(foundLocations[0].SubjectID) as LocationSubject;
+        else
+            return null;
     }
     #endregion
 
@@ -301,9 +298,9 @@ public partial class NpcCore
         bool dangerFound = false;
         foreach (GameObject conObject in considerObjects)
         {
-            if (Think.IsSubjectKnown(definition, conObject.GetComponent<SubjectObjectScript>().Subject))
+            if (IsSubjectKnown(conObject.GetComponent<SubjectObjectScript>().Subject))
             {
-                if (Think.IsSubjectDangerous(definition, conObject.GetComponent<SubjectObjectScript>().Subject))
+                if (IsSubjectDangerous(conObject.GetComponent<SubjectObjectScript>().Subject))
                 {
                     // danger! decrease safety
                     dangerFound = true;
@@ -354,7 +351,7 @@ public partial class NpcCore
             if (food > definition.FoodHungry && health > definition.HealthDanger && safety > definition.SafetyDeadly)
             {
                 // if we do not have a nest, make one.
-                if (!Think.HaveNest(definition))
+                if (!HaveNest())
                 {
                     drivers.SetTopDriver(NpcDrivers.Nest);
                 }
@@ -387,7 +384,7 @@ public partial class NpcCore
     }
 
     /// <summary>
-    /// Add objectToInspect to the NPC's LocationMemories & add it to subejct attitudes.
+    /// Add objectToInspect to the NPC's Memories.
     /// </summary>
     /// <param name="objectToInspect">The GameObject to learn about.</param>
     internal void Inspect(GameObject objectToInspect)
@@ -453,14 +450,14 @@ public partial class NpcCore
         }
 
         // known attacker?
-        if (Think.IsSubjectKnown(definition, subjectAttacker))
+        if (IsSubjectKnown(subjectAttacker))
         {
-            Think.UpdateAttitude(NpcAttitudeChangeEvent.HealthDamage, definition, subjectAttacker);
+            UpdateMemory(NpcMemoryChangeEvent.HealthDamage, subjectAttacker);
         }
 
         if (NpcAttacker != null)
         {
-            if (Think.ShouldFight(NpcAttacker, damageAmount))
+            if (ShouldFight(NpcAttacker, damageAmount))
             {
                 combatTargets.Add(NpcAttacker);
                 status.SetState(NpcStates.Fighting);

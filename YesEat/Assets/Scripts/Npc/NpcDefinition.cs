@@ -2,22 +2,18 @@
 
 /// <summary>
 /// The definition of an NPC including: <para />
-/// Resource pool limits, thresholds for triggering changes in priorities, traits, initial attitudes, initial memories.
+/// Resource pool limits, thresholds for triggering changes in priorities, traits, initial memories, initial memories.
 /// </summary>
 public class NpcDefinition
 {
-    /// <summary>
-    /// Memories of each location that has been observed.
-    /// </summary>
-    public List<LocationMemory> LocationMemories = null;
     /// <summary>
     /// Memory of nest location.
     /// </summary>
     public LocationMemory Nest = null;
     /// <summary>
-    /// Attitude toward every known subject.
+    /// Memories of every known subject.
     /// </summary>
-    public List<SubjectMemory> Attitudes = null;
+    public List<SubjectMemory> Memories = null;
     /// <summary>
     /// Static traits like NestMaker, Herbivore, Carnivore, etc.
     /// </summary>
