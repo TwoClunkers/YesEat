@@ -52,7 +52,6 @@ public class PlacementControllerScript : MonoBehaviour
                             {
                                 SubjectObjectScript script = placedObject.GetComponent<SubjectObjectScript>() as SubjectObjectScript;
                                 script.InitializeFromSubject(masterSubjectList, newSubject);
-                                placedObject.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
                                 placementStarted = true;
                             }
                         }

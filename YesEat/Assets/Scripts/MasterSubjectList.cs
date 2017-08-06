@@ -85,8 +85,8 @@ public class MasterSubjectList
 
             ProduceID = 4,
             ProduceTime = 10,
-            MaxGrowth = 20,
-            GrowthTime = 10,
+            MaxGrowth = 30,
+            GrowthTime = 4,
             MatureGrowth = 20,
             InventorySize = 3
         };

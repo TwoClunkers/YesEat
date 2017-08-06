@@ -18,6 +18,10 @@ class Inventory
     {
         size = newSize;
         inventorySlots = new InventoryItem[size];
+        for (int i = 0; i < size; i++)
+        {
+            inventorySlots[i] = new InventoryItem(ref masterSubjectList);
+        }
         masterSubjectList = masterSubjectListRef;
     }
 
@@ -30,15 +34,15 @@ class Inventory
     {
         //create a new array of Inventory Slots that is the correct size
         size = newSize;
-        InventoryItem[] newInventorySlots = new InventoryItem[size];
-        for (int i = 0; i < inventorySlots.Length; i++)
+        InventoryItem[] newInventorySlots = new InventoryItem[newSize];
+        for (int i = 0; i < newInventorySlots.Length; i++)
         {
             //copy into the new array as much as will fit
-            if (i < size)
+            if (i < inventorySlots.Length)
             {
                 newInventorySlots[i] = inventorySlots[i];
             }
-            else break;
+            else newInventorySlots[i] = new InventoryItem(ref masterSubjectList);
         }
         //set the new array as the one for this object
         inventorySlots = newInventorySlots;

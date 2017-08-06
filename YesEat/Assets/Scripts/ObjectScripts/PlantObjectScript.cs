@@ -21,7 +21,7 @@ public class PlantObjectScript : SubjectObjectScript
     {
         mature = false;
         age = 0.0f;
-        currentGrowth = 1.0f;
+        currentGrowth = 0.5f;
         lastProduce = Time.time;
     }
 
@@ -52,13 +52,19 @@ public class PlantObjectScript : SubjectObjectScript
         
     }
 
+    public InventoryItem Harvest()
+    {
+        return inventory.Take(new InventoryItem(ref masterSubjectList, produceID, 1));
+    }
+
+
     /// <summary>
     /// Add our producable item to inventory
     /// </summary>
     void ProduceStep()
     {
-        //InventoryItem producedItem = new InventoryItem(ref masterSubjectList, produceID, 1);
-        //inventory.Add(producedItem);
+        InventoryItem producedItem = new InventoryItem(ref masterSubjectList, produceID, 1);
+        inventory.Add(producedItem);
         lastProduce = Time.time;
     }
 
@@ -68,7 +74,7 @@ public class PlantObjectScript : SubjectObjectScript
     void GrowthStep()
     {
         currentGrowth += 1;
-        gameObject.transform.localScale = new Vector3(currentGrowth * 0.01f + 0.5f, currentGrowth * 0.02f + 0.5f, currentGrowth * 0.01f + 0.5f);
+        gameObject.transform.localScale = new Vector3(currentGrowth * 0.04f + 0.5f, currentGrowth * 0.03f + 0.5f, currentGrowth * 0.04f + 0.5f);
     }
 
     /// <summary>
@@ -92,7 +98,7 @@ public class PlantObjectScript : SubjectObjectScript
 
             mature = false;
             age = 0.1f;
-            currentGrowth = 1.0f;
+            currentGrowth = 0.5f;
             lastProduce = Time.time;
         }
         else
@@ -107,10 +113,10 @@ public class PlantObjectScript : SubjectObjectScript
 
             mature = false;
             age = 0.1f;
-            currentGrowth = 1.0f;
+            currentGrowth = 5.0f;
             lastProduce = Time.time;
         }
-
+        gameObject.transform.localScale = new Vector3(currentGrowth * 0.01f + 0.5f, currentGrowth * 0.02f + 0.5f, currentGrowth * 0.01f + 0.5f);
     }
-    
+
 }
