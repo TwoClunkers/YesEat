@@ -84,10 +84,10 @@ public class MasterSubjectList
             Prefab = Resources.Load("GameObjects/Bush") as GameObject,
 
             ProduceID = 4,
-            ProduceTime = 10,
+            ProduceTime = 2,
             MaxGrowth = 30,
-            GrowthTime = 4,
-            MatureGrowth = 20,
+            GrowthTime = 1,
+            MatureGrowth = 2,
             InventorySize = 3
         };
         masterSubjectList.Add(Bush);
@@ -178,9 +178,10 @@ public Subject GetSubject(int subjectID, Type subjectType = null)
         if (masterSubjectList.Exists(o => o.SubjectID == subjectID))
         {
             Subject tempSubject = masterSubjectList.Find(o => o.SubjectID == subjectID);
+            Type tempType = tempSubject.GetType();
             if (subjectType != null)
             {
-                if (tempSubject.GetType() == subjectType)
+                if (tempType == subjectType)
                     return tempSubject;
                 else
                     return null;
