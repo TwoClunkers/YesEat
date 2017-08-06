@@ -28,7 +28,8 @@ public class PlacementControllerScript : MonoBehaviour
     {
         if (placeID < 1)
         {
-            if(placeID < 0) //setting to kill
+            if (placeID < 0) //setting to kill
+            {
                 if (!IsOverMenu() && (Input.GetMouseButtonDown(0)))
                 {
                     centerPosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y));
@@ -37,7 +38,10 @@ public class PlacementControllerScript : MonoBehaviour
                         Debug.Log("kill!");
                     }
                 }
-            else //setting to delete objects
+            }
+            else
+            {
+                //setting to delete objects
                 if (!IsOverMenu() && (Input.GetMouseButtonDown(0)))
                 {
                     centerPosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y));
@@ -46,6 +50,7 @@ public class PlacementControllerScript : MonoBehaviour
                         Debug.Log("destroy!");
                     }
                 }
+            }
         }
         else //currentSelection is placeable
         {
@@ -183,17 +188,17 @@ public class PlacementControllerScript : MonoBehaviour
         //if (currentSelection == null) return false; //nothing to place;
         //First we catch all the colliders in our area
         Collider[] hitColliders = Physics.OverlapSphere(center, radius);
-
+        
         //If we caught any, will have to check them
         for (int i = 0; i < hitColliders.Length; i++)
         {
             if (hitColliders[i].tag == "Ground") continue;
             else
             {
-                AnimalObjectScript script = gameObject.GetComponent<AnimalObjectScript>() as AnimalObjectScript;
+                AnimalObjectScript script = hitColliders[i].GetComponent<AnimalObjectScript>() as AnimalObjectScript;
                 if (script != null)
                 {
-                  
+                    if (script.Damage(script.Subject, 10000)) return true;
                 }
                 else continue;
             }

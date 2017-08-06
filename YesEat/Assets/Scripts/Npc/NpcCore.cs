@@ -492,12 +492,12 @@ public partial class NpcCore
     /// <returns>True: Character was killed by the damage. False: still alive.</returns>
     public bool Damage(Subject subjectAttacker, int damageAmount, NpcCore NpcAttacker = null)
     {
-        if (IsDead) return false;
+        if (IsDead) return false; //cannot damage because it is already dead
 
         health -= damageAmount;
         health = Math.Max(health, 0);
 
-        if (health <= 0)
+        if (health < 1)
         {
             Die();
         }
@@ -528,7 +528,7 @@ public partial class NpcCore
             }
         }
 
-        return !IsDead;
+        return IsDead;
     }
 
     /// <summary>

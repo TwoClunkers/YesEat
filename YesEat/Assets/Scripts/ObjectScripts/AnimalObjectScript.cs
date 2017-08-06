@@ -17,6 +17,7 @@ public class AnimalObjectScript : SubjectObjectScript
     private LocationSubject destination;
     private NpcCore npcCharacter;
     private bool isCarcass;
+    private float decaytime;
     private Inventory inventory;
     private SubjectObjectScript chaseTarget;
     #endregion
@@ -126,9 +127,9 @@ public class AnimalObjectScript : SubjectObjectScript
         }
         else // this animal is dead
         {
-            // SubjectID #5 = meat
-            Inventory.Add(new InventoryItem(5, 1));
-            isCarcass = true;
+            decaytime -= Time.deltaTime;
+            UpdateDeadnessColor();
+            if (decaytime < 0) Destroy(this);
         }
     }
 
@@ -224,8 +225,28 @@ public class AnimalObjectScript : SubjectObjectScript
         }
     }
 
+    void UpdateDeadnessColor()
+    {
+        transform.GetComponent<Renderer>().material.color = Color.Lerp(new Color(0.5F, 0.3F, 0.3F, 0.8F), new Color(0.1F, 0.1F, 0.1F, 0.3F), decaytime/20.0f);
+    }
+
+    /// <summary>
+    /// Pass-through to damage npc
+    /// </summary>
+    /// <param name="subjectAttacker"></param>
+    /// <param name="damageAmount"></param>
+    /// <param name="NpcAttacker"></param>
+    /// <returns></returns>
     public bool Damage(Subject subjectAttacker, int damageAmount, NpcCore NpcAttacker = null)
     {
-        return npcCharacter.Damage(subjectAttacker, damageAmount, NpcAttacker);
+        if (npcCharacter.Damage(subjectAttacker, damageAmount, NpcAttacker))
+        {
+            //npc is dead
+            Inventory.Add(new InventoryItem(5, 1));
+            isCarcass = true;
+            decaytime = 20.0f;
+            return true;
+        }
+        else return false;
     }
 }
