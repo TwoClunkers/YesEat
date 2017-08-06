@@ -6,6 +6,7 @@ public class PlacementControllerScript : MonoBehaviour
     public MasterSubjectList masterSubjectList;
     public GameObject currentSelection;
 
+    public int masterCount;
     public int placeID;
     private bool placementStarted;
     private Vector3 centerPosition;
@@ -50,9 +51,6 @@ public class PlacementControllerScript : MonoBehaviour
                             if(placedObject != null)
                             {
                                 SubjectObjectScript script = placedObject.GetComponent<SubjectObjectScript>() as SubjectObjectScript;
-                                LocationSubject newLocation = new LocationSubject();
-                                newLocation.Coordinates = centerPosition;
-                                newLocation.Radius = 0.5f;
                                 script.InitializeFromSubject(masterSubjectList, newSubject);
                                 placedObject.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
                                 placementStarted = true;
@@ -87,6 +85,8 @@ public class PlacementControllerScript : MonoBehaviour
                                 centerPosition.x.ToString().Substring(0, 4) + "," +
                                 centerPosition.y.ToString().Substring(0, 4) + "," +
                                 centerPosition.z.ToString().Substring(0, 4);
+                            newLocation.SubjectID = masterSubjectList.GetNextID();
+                            if(!masterSubjectList.AddSubject(newLocation)) Debug.Log("FAIL ADD");
                         }
 
                     }
