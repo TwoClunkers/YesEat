@@ -5,6 +5,7 @@ public class PlacementControllerScript : MonoBehaviour
 {
     public MasterSubjectList masterSubjectList;
     public GameObject currentSelection;
+    public GameObject thoughtBubble;
 
     public int masterCount;
     public int placeID;
@@ -35,7 +36,7 @@ public class PlacementControllerScript : MonoBehaviour
                     centerPosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y));
                     if (HarmAtPosition(centerPosition, 1.0f))
                     {
-                        Debug.Log("kill!");
+                        PopMessage("Kill!", centerPosition, 0);
                     }
                 }
             }
@@ -47,7 +48,7 @@ public class PlacementControllerScript : MonoBehaviour
                     centerPosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y));
                     if (DeleteAtPosition(centerPosition, 1.0f))
                     {
-                        Debug.Log("destroy!");
+                        PopMessage("DELETED", centerPosition, 1);
                     }
                 }
             }
@@ -213,6 +214,24 @@ public class PlacementControllerScript : MonoBehaviour
         return UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject();
     }
 
+    /// <summary>
+    /// Creates a temporary message bubble at location specified
+    /// </summary>
+    /// <param name="message"></param>
+    /// <param name="position"></param>
+    /// <param name="colorSelect"></param>
+    public void PopMessage(string message, Vector3 position, int colorSelect = 0)
+    {
+        position = Camera.main.WorldToScreenPoint(position);
+        GameObject newBubble = Instantiate(thoughtBubble, position, Quaternion.identity);
+        GameObject canvas = GameObject.FindGameObjectWithTag("Message");
+        newBubble.transform.SetParent(canvas.transform);
+        newBubble.GetComponent<ThoughtBubbleScript>().PopMessage(message, colorSelect);
+
+    }
+
+
+    //Button attachments
     public void OnSelectLocation(bool isClicked)
     {
         placeID = 2;
