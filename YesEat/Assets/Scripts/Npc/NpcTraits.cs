@@ -27,7 +27,7 @@ public class NpcCharacterTraits
     /// Turns on the changeTrait flag.
     /// </summary>
     /// <param name="changeTrait">The flag to turn on.</param>
-    public void SetTrait(NpcTraits changeTrait) { _traits &= changeTrait; }
+    public void SetTrait(NpcTraits changeTrait) { _traits |= changeTrait; }
 
     /// <summary>
     /// Turns off the changeTrait flag.

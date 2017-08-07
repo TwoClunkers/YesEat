@@ -67,18 +67,18 @@ public class PlacementControllerScript : MonoBehaviour
                     {
                         //Use the id to pull the Subject card
                         Subject newSubject = masterSubjectList.GetSubject(placeID);
-                        if(newSubject != null)
+                        if (newSubject != null)
                         {
                             placedObject = Instantiate(newSubject.Prefab, centerPosition, Quaternion.identity);
-                            if(placedObject != null)
+                            if (placedObject != null)
                             {
                                 SubjectObjectScript script = placedObject.GetComponent<SubjectObjectScript>() as SubjectObjectScript;
                                 script.InitializeFromSubject(masterSubjectList, newSubject);
                                 placementStarted = true;
                             }
                         }
-                        
-                        
+
+
                     }
                 }
             }
@@ -106,13 +106,10 @@ public class PlacementControllerScript : MonoBehaviour
                         {
                             newLocation.Radius = distance;
                             newLocation.Coordinates = centerPosition;
-                            newLocation.Description = "New Location " + centerPosition.x + "," + centerPosition.y + "," + centerPosition.z;
+                            newLocation.Description = "New Location " + +Time.time;
                             newLocation.Icon = null;
                             newLocation.Layer = 1;
-                            newLocation.Name = "Location" +
-                                centerPosition.x.ToString().Substring(0, 4) + "," +
-                                centerPosition.y.ToString().Substring(0, 4) + "," +
-                                centerPosition.z.ToString().Substring(0, 4);
+                            newLocation.Name = "Location " + Time.time;
                             //add the next id available
                             newLocation.SubjectID = masterSubjectList.GetNextID();
                             if (!masterSubjectList.AddSubject(newLocation)) Debug.Log("FAIL ADD");
@@ -188,7 +185,7 @@ public class PlacementControllerScript : MonoBehaviour
         //if (currentSelection == null) return false; //nothing to place;
         //First we catch all the colliders in our area
         Collider[] hitColliders = Physics.OverlapSphere(center, radius);
-        
+
         //If we caught any, will have to check them
         for (int i = 0; i < hitColliders.Length; i++)
         {

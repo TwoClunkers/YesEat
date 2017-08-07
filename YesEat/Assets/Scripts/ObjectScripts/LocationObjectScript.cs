@@ -66,6 +66,7 @@ public class LocationObjectScript : SubjectObjectScript
         Collider[] hitColliders = Physics.OverlapSphere(locationSubject.Coordinates, locationSubject.Radius, layerMask);
 
         List<int> foundSubjectIDs = new List<int>();
+        localObjects.Clear();
         for (int i = 0; i < hitColliders.Length; i++)
         {
             // get the base script class for our objects

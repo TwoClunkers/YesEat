@@ -18,6 +18,7 @@ public partial class NpcCore
             {
                 reExploreLocations = GetAllKnownLocations();
             }
+            objectScript.MoveToNewLocation(reExploreLocations[0]);
         }
     }
 }

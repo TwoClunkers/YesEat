@@ -108,18 +108,19 @@ public partial class NpcCore
         if (ExcludeLocationIDs == null)
         {
             // Find nearest location where subjectToFind can be found.
-            foundObjects = definition.Memories
-                                .FindAll(o => o.SubjectID == SubjectToFind.SubjectID)
-                                .Select(o => db.GetSubject((o as LocationMemory).SubjectID) as LocationSubject)
-                                .OrderBy(o => Vector3.Distance(CurrentPosition, o.Coordinates)).ToList();
+            List<SubjectMemory> locMems = definition.Memories.FindAll(o => o.GetType() == typeof(LocationMemory)).ToList();
+            locMems = locMems.FindAll(o => (o as LocationMemory).ObjectMemories.Exists(x => x.SubjectID == SubjectToFind.SubjectID));
+            locMems = locMems.OrderBy(o => Vector3.Distance(CurrentPosition, (db.GetSubject(o.SubjectID) as LocationSubject).Coordinates)).ToList();
+            foundObjects = locMems.Select(o => db.GetSubject(o.SubjectID) as LocationSubject).ToList();
         }
         else
         {
-            foundObjects = definition.Memories
-                                .FindAll(o => o.SubjectID == SubjectToFind.SubjectID)
-                                .Select(o => db.GetSubject((o as LocationMemory).SubjectID) as LocationSubject)
-                                .Where(o => !ExcludeLocationIDs.Contains(o.SubjectID))
-                                .OrderBy(o => Vector3.Distance(CurrentPosition, o.Coordinates)).ToList();
+            List<SubjectMemory> locMems = definition.Memories.FindAll(o => o.GetType() == typeof(LocationMemory)).ToList();
+            locMems = locMems.FindAll(o => (o as LocationMemory).ObjectMemories.Exists(x => x.SubjectID == SubjectToFind.SubjectID));
+            locMems = locMems.OrderBy(o => Vector3.Distance(CurrentPosition, (db.GetSubject(o.SubjectID) as LocationSubject).Coordinates)).ToList();
+            foundObjects = locMems.Select(o => db.GetSubject(o.SubjectID) as LocationSubject).ToList();
+            // exclude
+            foundObjects = foundObjects.FindAll(o => !ExcludeLocationIDs.Contains(o.SubjectID));
         }
         return foundObjects;
     }
@@ -383,8 +384,11 @@ public partial class NpcCore
     public void AiCoreProcess()
     {
         considerObjects = objectScript.Observe();
-        unexploredLocations = objectScript.GetObservedLocations()
+        unexploredLocations = objectScript.GetObservedLocations();
+        unexploredLocations = unexploredLocations
             .FindAll(o => !definition.Memories.Exists(x => x.SubjectID == o.SubjectID));
+        unexploredLocations = unexploredLocations
+            .OrderBy(o => Vector3.Distance(objectScript.transform.position, o.Coordinates)).ToList();
 
         // Consider each subject starting with the closest.
         bool dangerFound = false;

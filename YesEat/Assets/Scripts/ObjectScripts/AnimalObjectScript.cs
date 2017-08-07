@@ -114,14 +114,14 @@ public class AnimalObjectScript : SubjectObjectScript
             if (destination != null) // traveling to a new location
             {
                 float distance = Vector3.Distance(destination.Coordinates, transform.position);
-                if (distance > npcCharacter.SightRangeFar) MoveTowardsPoint(destination.Coordinates, npcCharacter.MoveSpeed);
-                else if (distance > 1) MoveTowardsPoint(destination.Coordinates, npcCharacter.MoveSpeed / 3);
+                if (distance > (npcCharacter.SightRangeNear)) MoveTowardsPoint(destination.Coordinates, npcCharacter.MoveSpeed);
+                else if (distance > 0.5) MoveTowardsPoint(destination.Coordinates, npcCharacter.MoveSpeed / 2);
                 else destination = null;
             }
             else if (chaseTarget != null) // chase the target
             {
                 float distance = Vector3.Distance(chaseTarget.transform.position, transform.position);
-                if (distance > 0.5) MoveTowardsPoint(chaseTarget.transform.position, npcCharacter.MoveSpeed);
+                if (distance > 1.0) MoveTowardsPoint(chaseTarget.transform.position, npcCharacter.MoveSpeed);
                 else chaseTarget = null;
             }
         }
@@ -129,7 +129,7 @@ public class AnimalObjectScript : SubjectObjectScript
         {
             decaytime -= Time.deltaTime;
             UpdateDeadnessColor();
-            if (decaytime < 0) Destroy(this);
+            if (decaytime < 0) Destroy(this.gameObject);
         }
     }
 
@@ -227,7 +227,7 @@ public class AnimalObjectScript : SubjectObjectScript
 
     void UpdateDeadnessColor()
     {
-        transform.GetComponent<Renderer>().material.color = Color.Lerp(new Color(0.5F, 0.3F, 0.3F, 0.8F), new Color(0.1F, 0.1F, 0.1F, 0.3F), decaytime/20.0f);
+        transform.GetComponent<Renderer>().material.color = Color.Lerp(new Color(0.5F, 0.3F, 0.3F, 0.8F), new Color(0.1F, 0.1F, 0.1F, 0.3F), decaytime / 20.0f);
     }
 
     /// <summary>
