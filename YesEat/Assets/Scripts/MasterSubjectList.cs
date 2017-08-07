@@ -27,7 +27,7 @@ public class MasterSubjectList
             FoodMax = 100,
             FoodMetabolizeRate = 1,
             HealthDanger = 40,
-            HealthMax = 100,
+            HealthMax = 50,
             HealthRegen = 1,
             MetabolizeInterval = 1,
             MoveSpeed = 5,
@@ -36,7 +36,7 @@ public class MasterSubjectList
             SafetyHigh = 10,
             SightRangeFar = 10,
             SightRangeNear = 2,
-            StarvingDamage = 1,
+            StarvingDamage = 3,
             Traits = new NpcCharacterTraits(NpcTraits.NestMaker & NpcTraits.Herbivore)
         };
         AnimalSubject plinkett = new AnimalSubject()
@@ -151,7 +151,7 @@ public class MasterSubjectList
             SafetyHigh = 10,
             SightRangeFar = 10,
             SightRangeNear = 2,
-            StarvingDamage = 1,
+            StarvingDamage = 5,
             Traits = new NpcCharacterTraits(NpcTraits.Carnivore)
         };
         AnimalSubject gobber = new AnimalSubject()

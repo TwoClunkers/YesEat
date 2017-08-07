@@ -359,9 +359,10 @@ public partial class NpcCore
     /// <summary>
     /// Reduce food. Reduce health if starving. Regenerate health if not starving.
     /// </summary>
-    public void Metabolize()
+    public int Metabolize()
     {
-        if (IsDead) return;
+        if (IsDead) return 0;
+        int preHealth = health;
         if (food == 0)
         {
             health -= definition.StarvingDamage;
@@ -376,6 +377,7 @@ public partial class NpcCore
             }
             food -= definition.FoodMetabolizeRate;
         }
+        return health - preHealth;
     }
 
     /// <summary>

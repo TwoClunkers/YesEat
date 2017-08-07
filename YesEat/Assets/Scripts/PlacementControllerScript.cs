@@ -6,6 +6,8 @@ public class PlacementControllerScript : MonoBehaviour
     public MasterSubjectList masterSubjectList;
     public GameObject currentSelection;
     public GameObject thoughtBubble;
+    public GameObject selectionMarker;
+    public GameObject lastSelector;
 
     public int masterCount;
     public int placeID;
@@ -29,8 +31,17 @@ public class PlacementControllerScript : MonoBehaviour
     {
         if (placeID < 1)
         {
-            if (placeID < 0) //setting to kill
+            if (placeID < -1) //placeID == -2
             {
+                if (!IsOverMenu() && (Input.GetMouseButtonDown(0)))
+                {
+                    centerPosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y));
+                    SelectAtPosition(centerPosition, 1.0f);
+                }
+            }
+            else if (placeID < 0) //placeID == -1
+            {
+                //setting to Damage
                 if (!IsOverMenu() && (Input.GetMouseButtonDown(0)))
                 {
                     centerPosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y));
@@ -40,7 +51,7 @@ public class PlacementControllerScript : MonoBehaviour
                     }
                 }
             }
-            else
+            else //placeID == 0
             {
                 //setting to delete objects
                 if (!IsOverMenu() && (Input.GetMouseButtonDown(0)))
@@ -163,7 +174,6 @@ public class PlacementControllerScript : MonoBehaviour
 
     public bool DeleteAtPosition(Vector3 center, float radius)
     {
-        //if (currentSelection == null) return false; //nothing to place;
         //First we catch all the colliders in our area
         Collider[] hitColliders = Physics.OverlapSphere(center, radius);
 
@@ -183,7 +193,6 @@ public class PlacementControllerScript : MonoBehaviour
 
     public bool HarmAtPosition(Vector3 center, float radius)
     {
-        //if (currentSelection == null) return false; //nothing to place;
         //First we catch all the colliders in our area
         Collider[] hitColliders = Physics.OverlapSphere(center, radius);
 
@@ -196,13 +205,34 @@ public class PlacementControllerScript : MonoBehaviour
                 AnimalObjectScript script = hitColliders[i].GetComponent<AnimalObjectScript>() as AnimalObjectScript;
                 if (script != null)
                 {
-                    if (script.Damage(script.Subject, 10000)) return true;
+                    if (script.Damage(script.Subject, 20)) return true;
                 }
                 else continue;
             }
         }
         //if we are not bumped prior to here, we are still good
         return false;
+    }
+
+    public void SelectAtPosition(Vector3 center, float radius)
+    {
+        //First we catch all the colliders in our area
+        Collider[] hitColliders = Physics.OverlapSphere(center, radius);
+
+        //If we caught any, will have to check them
+        for (int i = 0; i < hitColliders.Length; i++)
+        {
+            if (hitColliders[i].tag == "Ground") continue;
+            if (hitColliders[i].tag == "Location") continue;
+            else
+            {
+                if (lastSelector != null) Destroy(lastSelector);
+                GameObject newSelector = Instantiate(selectionMarker, hitColliders[i].transform);
+                lastSelector = newSelector;
+            }
+        }
+        //if we are not bumped prior to here, we are still good
+        return;
     }
 
     /// <summary>
@@ -265,6 +295,12 @@ public class PlacementControllerScript : MonoBehaviour
     public void OnSelectSmite()
     {
         placeID = -1;
+        placementStarted = false;
+    }
+
+    public void OnSelectSelect()
+    {
+        placeID = -2;
         placementStarted = false;
     }
 }

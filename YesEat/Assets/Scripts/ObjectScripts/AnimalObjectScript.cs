@@ -52,8 +52,9 @@ public class AnimalObjectScript : SubjectObjectScript
     {
         if (destination != null)
         {
+            if (newLocation == null) Debug.Log("null location");
             // if we are not already at the location set it as the destination
-            if (destination.SubjectID != newLocation.SubjectID)
+            else if (destination.SubjectID != newLocation.SubjectID)
             {
                 // remove chase target if we're moving to a location
                 chaseTarget = null;
@@ -99,8 +100,10 @@ public class AnimalObjectScript : SubjectObjectScript
             MetabolizeTickCounter += Time.deltaTime;
             if (MetabolizeTickCounter >= npcCharacter.Definition.MetabolizeInterval)
             {
-                npcCharacter.Metabolize();
+                int healthChange = npcCharacter.Metabolize();
                 MetabolizeTickCounter -= npcCharacter.Definition.MetabolizeInterval;
+                if(healthChange > 0) GameObject.FindGameObjectWithTag("GameController").GetComponent<PlacementControllerScript>().PopMessage(healthChange.ToString(), gameObject.transform.position, 2);
+                else if(healthChange < 0) GameObject.FindGameObjectWithTag("GameController").GetComponent<PlacementControllerScript>().PopMessage(healthChange.ToString(), gameObject.transform.position, 0);
             }
 
             AiCoreTickCounter += Time.deltaTime;
@@ -127,6 +130,12 @@ public class AnimalObjectScript : SubjectObjectScript
         }
         else // this animal is dead
         {
+            if(!isCarcass) //newly dead
+            {
+                Inventory.Add(new InventoryItem(5, 1));
+                isCarcass = true;
+                decaytime = 20.0f;
+            }
             decaytime -= Time.deltaTime;
             UpdateDeadnessColor();
             if (decaytime < 0) Destroy(this.gameObject);
@@ -239,13 +248,11 @@ public class AnimalObjectScript : SubjectObjectScript
     /// <returns></returns>
     public bool Damage(Subject subjectAttacker, int damageAmount, NpcCore NpcAttacker = null)
     {
+        if (npcCharacter.IsDead) return false; //already dead, so cannot damage
+            GameObject.FindGameObjectWithTag("GameController").GetComponent<PlacementControllerScript>().PopMessage((-damageAmount).ToString(), gameObject.transform.position, 0);
         if (npcCharacter.Damage(subjectAttacker, damageAmount, NpcAttacker))
         {
-            //npc is dead
-            Inventory.Add(new InventoryItem(5, 1));
-            isCarcass = true;
-            decaytime = 20.0f;
-            return true;
+           return true; //it was killed
         }
         else return false;
     }
