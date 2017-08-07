@@ -22,7 +22,8 @@ public class MasterSubjectList
         NpcDefinition plinkettNpcDefinition = new NpcDefinition()
         {
             Memories = new List<SubjectMemory>(),
-            FoodHungry = 50,
+            AttackDamage = 10,
+            FoodHungry = 60,
             FoodMax = 100,
             FoodMetabolizeRate = 1,
             HealthDanger = 40,
@@ -44,6 +45,8 @@ public class MasterSubjectList
             Description = "A herbivore.",
             GrowthTime = 5,
             Icon = new UnityEngine.Sprite(),
+            InventorySize = 1,
+            LootID = 5,
             MatureTime = 200,
             MaxGrowth = 400,
             Name = "Plinkett",
@@ -134,6 +137,7 @@ public class MasterSubjectList
         NpcDefinition gobberNpcDefinition = new NpcDefinition()
         {
             Memories = new List<SubjectMemory>(),
+            AttackDamage = 10,
             FoodHungry = 50,
             FoodMax = 100,
             FoodMetabolizeRate = 1,
@@ -156,6 +160,8 @@ public class MasterSubjectList
             Description = "A carnivore.",
             GrowthTime = 5,
             Icon = new UnityEngine.Sprite(),
+            InventorySize = 1,
+            LootID = 5,
             MatureTime = 200,
             MaxGrowth = 400,
             Name = "Gobber",

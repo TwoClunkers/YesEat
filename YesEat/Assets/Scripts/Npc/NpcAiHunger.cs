@@ -53,7 +53,7 @@ public partial class NpcCore
                 SubjectObjectScript foodSourceObject = foodSource[0];
 
                 // if it's within harvest range
-                if (Vector3.Distance(foodSourceObject.transform.position, objectScript.transform.position) <= 0.5)
+                if (Vector3.Distance(foodSourceObject.transform.position, objectScript.transform.position) <= 1.0)
                 {
                     // we're within range, stop chasing
                     objectScript.ChaseStop();
@@ -71,9 +71,10 @@ public partial class NpcCore
                             searchedObjects.Add(foodSourceObject.GetInstanceID());
                         }
                     }
-                    else
+                    else // null means this is an animal that isn't dead, attack it.
                     {
-                        searchedObjects.Add(foodSourceObject.GetInstanceID());
+                        AnimalObjectScript animal = foodSourceObject as AnimalObjectScript;
+                        animal.Damage(Subject, definition.AttackDamage, this);
                     }
                 }
                 else //out of harvest range, chase this food source
@@ -98,11 +99,7 @@ public partial class NpcCore
                 }
                 else
                 {
-                    // no known food locations were found, explore unexplored locations
-                    if (unexploredLocations.Count > 0)
-                    {
-                        AiCoreSubprocessExplore();
-                    }
+                    AiCoreSubprocessExplore();
                 }
             }
         }
