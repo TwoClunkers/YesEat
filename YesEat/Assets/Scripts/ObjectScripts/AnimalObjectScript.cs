@@ -129,7 +129,7 @@ public class AnimalObjectScript : SubjectObjectScript
         {
             decaytime -= Time.deltaTime;
             UpdateDeadnessColor();
-            if (decaytime < 0) Destroy(this);
+            if (decaytime < 0) Destroy(this.gameObject);
         }
     }
 
@@ -227,7 +227,7 @@ public class AnimalObjectScript : SubjectObjectScript
 
     void UpdateDeadnessColor()
     {
-        transform.GetComponent<Renderer>().material.color = Color.Lerp(new Color(0.5F, 0.3F, 0.3F, 0.8F), new Color(0.1F, 0.1F, 0.1F, 0.3F), decaytime/20.0f);
+        transform.GetComponent<Renderer>().material.color = Color.Lerp(new Color(0.1F, 0.1F, 0.1F, 0.3F), new Color(0.5F, 0.3F, 0.3F, 0.8F), decaytime/20.0f);
     }
 
     /// <summary>
