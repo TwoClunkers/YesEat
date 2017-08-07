@@ -32,7 +32,7 @@ public partial class NpcCore
         /// <param name="changeState">The flag to turn on.</param>
         public void SetState(NpcStates changeState)
         {
-            _status &= changeState;
+            _status |= changeState;
         }
         /// <summary>
         /// Turns off the changeState flag.
