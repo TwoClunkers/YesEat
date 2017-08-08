@@ -193,6 +193,10 @@ class Inventory
         return reservedItems;
     }
 
+    /// <summary>
+    /// FillRatio gives percent of slots not empty
+    /// </summary>
+    /// <returns></returns>
     public float FillRatio()
     {
         float filled = 0.0f;

@@ -544,5 +544,44 @@ public partial class NpcCore
     /// True = Dead. False = Not dead.
     /// </summary>
     public bool IsDead { get { return status.IsStateSet(NpcStates.Dead); } }
+
+    public int Health
+    {
+        get
+        {
+            return health;
+        }
+
+        set
+        {
+            health = value;
+        }
+    }
+
+    public int Food
+    {
+        get
+        {
+            return food;
+        }
+
+        set
+        {
+            food = value;
+        }
+    }
+
+    public int Safety
+    {
+        get
+        {
+            return safety;
+        }
+
+        set
+        {
+            safety = value;
+        }
+    }
     #endregion
 }

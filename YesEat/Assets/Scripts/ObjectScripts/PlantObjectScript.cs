@@ -55,6 +55,22 @@ public class PlantObjectScript : SubjectObjectScript
         
     }
 
+    public float CurrentGrowth
+    {
+        get { return currentGrowth; }
+        set { currentGrowth = value; }
+    }
+
+    public float InventoryPercent()
+    {
+        return inventory.FillRatio();
+    }
+
+
+    /// <summary>
+    /// Harvest to take from inventory
+    /// </summary>
+    /// <returns></returns>
     public override InventoryItem Harvest()
     {
         return inventory.Take(new InventoryItem(produceID, 1));
