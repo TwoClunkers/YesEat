@@ -46,6 +46,19 @@ public class AnimalObjectScript : SubjectObjectScript
         Inventory = new Inventory((subject as AnimalSubject).InventorySize, ref masterSubjectList);
     }
 
+    public int GetHealth()
+    {
+        return npcCharacter.Health;
+    }
+    public int GetSafety()
+    {
+        return npcCharacter.Safety;
+    }
+    public int GetFood()
+    {
+        return npcCharacter.Food;
+    }
+
     /// <summary>
     /// Begin path finding to a new location.
     /// </summary>

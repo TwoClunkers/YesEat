@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using UnityEngine.UI;
 
 public partial class PlacementControllerScript : MonoBehaviour
 {
@@ -8,6 +9,20 @@ public partial class PlacementControllerScript : MonoBehaviour
     public GameObject thoughtBubble;
     public GameObject selectionMarker;
     public GameObject lastSelector;
+    public GameObject testPanel;
+    public GameObject plantPanel;
+    public GameObject animalPanel;
+
+    public Text _ID;
+    public Text _Name;
+    public Text _Description;
+    public Text _Produce;
+    public Text _Growth;
+    public Text _Inventory;
+    public Text _Maturity;
+    public Text _Health;
+    public Text _Safety;
+    public Text _Food;
 
     public int masterCount;
     public int placeID;
@@ -29,6 +44,52 @@ public partial class PlacementControllerScript : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
+
+        if ((lastSelector != null) && (lastSelector.transform.parent != null))
+        {
+            SubjectObjectScript script = lastSelector.transform.parent.GetComponent<SubjectObjectScript>() as SubjectObjectScript;
+            _ID.text = "ID: <b>" + script.Subject.SubjectID.ToString() + "</b>";
+            _Name.text = "Name: <b>" + script.Subject.Name.ToString() + "</b>";
+            _Description.text = "Desc: <b>" + script.Subject.Description.ToString() + "</b>";
+
+            testPanel.SetActive(true);
+            PlantSubject plantSub = script.Subject as PlantSubject;
+            if(plantSub != null)
+            {
+                PlantObjectScript plantScript = script as PlantObjectScript;
+                Subject produceSubject = masterSubjectList.GetSubject(plantSub.ProduceID);
+                float maturePercent = Mathf.Min(plantScript.CurrentGrowth / plantSub.MatureGrowth, 1.0f);
+                plantPanel.SetActive(true);
+                animalPanel.SetActive(false);
+                _Produce.text = "Produce: <b>" + plantSub.ProduceID.ToString() + " - " + produceSubject.Name.ToString() + "</b>";
+                _Growth.text = "Growth: <b>" + plantScript.CurrentGrowth.ToString() + " / " + plantSub.MaxGrowth.ToString() + "</b>";
+                _Maturity.text = "Maturity: <b>" + maturePercent.ToString() + "</b>";
+                _Inventory.text = "Inventory: <b>" + plantScript.InventoryPercent().ToString() + "</b>";
+            }
+            else
+            {
+                plantPanel.SetActive(false);
+                AnimalSubject animalSub = script.Subject as AnimalSubject;
+                if(animalSub != null)
+                {
+                    animalPanel.SetActive(true);
+                    AnimalObjectScript animalScript = script as AnimalObjectScript;
+                    _Health.text = "Health: <b>" + animalScript.GetHealth().ToString() + "</b>";
+                    _Safety.text = "Safety: <b>" + animalScript.GetSafety().ToString() + "</b>";
+                    _Food.text = "Food: <b>" + animalScript.GetFood().ToString() + "</b>";
+                }
+                else
+                {
+                    animalPanel.SetActive(false);
+                }
+            }
+        }
+        else
+        {
+            testPanel.SetActive(false);
+        }
+
+        //Place or use tool
         if (placeID < 1)
         {
             if (placeID < -1) //placeID == -2
@@ -87,6 +148,19 @@ public partial class PlacementControllerScript : MonoBehaviour
                                 SubjectObjectScript script = placedObject.GetComponent<SubjectObjectScript>() as SubjectObjectScript;
                                 script.InitializeFromSubject(masterSubjectList, newSubject);
                                 placementStarted = true;
+
+                                //if we just placed a location, we have to create a subject for it
+                                LocationSubject newLocation = script.Subject as LocationSubject;
+                                if(newLocation != null)
+                                {
+                                    newLocation.Coordinates = centerPosition;
+                                    newLocation.Description = "New Location " + +Time.time;
+                                    newLocation.Icon = null;
+                                    newLocation.Layer = 1;
+                                    newLocation.Name = "Location " + Time.time;
+                                }
+
+
                             }
                         }
 
@@ -112,7 +186,7 @@ public partial class PlacementControllerScript : MonoBehaviour
                     {
                         placementStarted = false;
                         //grab the script, and we will place a new LocationSubject in it.
-                        SubjectObjectScript script = placedObject.GetComponent<SubjectObjectScript>() as SubjectObjectScript;
+                        LocationObjectScript script = placedObject.GetComponent<LocationObjectScript>() as LocationObjectScript;
                         LocationSubject newLocation = script.Subject as LocationSubject;
                         if (newLocation != null)
                         {
@@ -124,6 +198,8 @@ public partial class PlacementControllerScript : MonoBehaviour
                             newLocation.Name = "Location " + Time.time;
                             //add the next id available
                             newLocation.SubjectID = masterSubjectList.GetNextID();
+                            script.Subject = newLocation;
+
                             if (!masterSubjectList.AddSubject(newLocation)) Debug.Log("FAIL ADD");
                         }
                     }
