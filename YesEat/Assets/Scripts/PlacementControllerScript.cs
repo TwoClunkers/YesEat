@@ -38,7 +38,8 @@ public partial class PlacementControllerScript : MonoBehaviour
         centerPosition = new Vector3();
         edgePosition = new Vector3();
         currentSelection = null;
-        placeID = 3;
+        placeID = -2;
+        testPanel.SetActive(true);
     }
 
     // Update is called once per frame
@@ -86,7 +87,7 @@ public partial class PlacementControllerScript : MonoBehaviour
         }
         else
         {
-            testPanel.SetActive(false);
+            //testPanel.SetActive(false);
         }
 
         //Place or use tool

@@ -118,7 +118,7 @@ public class PlantObjectScript : SubjectObjectScript
             maxGrowth = plantSubject.MaxGrowth;
             growthTime = plantSubject.GrowthTime;
             matureGrowth = plantSubject.MatureGrowth;
-            inventory = new Inventory(plantSubject.InventorySize, ref _masterSubjectList);
+            inventory = new Inventory(plantSubject.InventorySize, _masterSubjectList);
 
             mature = false;
             age = 0.1f;
@@ -133,7 +133,7 @@ public class PlantObjectScript : SubjectObjectScript
             maxGrowth = 1;
             growthTime = 20;
             matureGrowth = 15;
-            inventory = new Inventory(3, ref _masterSubjectList);
+            inventory = new Inventory(3, _masterSubjectList);
 
             mature = false;
             age = 0.1f;

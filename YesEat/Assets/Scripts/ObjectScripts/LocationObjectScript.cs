@@ -48,7 +48,7 @@ public class LocationObjectScript : SubjectObjectScript
         //resize and reposition if we have a valid location subject
         if (newLocation != null)
         {
-            gameObject.transform.localScale = new Vector3((float)newLocation.Radius, 0.1f, (float)newLocation.Radius);
+            gameObject.transform.localScale = new Vector3((float)newLocation.Radius * 2, 0.1f, (float)newLocation.Radius * 2);
             gameObject.transform.position = newLocation.Coordinates;
         }
     }
