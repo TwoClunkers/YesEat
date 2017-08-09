@@ -11,9 +11,12 @@ public class LocationObjectScript : SubjectObjectScript
     private List<ObjectMemory> localObjects;
     #endregion
 
-    // Use this for initialization
-    void Start()
+    public int testNumber;
+
+    
+    void Awake()
     {
+        testNumber = 0;
         subject = new LocationSubject();
         count = 0;
         localObjects = new List<ObjectMemory>();

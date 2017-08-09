@@ -12,6 +12,7 @@ public partial class PlacementControllerScript : MonoBehaviour
     public GameObject testPanel;
     public GameObject plantPanel;
     public GameObject animalPanel;
+    public GameObject locationPanel;
     public GameObject locationStart;
 
     public Text _ID;
@@ -24,6 +25,8 @@ public partial class PlacementControllerScript : MonoBehaviour
     public Text _Health;
     public Text _Safety;
     public Text _Food;
+    public Text _Center;
+    public Text _Radius;
 
     public int masterCount;
     public int placeID;
@@ -64,6 +67,7 @@ public partial class PlacementControllerScript : MonoBehaviour
                 float maturePercent = Mathf.Min(plantScript.CurrentGrowth / plantSub.MatureGrowth, 1.0f);
                 plantPanel.SetActive(true);
                 animalPanel.SetActive(false);
+                locationPanel.SetActive(false);
                 _Produce.text = "Produce: <b>" + plantSub.ProduceID.ToString() + " - " + produceSubject.Name.ToString() + "</b>";
                 _Growth.text = "Growth: <b>" + plantScript.CurrentGrowth.ToString() + " / " + plantSub.MaxGrowth.ToString() + "</b>";
                 _Maturity.text = "Maturity: <b>" + maturePercent.ToString() + "</b>";
@@ -71,11 +75,12 @@ public partial class PlacementControllerScript : MonoBehaviour
             }
             else
             {
-                plantPanel.SetActive(false);
                 AnimalSubject animalSub = script.Subject as AnimalSubject;
                 if (animalSub != null)
                 {
                     animalPanel.SetActive(true);
+                    plantPanel.SetActive(false);
+                    locationPanel.SetActive(false);
                     AnimalObjectScript animalScript = script as AnimalObjectScript;
                     _Health.text = "Health: <b>" + animalScript.GetHealth().ToString() + "</b>";
                     _Safety.text = "Safety: <b>" + animalScript.GetSafety().ToString() + "</b>";
@@ -83,7 +88,22 @@ public partial class PlacementControllerScript : MonoBehaviour
                 }
                 else
                 {
-                    animalPanel.SetActive(false);
+                    LocationSubject locationSub = script.Subject as LocationSubject;
+                    if (locationSub != null)
+                    {
+                        locationPanel.SetActive(true);
+                        plantPanel.SetActive(false);
+                        animalPanel.SetActive(false);
+                        LocationObjectScript locationScript = script as LocationObjectScript;
+                        _Center.text = "Center: <b>" + locationSub.Coordinates.ToString() + "</b>";
+                        _Radius.text = "Radius: <b>" + locationSub.Radius.ToString() + "</b>";   
+                    }
+                    else
+                    {
+                        locationPanel.SetActive(false);
+                        plantPanel.SetActive(false);
+                        animalPanel.SetActive(false);
+                    }
                 }
             }
         }
@@ -191,27 +211,8 @@ public partial class PlacementControllerScript : MonoBehaviour
                     {
                         placementStarted = false;
                         Destroy(placedObject); //get rid of our temp area
-                        //pull the default location card, and create the prefab (reusing the values from above)
-                        LocationSubject newLocation = masterSubjectList.GetSubject(2) as LocationSubject;
-                        placedObject = Instantiate(newLocation.Prefab, centerPosition, Quaternion.identity);
-                        placedObject.transform.localScale = new Vector3(lastDistance * 2, 0.1f, lastDistance * 2);
-                        newLocation = new LocationSubject();
-                        LocationObjectScript script = placedObject.GetComponent<LocationObjectScript>() as LocationObjectScript;
-                        //now lets set the values to make a new locationSubject card
-                        if (newLocation != null)
-                        {
-                            newLocation.Radius = lastDistance;
-                            newLocation.Coordinates = centerPosition;
-                            newLocation.Description = "New Location " + +Time.time;
-                            newLocation.Icon = null;
-                            newLocation.Layer = 1;
-                            newLocation.Name = "Location " + Time.time;
-                            //add the next id available
-                            newLocation.SubjectID = masterSubjectList.GetNextID();
-                            script.Subject = newLocation;
-                            //now add our card to the master list
-                            if (!masterSubjectList.AddSubject(newLocation)) Debug.Log("FAIL ADD");
-                        }
+                        //create a new location using the above values
+                        CreateLocation(centerPosition, lastDistance);
                     }
                 }
                 else
@@ -309,12 +310,13 @@ public partial class PlacementControllerScript : MonoBehaviour
         for (int i = 0; i < hitColliders.Length; i++)
         {
             if (hitColliders[i].tag == "Ground") continue;
-            if (hitColliders[i].tag == "Location") continue;
             else
             {
                 if (lastSelector != null) Destroy(lastSelector);
                 GameObject newSelector = Instantiate(selectionMarker, hitColliders[i].transform);
                 lastSelector = newSelector;
+                break;
+                //if (hitColliders[i].tag == "Location") continue;
             }
         }
         //if we are not bumped prior to here, we are still good
@@ -343,9 +345,36 @@ public partial class PlacementControllerScript : MonoBehaviour
         GameObject canvas = GameObject.FindGameObjectWithTag("Message");
         newBubble.transform.SetParent(canvas.transform);
         newBubble.GetComponent<ThoughtBubbleScript>().PopMessage(message, colorSelect);
-
     }
 
+    /// <summary>
+    /// Create and register a new location
+    /// </summary>
+    /// <param name="center"></param>
+    /// <param name="radius"></param>
+    public void CreateLocation(Vector3 center, float radius)
+    {
+        //first, pull the genaric LocationSubject from the masterSubjectList and create prefab
+        LocationSubject locFromMaster = masterSubjectList.GetSubject(2) as LocationSubject;
+        GameObject newLocationObject = Instantiate(locFromMaster.Prefab, center, Quaternion.identity);
+        newLocationObject.transform.localScale = new Vector3(radius * 2, 0.1f, radius * 2);
+
+        //grab our connected script and create a fresh LocationSubject
+        LocationObjectScript script = newLocationObject.GetComponent<LocationObjectScript>() as LocationObjectScript;
+        LocationSubject newLocSubject = new LocationSubject();
+        //now lets set the values to make a new locationSubject card
+        newLocSubject.Name = "Location " + Time.time;
+        newLocSubject.Description = "New Location " + Time.time;
+        newLocSubject.Radius = radius;
+        newLocSubject.Coordinates = center;
+        newLocSubject.Layer = 1;
+        //add the next id available
+        newLocSubject.SubjectID = masterSubjectList.GetNextID();
+        //now add our card to the master list
+        if (!masterSubjectList.AddSubject(newLocSubject)) Debug.Log("FAIL ADD");
+        //store to the script attached to our new object
+        script.Subject = newLocSubject;
+    }
 
     //Button attachments
     public void OnSelectLocation(bool isClicked)
