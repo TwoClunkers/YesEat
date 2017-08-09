@@ -28,6 +28,21 @@ public class LocationSubject : Subject
     }
 
     /// <summary>
+    /// Create new LocationSubject object based on an existing one.
+    /// </summary>
+    public LocationSubject(LocationSubject newLocation) : base()
+    {
+        name = newLocation.Name;
+        description = newLocation.Description;
+        icon = newLocation.Icon;
+        coordinates = newLocation.Coordinates;
+        radius = newLocation.Radius;
+        prefab = newLocation.Prefab;
+        layer = newLocation.Layer;
+        relatedSubjects = newLocation.RelatedSubjects;
+    }
+
+    /// <summary>
     /// The center of the location.
     /// </summary>
     public Vector3 Coordinates

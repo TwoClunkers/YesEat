@@ -19,7 +19,14 @@ public partial class NpcCore
         }
 
         // don't have nest or we're at nest and it isn't safe. move to safe location
-        objectScript.MoveToNewLocation(FindSafeLocation(objectScript));
-
+        LocationSubject safeLocation = FindSafeLocation(objectScript);
+        if (safeLocation != null)
+        {
+            objectScript.MoveToNewLocation(safeLocation);
+        }
+        else
+        {
+            AiCoreSubprocessExplore();
+        }
     }
 }

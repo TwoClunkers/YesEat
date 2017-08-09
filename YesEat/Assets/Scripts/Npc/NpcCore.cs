@@ -34,7 +34,7 @@ public partial class NpcCore
     /// </summary>
     /// <param name="ParentObjectScript">The in-game object that represents this NPC.</param>
     /// <param name="MasterSubjectListRef">A reference to the main MasterSubjectList.</param>
-    public NpcCore(AnimalObjectScript ParentObjectScript, ref MasterSubjectList MasterSubjectListRef)
+    public NpcCore(AnimalObjectScript ParentObjectScript, MasterSubjectList MasterSubjectListRef)
     {
         db = MasterSubjectListRef;
         objectScript = ParentObjectScript;
@@ -58,7 +58,7 @@ public partial class NpcCore
     /// <param name="ParentObject">The in-game object that represents this NPC.</param>
     /// <param name="MasterSubjectListRef">A reference to the main MasterSubjectList.</param>
     /// <param name="BasedOnSubject">Subject's NpcDefinition will define the character's initial resource pools, thresholds for fulfilling basic needs, and memories.</param>
-    public NpcCore(AnimalObjectScript ParentObjectScript, ref MasterSubjectList MasterSubjectListRef, Subject BasedOnSubject)
+    public NpcCore(AnimalObjectScript ParentObjectScript, MasterSubjectList MasterSubjectListRef, Subject BasedOnSubject)
     {
         db = MasterSubjectListRef;
         if (BasedOnSubject is AnimalSubject)
@@ -410,8 +410,8 @@ public partial class NpcCore
                 Inspect(conObject);
             }
         }
-        // increment safety if no danger was found near us
-        if (!dangerFound) safety++;
+        // reset safety if no danger was found near us
+        if (!dangerFound) safety = 0;
 
         UpdateDrivers();
 
@@ -516,11 +516,8 @@ public partial class NpcCore
             safety -= (damageAmount / definition.HealthMax) * 100;
         }
 
-        // known attacker?
-        if (IsSubjectKnown(subjectAttacker))
-        {
-            UpdateMemory(NpcMemoryChangeEvent.HealthDamage, subjectAttacker);
-        }
+        UpdateMemory(NpcMemoryChangeEvent.HealthDamage, subjectAttacker);
+
 
         if (NpcAttacker != null)
         {
@@ -545,43 +542,8 @@ public partial class NpcCore
     /// </summary>
     public bool IsDead { get { return status.IsStateSet(NpcStates.Dead); } }
 
-    public int Health
-    {
-        get
-        {
-            return health;
-        }
-
-        set
-        {
-            health = value;
-        }
-    }
-
-    public int Food
-    {
-        get
-        {
-            return food;
-        }
-
-        set
-        {
-            food = value;
-        }
-    }
-
-    public int Safety
-    {
-        get
-        {
-            return safety;
-        }
-
-        set
-        {
-            safety = value;
-        }
-    }
+    public int Health { get { return health; } }
+    public int Food { get { return food; } }
+    public int Safety { get { return safety; } }
     #endregion
 }

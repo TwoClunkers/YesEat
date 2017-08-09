@@ -57,7 +57,7 @@ public class InventoryItem
     /// <param name="newStackSize"></param>
     /// <param name="masterSubjectList"></param>
     /// <returns></returns>
-    public bool SetStack (int newSubjectID, int newStackSize, ref MasterSubjectList masterSubjectList)
+    public bool SetStack (int newSubjectID, int newStackSize, MasterSubjectList masterSubjectList)
     {
         ItemSubject newSubject = masterSubjectList.GetSubject(newSubjectID, typeof(ItemSubject)) as ItemSubject;
 
@@ -77,7 +77,7 @@ public class InventoryItem
     /// <param name="newStackSize"></param>
     /// <param name="masterSubjectList"></param>
     /// <returns></returns>
-    public int Add(int newSubjectID, int newStackSize, ref MasterSubjectList masterSubjectList)
+    public int Add(int newSubjectID, int newStackSize, MasterSubjectList masterSubjectList)
     {
         if (newSubjectID != subjectID) return newStackSize; //reject entire amount
 
@@ -99,7 +99,7 @@ public class InventoryItem
     /// <param name="addedInvItem"></param>
     /// <param name="masterSubjectList"></param>
     /// <returns></returns>
-    public int Add(InventoryItem addedInvItem, ref MasterSubjectList masterSubjectList)
+    public int Add(InventoryItem addedInvItem, MasterSubjectList masterSubjectList)
     {
         if (addedInvItem.subjectID != subjectID) return addedInvItem.stackSize; //reject entire amount
 

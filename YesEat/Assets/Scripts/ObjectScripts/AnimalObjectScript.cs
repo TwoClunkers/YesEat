@@ -42,8 +42,8 @@ public class AnimalObjectScript : SubjectObjectScript
         isCarcass = false;
         subject = newSubject as AnimalSubject;
         masterSubjectList = _masterSubjectList;
-        npcCharacter = new NpcCore(this, ref masterSubjectList, subject);
-        Inventory = new Inventory((subject as AnimalSubject).InventorySize, ref masterSubjectList);
+        npcCharacter = new NpcCore(this, masterSubjectList, subject);
+        Inventory = new Inventory((subject as AnimalSubject).InventorySize, masterSubjectList);
     }
 
     public int GetHealth()
