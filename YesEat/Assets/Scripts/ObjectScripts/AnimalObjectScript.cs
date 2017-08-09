@@ -22,6 +22,8 @@ public class AnimalObjectScript : SubjectObjectScript
     private SubjectObjectScript chaseTarget;
     #endregion
 
+    public NpcCore T_Npc { get { return npcCharacter; } set { npcCharacter = value; } }
+
     internal Inventory Inventory
     {
         get { return inventory; }
@@ -102,8 +104,8 @@ public class AnimalObjectScript : SubjectObjectScript
             {
                 int healthChange = npcCharacter.Metabolize();
                 MetabolizeTickCounter -= npcCharacter.Definition.MetabolizeInterval;
-                if(healthChange > 0) GameObject.FindGameObjectWithTag("GameController").GetComponent<PlacementControllerScript>().PopMessage(healthChange.ToString(), gameObject.transform.position, 2);
-                else if(healthChange < 0) GameObject.FindGameObjectWithTag("GameController").GetComponent<PlacementControllerScript>().PopMessage(healthChange.ToString(), gameObject.transform.position, 0);
+                if (healthChange > 0) GameObject.FindGameObjectWithTag("GameController").GetComponent<PlacementControllerScript>().PopMessage(healthChange.ToString(), gameObject.transform.position, 2);
+                else if (healthChange < 0) GameObject.FindGameObjectWithTag("GameController").GetComponent<PlacementControllerScript>().PopMessage(healthChange.ToString(), gameObject.transform.position, 0);
             }
 
             AiCoreTickCounter += Time.deltaTime;
@@ -130,7 +132,7 @@ public class AnimalObjectScript : SubjectObjectScript
         }
         else // this animal is dead
         {
-            if(!isCarcass) //newly dead
+            if (!isCarcass) //newly dead
             {
                 Inventory.Add(new InventoryItem(5, 1));
                 isCarcass = true;
@@ -236,7 +238,7 @@ public class AnimalObjectScript : SubjectObjectScript
 
     void UpdateDeadnessColor()
     {
-        transform.GetComponent<Renderer>().material.color = Color.Lerp(new Color(0.1F, 0.1F, 0.1F, 0.3F), new Color(0.5F, 0.3F, 0.3F, 0.8F), decaytime/20.0f);
+        transform.GetComponent<Renderer>().material.color = Color.Lerp(new Color(0.1F, 0.1F, 0.1F, 0.3F), new Color(0.5F, 0.3F, 0.3F, 0.8F), decaytime / 20.0f);
     }
 
     /// <summary>
@@ -249,10 +251,10 @@ public class AnimalObjectScript : SubjectObjectScript
     public bool Damage(Subject subjectAttacker, int damageAmount, NpcCore NpcAttacker = null)
     {
         if (npcCharacter.IsDead) return false; //already dead, so cannot damage
-            GameObject.FindGameObjectWithTag("GameController").GetComponent<PlacementControllerScript>().PopMessage((-damageAmount).ToString(), gameObject.transform.position, 0);
+        GameObject.FindGameObjectWithTag("GameController").GetComponent<PlacementControllerScript>().PopMessage((-damageAmount).ToString(), gameObject.transform.position, 0);
         if (npcCharacter.Damage(subjectAttacker, damageAmount, NpcAttacker))
         {
-           return true; //it was killed
+            return true; //it was killed
         }
         else return false;
     }
