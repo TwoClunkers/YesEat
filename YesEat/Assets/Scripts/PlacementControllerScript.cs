@@ -12,6 +12,7 @@ public partial class PlacementControllerScript : MonoBehaviour
     public GameObject testPanel;
     public GameObject plantPanel;
     public GameObject animalPanel;
+    public GameObject locationStart;
 
     public Text _ID;
     public Text _Name;
@@ -29,6 +30,7 @@ public partial class PlacementControllerScript : MonoBehaviour
     private bool placementStarted;
     private Vector3 centerPosition;
     private Vector3 edgePosition;
+    private float lastDistance;
     private GameObject placedObject;
 
     // Use this for initialization
@@ -40,6 +42,7 @@ public partial class PlacementControllerScript : MonoBehaviour
         currentSelection = null;
         placeID = -2;
         testPanel.SetActive(true);
+        lastDistance = 0;
     }
 
     // Update is called once per frame
@@ -55,7 +58,7 @@ public partial class PlacementControllerScript : MonoBehaviour
 
             testPanel.SetActive(true);
             PlantSubject plantSub = script.Subject as PlantSubject;
-            if(plantSub != null)
+            if (plantSub != null)
             {
                 PlantObjectScript plantScript = script as PlantObjectScript;
                 Subject produceSubject = masterSubjectList.GetSubject(plantSub.ProduceID);
@@ -71,7 +74,7 @@ public partial class PlacementControllerScript : MonoBehaviour
             {
                 plantPanel.SetActive(false);
                 AnimalSubject animalSub = script.Subject as AnimalSubject;
-                if(animalSub != null)
+                if (animalSub != null)
                 {
                     animalPanel.SetActive(true);
                     AnimalObjectScript animalScript = script as AnimalObjectScript;
@@ -139,33 +142,33 @@ public partial class PlacementControllerScript : MonoBehaviour
                     //We will let everything start with a radius of 1.0
                     if (CheckPlacementPosition(centerPosition, 1.0f, null))
                     {
-                        //Use the id to pull the Subject card
-                        Subject newSubject = masterSubjectList.GetSubject(placeID);
-                        if (newSubject != null)
+                        if(placeID == 2) //this is a location, which requires 2 steps
                         {
-                            placedObject = Instantiate(newSubject.Prefab, centerPosition, Quaternion.identity);
-                            if (placedObject != null)
+                            placedObject = Instantiate(locationStart, centerPosition, Quaternion.identity);
+                            //calculate our edge and manipulate the scale until finalized
+                            edgePosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y));
+                            float distance = Vector3.Distance(centerPosition, edgePosition);
+                            if (CheckPlacementPosition(centerPosition, distance, placedObject))
                             {
-                                SubjectObjectScript script = placedObject.GetComponent<SubjectObjectScript>() as SubjectObjectScript;
-                                script.InitializeFromSubject(masterSubjectList, newSubject);
-                                placementStarted = true;
-
-                                //if we just placed a location, we have to create a subject for it
-                                LocationSubject newLocation = script.Subject as LocationSubject;
-                                if(newLocation != null)
-                                {
-                                    newLocation.Coordinates = centerPosition;
-                                    newLocation.Description = "New Location " + +Time.time;
-                                    newLocation.Icon = null;
-                                    newLocation.Layer = 1;
-                                    newLocation.Name = "Location " + Time.time;
-                                }
-
-
+                                placedObject.transform.localScale = new Vector3(distance * 2, 0.1f, distance * 2);
                             }
+                            placementStarted = true;
                         }
-
-
+                        else
+                        {
+                            //Use the id to pull the Subject card
+                            Subject newSubject = masterSubjectList.GetSubject(placeID);
+                            if (newSubject != null)
+                            {
+                                placedObject = Instantiate(newSubject.Prefab, centerPosition, Quaternion.identity);
+                                if (placedObject != null)
+                                {
+                                    SubjectObjectScript script = placedObject.GetComponent<SubjectObjectScript>() as SubjectObjectScript;
+                                    script.InitializeFromSubject(masterSubjectList, newSubject);
+                                    placementStarted = true;
+                                }
+                            }
+                        } 
                     }
                 }
             }
@@ -180,18 +183,25 @@ public partial class PlacementControllerScript : MonoBehaviour
                     if (CheckPlacementPosition(centerPosition, distance, placedObject))
                     {
                         placedObject.transform.localScale = new Vector3(distance * 2, 0.1f, distance * 2);
+                        lastDistance = distance;
                     }
 
                     //Look for a second mouse click to finalize the location
+                    //No more changes to distance
                     if (!IsOverMenu() && (Input.GetMouseButtonDown(0)))
                     {
                         placementStarted = false;
-                        //grab the script, and we will place a new LocationSubject in it.
+                        Destroy(placedObject); //get rid of our temp area
+                        //pull the default location card, and create the prefab (reusing the values from above)
+                        LocationSubject newLocation = masterSubjectList.GetSubject(2) as LocationSubject;
+                        placedObject = Instantiate(newLocation.Prefab, centerPosition, Quaternion.identity);
+                        placedObject.transform.localScale = new Vector3(lastDistance * 2, 0.1f, lastDistance * 2);
+                        newLocation = new LocationSubject();
                         LocationObjectScript script = placedObject.GetComponent<LocationObjectScript>() as LocationObjectScript;
-                        LocationSubject newLocation = script.Subject as LocationSubject;
+                        //now lets set the values to make a new locationSubject card
                         if (newLocation != null)
                         {
-                            newLocation.Radius = distance;
+                            newLocation.Radius = lastDistance;
                             newLocation.Coordinates = centerPosition;
                             newLocation.Description = "New Location " + +Time.time;
                             newLocation.Icon = null;
@@ -200,7 +210,7 @@ public partial class PlacementControllerScript : MonoBehaviour
                             //add the next id available
                             newLocation.SubjectID = masterSubjectList.GetNextID();
                             script.Subject = newLocation;
-
+                            //now add our card to the master list
                             if (!masterSubjectList.AddSubject(newLocation)) Debug.Log("FAIL ADD");
                         }
                     }
