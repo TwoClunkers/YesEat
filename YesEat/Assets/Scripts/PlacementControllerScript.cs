@@ -2,7 +2,7 @@
 using System.Collections;
 using UnityEngine.UI;
 
-public class PlacementControllerScript : MonoBehaviour
+public partial class PlacementControllerScript : MonoBehaviour
 {
     public MasterSubjectList masterSubjectList;
     public GameObject currentSelection;
