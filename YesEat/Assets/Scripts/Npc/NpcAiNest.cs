@@ -2,7 +2,7 @@
 
 public partial class NpcCore
 {
-    private void AiCoreSubprocessNest()
+    private void AiNest()
     {
         throw new NotImplementedException();
         //|     []Nest:

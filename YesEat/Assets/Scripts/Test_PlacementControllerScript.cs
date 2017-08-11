@@ -7,8 +7,10 @@ public partial class PlacementControllerScript : MonoBehaviour
 {
     public void TestSet1()
     {
+        Debug.Log("Running TestSet1 ...");
         Debug.Log("T_PlinkettSafetyLearning: " + T_PlinkettSafetyLearning());
         Debug.Log("T_PlinkettEvasionTest: " + T_PlinkettEvasionTest());
+        Debug.Log("Completed TestSet1.");
     }
 
     public void TestSet2()
@@ -36,6 +38,13 @@ public partial class PlacementControllerScript : MonoBehaviour
 
     }
 
+    /// <summary>
+    /// !!!  FOR TESTING ONLY DO NOT USE !!! <para/>
+    /// Given: A Gobber is hungry and is within range of a Plinkett. <para />
+    /// When: Plinkett is attacked by Gobber.<para />
+    /// Then: Plinkett's memory of Gobber has negative safety.<para />
+    /// </summary>
+    /// <returns>Success/Fail</returns>
     public bool T_PlinkettSafetyLearning()
     {
         bool testResult = false;
@@ -60,14 +69,21 @@ public partial class PlacementControllerScript : MonoBehaviour
         return testResult;
     }
 
+    /// <summary>
+    /// !!!  FOR TESTING ONLY DO NOT USE !!! <para/>
+    /// Given: A Plinkett memory has a negative safety for Gobbers. <para />
+    /// When: Plinkett sees a Gobber. <para />
+    /// Then: Plinkett's current safety is reduced. <para />
+    /// </summary>
+    /// <returns>Success/Fail</returns>
     public bool T_PlinkettEvasionTest()
     {
 
-        T_PlaceLocation(new Vector3(3.0f, 0, 3.0f), 1.6f);
-        T_PlaceLocation(new Vector3(0, 0, 0), 1.6f);
-        T_PlaceLocation(new Vector3(-3.0f, 0, -3.0f), 1.6f);
-        T_PlaceLocation(new Vector3(3.0f, 0, -3.0f), 1.6f);
-        T_PlaceLocation(new Vector3(-3.0f, 0, 3.0f), 1.6f);
+        GameObject loc1 = T_PlaceLocation(new Vector3(3.0f, 0, 3.0f), 1.6f);
+        GameObject loc2 = T_PlaceLocation(new Vector3(0, 0, 0), 1.6f);
+        GameObject loc3 = T_PlaceLocation(new Vector3(-3.0f, 0, -3.0f), 1.6f);
+        GameObject loc4 = T_PlaceLocation(new Vector3(3.0f, 0, -3.0f), 1.6f);
+        GameObject loc5 = T_PlaceLocation(new Vector3(-3.0f, 0, 3.0f), 1.6f);
 
         // Given: A Plinkett memory has a negative safety for Gobbers.
         Subject newSubject = masterSubjectList.GetSubject(1);
@@ -87,15 +103,25 @@ public partial class PlacementControllerScript : MonoBehaviour
 
         bool testResult = (sPlinkett.GetSafety() < startingSafety);
 
-        Destroy(sPlinkett);
+        Destroy(testPlinkett);
         Destroy(testGob);
-
+        Destroy(loc1);
+        Destroy(loc2);
+        Destroy(loc3);
+        Destroy(loc4);
+        Destroy(loc5);
         // Then: Plinkett's current safety is reduced.
         return testResult;
 
     }
 
-    public void T_PlaceLocation(Vector3 newPosition, float newRadius)
+    /// <summary>
+    /// !!!  FOR TESTING ONLY DO NOT USE !!! <para/>
+    /// Place a new location in the world and add it to the MasterSubjectList.
+    /// </summary>
+    /// <param name="newPosition">The center point of the new location</param>
+    /// <param name="newRadius">The radius of the new location.</param>
+    public GameObject T_PlaceLocation(Vector3 newPosition, float newRadius)
     {
         LocationSubject newLocation = new LocationSubject(masterSubjectList.GetSubject(2) as LocationSubject);
         newLocation.Radius = newRadius;
@@ -113,6 +139,7 @@ public partial class PlacementControllerScript : MonoBehaviour
         locScript.Relocate(newLocation);
 
         if (!masterSubjectList.AddSubject(newLocation)) Debug.Log("FAIL ADD");
+        return location1;
     }
 
 }

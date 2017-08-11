@@ -5,26 +5,13 @@ using System.Collections.Generic;
 
 public partial class NpcCore
 {
-    private void AiCoreSubprocessHunger()
+    private void AiHunger()
     {
         //Hunger steps
 
         //Selection of Available Food
         //  Get list of food in inventory
-        int foodSubjectID = 4; // berry
-        int foodSourceID = 3; // bush
-        if (definition.Traits.HasTrait(NpcTraits.Herbivore))
-        {
-            foodSubjectID = 4; // berry
-            foodSourceID = 3; // bush
-        }
-        else if (definition.Traits.HasTrait(NpcTraits.Carnivore))
-        {
-            foodSubjectID = 5; // meat
-            foodSourceID = 1; // plinkett
-        }
-
-        InventoryItem foodItem = objectScript.Inventory.Take(new InventoryItem(foodSubjectID, 1));
+        InventoryItem foodItem = objectScript.Inventory.Take(new InventoryItem(foodID, 1));
         if (foodItem.StackSize > 0)
         {
             // eat food in inventory
@@ -99,7 +86,7 @@ public partial class NpcCore
                 }
                 else
                 {
-                    AiCoreSubprocessExplore();
+                    AiExplore();
                 }
             }
         }

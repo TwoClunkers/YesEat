@@ -2,7 +2,7 @@
 
 public partial class NpcCore
 {
-    private void AiCoreSubprocessSafety()
+    private void AiSafety()
     {
         // If safety is the top priority, combat is an unsafe action.
         // Stop combat, run for your life.
@@ -26,7 +26,7 @@ public partial class NpcCore
         }
         else
         {
-            AiCoreSubprocessExplore();
+            AiExplore();
         }
     }
 }

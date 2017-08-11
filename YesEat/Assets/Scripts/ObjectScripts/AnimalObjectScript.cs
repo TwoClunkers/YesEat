@@ -38,7 +38,7 @@ public class AnimalObjectScript : SubjectObjectScript
 
     public override void InitializeFromSubject(MasterSubjectList _masterSubjectList, Subject newSubject)
     {
-        AiTickRate = 1.0f;
+        AiTickRate = 0.5f;
         isCarcass = false;
         subject = newSubject as AnimalSubject;
         masterSubjectList = _masterSubjectList;

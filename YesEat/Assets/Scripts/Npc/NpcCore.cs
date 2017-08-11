@@ -14,6 +14,10 @@ public partial class NpcCore
     private int safety;
 
     private int subjectID;
+
+    private int foodSourceID;
+    private int foodID;
+
     private MasterSubjectList db;
     private NpcStatus status;
     private NpcDefinition definition;
@@ -50,6 +54,7 @@ public partial class NpcCore
         searchedObjects = new List<int>();
         searchedLocations = new List<int>();
         reExploreLocations = new List<LocationSubject>();
+        SetFoodPreference();
     }
 
     /// <summary>
@@ -77,11 +82,30 @@ public partial class NpcCore
             searchedObjects = new List<int>();
             searchedLocations = new List<int>();
             reExploreLocations = new List<LocationSubject>();
+            SetFoodPreference();
         }
     }
     #endregion
 
     #region Private Methods
+
+    /// <summary>
+    /// Set this NPC's food source and food based on NpcTraits.
+    /// </summary>
+    internal void SetFoodPreference()
+    {
+        if (definition.Traits.HasTrait(NpcTraits.Herbivore))
+        {
+            foodID = 4; // berry
+            foodSourceID = 3; // bush
+        }
+        else if (definition.Traits.HasTrait(NpcTraits.Carnivore))
+        {
+            foodID = 5; // meat
+            foodSourceID = 1; // plinkett
+        }
+    }
+
     /// <summary>
     /// Get a list of all known locations.
     /// </summary>
@@ -423,16 +447,16 @@ public partial class NpcCore
         switch (drivers[0])
         {
             case NpcDrivers.Nest:
-                AiCoreSubprocessNest();
+                AiNest();
                 break;
             case NpcDrivers.Safety:
-                AiCoreSubprocessSafety();
+                AiSafety();
                 break;
             case NpcDrivers.Hunger:
-                AiCoreSubprocessHunger();
+                AiHunger();
                 break;
             case NpcDrivers.Explore:
-                AiCoreSubprocessExplore();
+                AiExplore();
                 break;
             default:
                 //There are no critical drivers, default to exploration

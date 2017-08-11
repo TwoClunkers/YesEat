@@ -4,7 +4,7 @@ using UnityEngine;
 
 public partial class NpcCore
 {
-    private void AiCoreSubprocessExplore()
+    private void AiExplore()
     {
         // explore unknown locations
         if (unexploredLocations.Count > 0)
