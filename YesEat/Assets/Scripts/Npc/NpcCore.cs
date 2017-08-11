@@ -86,12 +86,16 @@ public partial class NpcCore
     /// Get a list of all known locations.
     /// </summary>
     /// <returns></returns>
-    internal List<LocationSubject> GetAllKnownLocations()
+    internal List<LocationSubject> GetAllKnownLocations(Vector3 sortByNearestTo = new Vector3())
     {
         List<SubjectMemory> locationMemories = definition.Memories
                 .FindAll(o => db.GetSubject(o.SubjectID).GetType() == typeof(LocationSubject));
         List<LocationSubject> knownLocations = locationMemories
                 .Select(o => (db.GetSubject(o.SubjectID) as LocationSubject)).ToList();
+        if (sortByNearestTo != null)
+        {
+            knownLocations = knownLocations.OrderBy(o => Vector3.Distance(sortByNearestTo, o.Coordinates)).ToList();
+        }
         return knownLocations;
     }
 
@@ -486,7 +490,7 @@ public partial class NpcCore
                 status.UnsetState(NpcStates.Eating); //unset eating flag
             }
 
-            if (food >= definition.FoodHungry)
+            if (food >= definition.FoodMax)
                 drivers.Remove(NpcDrivers.Hunger);
         }
         return wasConsumed;
@@ -530,7 +534,7 @@ public partial class NpcCore
             else
             {
                 // set safety minimum to flee
-                safety = int.MinValue;
+                drivers.SetTopDriver(NpcDrivers.Safety);
             }
         }
 

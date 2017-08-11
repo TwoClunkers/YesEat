@@ -11,6 +11,31 @@ public partial class PlacementControllerScript : MonoBehaviour
         Debug.Log("T_PlinkettEvasionTest: " + T_PlinkettEvasionTest());
     }
 
+    public void TestSet2()
+    {
+
+    }
+
+    public void TestSet3()
+    {
+
+    }
+
+    public void TestSet4()
+    {
+
+    }
+
+    public void TestSet5()
+    {
+
+    }
+
+    public void TestSet6()
+    {
+
+    }
+
     public bool T_PlinkettSafetyLearning()
     {
         bool testResult = false;
@@ -60,8 +85,14 @@ public partial class PlacementControllerScript : MonoBehaviour
         // When: Plinkett sees a Gobber.
         sPlinkett.T_Npc.AiCoreProcess();
 
+        bool testResult = (sPlinkett.GetSafety() < startingSafety);
+
+        Destroy(sPlinkett);
+        Destroy(testGob);
+
         // Then: Plinkett's current safety is reduced.
-        return (sPlinkett.GetSafety() < startingSafety);
+        return testResult;
+
     }
 
     public void T_PlaceLocation(Vector3 newPosition, float newRadius)

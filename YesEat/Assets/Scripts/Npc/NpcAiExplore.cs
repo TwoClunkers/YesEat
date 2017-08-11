@@ -16,7 +16,7 @@ public partial class NpcCore
             // populate locations to re-explore
             if (reExploreLocations.Count == 0)
             {
-                reExploreLocations = GetAllKnownLocations();
+                reExploreLocations = GetAllKnownLocations(objectScript.transform.position);
             }
             objectScript.MoveToNewLocation(reExploreLocations[0]);
         }
