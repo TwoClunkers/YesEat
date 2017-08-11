@@ -37,7 +37,10 @@ public partial class NpcCore
         {
             for (int i = 0; i < Mathf.Ceil(stepFactor); i++)
             {
-               // Vector3 newPoint = Vector3.Angle();
+                Vector2 tempPoint = new Vector2();
+                tempPoint = DegreeToVector2((360 / stepFactor) * i);
+                Vector3 newPoint = new Vector3(tempPoint.x * sightDiameter, 0, tempPoint.y * sightDiameter);
+                waypoints.Add(newPoint);
             }
 
             step += 1;
