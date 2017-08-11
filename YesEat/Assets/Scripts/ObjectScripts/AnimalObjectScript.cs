@@ -30,7 +30,7 @@ public class AnimalObjectScript : SubjectObjectScript
         set { inventory = value; }
     }
 
-    // Use this for initialization
+    // Don't Use this for Initialization
     void Start()
     {
 

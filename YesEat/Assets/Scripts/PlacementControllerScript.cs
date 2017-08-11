@@ -95,7 +95,6 @@ public partial class PlacementControllerScript : MonoBehaviour
                         locationPanel.SetActive(true);
                         plantPanel.SetActive(false);
                         animalPanel.SetActive(false);
-                        LocationObjectScript locationScript = script as LocationObjectScript;
                         _Center.text = "Center: <b>" + locationSub.Coordinates.ToString() + "</b>";
                         _Radius.text = "Radius: <b>" + locationSub.Radius.ToString() + "</b>";   
                     }
@@ -121,7 +120,7 @@ public partial class PlacementControllerScript : MonoBehaviour
                 if (!IsOverMenu() && (Input.GetMouseButtonDown(0)))
                 {
                     centerPosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y));
-                    SelectAtPosition(centerPosition, 1.0f);
+                    SelectAtPosition(centerPosition, 0.4f);
                 }
             }
             else if (placeID < 0) //placeID == -1
@@ -159,8 +158,8 @@ public partial class PlacementControllerScript : MonoBehaviour
                     //Set the center based on mouse position
                     centerPosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y));
 
-                    //We will let everything start with a radius of 1.0
-                    if (CheckPlacementPosition(centerPosition, 1.0f, null))
+                    //We will let everything start with a radius of 0.5
+                    if (CheckPlacementPosition(centerPosition, 0.5f, null))
                     {
                         if(placeID == 2) //this is a location, which requires 2 steps
                         {
@@ -304,23 +303,40 @@ public partial class PlacementControllerScript : MonoBehaviour
 
     public void SelectAtPosition(Vector3 center, float radius)
     {
+        GameObject locationObj = null;
+
+        //clear selection
+        if (lastSelector != null) Destroy(lastSelector);
+
         //First we catch all the colliders in our area
         Collider[] hitColliders = Physics.OverlapSphere(center, radius);
 
-        //If we caught any, will have to check them
+        //go through colliders first looking for non-location objects (since they are below everything)
         for (int i = 0; i < hitColliders.Length; i++)
         {
             if (hitColliders[i].tag == "Ground") continue;
+            if (hitColliders[i].tag == "Location")
+            {
+                //grab a location if you find it
+                locationObj = hitColliders[i].gameObject;
+                continue;
+            }
             else
             {
-                if (lastSelector != null) Destroy(lastSelector);
+                //if not a location, we can create a selectionMarker as a child
                 GameObject newSelector = Instantiate(selectionMarker, hitColliders[i].transform);
                 lastSelector = newSelector;
                 break;
                 //if (hitColliders[i].tag == "Location") continue;
             }
         }
-        //if we are not bumped prior to here, we are still good
+        //if we are here, there were no non-location objects found
+        if(locationObj != null)
+        {
+            GameObject newSelector = Instantiate(selectionMarker, locationObj.transform);
+            lastSelector = newSelector;
+        }
+        //no objects of any kind
         return;
     }
 
