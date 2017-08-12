@@ -15,7 +15,26 @@ public partial class PlacementControllerScript : MonoBehaviour
 
     public void TestSet2()
     {
-
+        // testing location waypoint generation
+        float testLocationRadius = 7.5f;
+        float testSightRadius = 2.0f;
+        GameObject loc1 = T_PlaceLocation(new Vector3(-1.0f, 0, -2.0f), testLocationRadius);
+        LocationObjectScript locScript = loc1.GetComponent<LocationObjectScript>();
+        LocationSubject locSub = locScript.Subject as LocationSubject;
+        Vector3[] locs = locSub.GetAreaWaypoints(testSightRadius);
+        if (locs.Length > 0)
+        {
+            for (int i = 0; i <= locs.Length - 1; i++)
+            {
+                Debug.Log(i + " : " + locs[i].x + "," + locs[i].y + "," + locs[i].z + "\n");
+                T_PlaceLocation(locs[i], testSightRadius);
+            }
+        }
+        else
+        {
+            Debug.Log("!  -- No waypoints generated.");
+        }
+        //Destroy(loc1);
     }
 
     public void TestSet3()

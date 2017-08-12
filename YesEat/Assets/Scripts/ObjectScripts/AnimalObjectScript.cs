@@ -15,8 +15,10 @@ public class AnimalObjectScript : SubjectObjectScript
     private float MetabolizeTickCounter;
     private GameObject[] seenLocationObjects;
     private LocationSubject destination;
+    private Vector3[] destinationWayPoints;
+    private int currentWaypointIndex;
     private NpcCore npcCharacter;
-    private bool isCarcass;
+    private bool isDead;
     private float decaytime;
     private Inventory inventory;
     private SubjectObjectScript chaseTarget;
@@ -30,6 +32,8 @@ public class AnimalObjectScript : SubjectObjectScript
         set { inventory = value; }
     }
 
+    public bool IsDead { get { return isDead; } }
+
     // Don't Use this for Initialization
     void Start()
     {
@@ -39,11 +43,12 @@ public class AnimalObjectScript : SubjectObjectScript
     public override void InitializeFromSubject(MasterSubjectList _masterSubjectList, Subject newSubject)
     {
         AiTickRate = 0.5f;
-        isCarcass = false;
+        isDead = false;
         subject = newSubject as AnimalSubject;
         masterSubjectList = _masterSubjectList;
         npcCharacter = new NpcCore(this, masterSubjectList, subject);
         Inventory = new Inventory((subject as AnimalSubject).InventorySize, masterSubjectList);
+        destinationWayPoints = new Vector3[0];
     }
 
     public int GetHealth()
@@ -65,21 +70,78 @@ public class AnimalObjectScript : SubjectObjectScript
     /// <param name="newLocation">The location to move to.</param>
     internal void MoveToNewLocation(LocationSubject newLocation)
     {
+        if (newLocation == null)
+        {
+            Debug.Log("AnimalObjectScript::MoveToNewLocation() \n    Error: null location");
+            return;
+        }
+
         if (destination != null)
         {
-            if (newLocation == null) Debug.Log("null location");
-            // if we are not already at the location set it as the destination
-            else if (destination.SubjectID != newLocation.SubjectID)
+            if (destination.SubjectID == newLocation.SubjectID) return;
+        }
+        // remove chase target if we're moving to a location
+        chaseTarget = null;
+        destination = newLocation;
+        // queue up the waypoints for the new location
+        destinationWayPoints = newLocation.GetAreaWaypoints(npcCharacter.SightRangeNear);
+        if (destinationWayPoints.Length > 1) destinationWayPoints = ShiftToNearestFirst(destinationWayPoints);
+        currentWaypointIndex = 0;
+    }
+
+    private Vector3[] ShiftToNearestFirst(Vector3[] wayPointsToShift)
+    {
+        if (wayPointsToShift.Length > 1)
+        {
+            int nearestIndex = 0;
+            // check opposite ends of the waypoint ring and start with the closer index
+            if (Vector3.Distance(wayPointsToShift[wayPointsToShift.Length / 2], transform.position) <
+                Vector3.Distance(wayPointsToShift[0], transform.position))
             {
-                // remove chase target if we're moving to a location
-                chaseTarget = null;
-                destination = newLocation;
+                nearestIndex = (wayPointsToShift.Length / 2);
+            }
+            // iterate waypoints and find the nearest
+            nearestIndex = GetNearestPoint(transform.position, wayPointsToShift, nearestIndex);
+            if (nearestIndex != 0)
+            {
+                // shift array elements so the nearest is the first.
+                Vector3[] newWayPoints = new Vector3[wayPointsToShift.Length];
+
+                Array.Copy(wayPointsToShift, nearestIndex, newWayPoints, 0, (wayPointsToShift.Length - 1) - nearestIndex);
+                Array.Copy(wayPointsToShift, 0, newWayPoints, (wayPointsToShift.Length - 1) - nearestIndex, nearestIndex - 1);
+                return newWayPoints;
+            }
+            else
+            {
+                return wayPointsToShift;
             }
         }
         else
         {
-            chaseTarget = null;
-            destination = newLocation;
+            return wayPointsToShift;
+        }
+    }
+
+    private int GetNearestPoint(Vector3 destinationPoint, Vector3[] wayPoints, int i)
+    {
+        if (i < 0) i = wayPoints.Length - i;
+        if (i > wayPoints.Length - 1) i = 0;
+        int iUp = i + 1;
+        int iDown = i - 1;
+        if (iDown < 0) iDown = wayPoints.Length - i;
+        if (iUp > wayPoints.Length - 1) iUp = 0;
+
+        float iUpDist = Vector3.Distance(destinationPoint, wayPoints[iUp]);
+        float iHere = Vector3.Distance(destinationPoint, wayPoints[i]);
+        float iDownDist = Vector3.Distance(destinationPoint, wayPoints[iDown]);
+
+        if (iHere < iUpDist & iHere < iDownDist) return i;
+        else
+        {
+            if (iUpDist < iDownDist)
+            { return GetNearestPoint(destinationPoint, wayPoints, iUp); }
+            else
+            { return GetNearestPoint(destinationPoint, wayPoints, iDown); }
         }
     }
 
@@ -131,10 +193,22 @@ public class AnimalObjectScript : SubjectObjectScript
             // ===  Movement ===
             if (destination != null) // traveling to a new location
             {
-                float distance = Vector3.Distance(destination.Coordinates, transform.position);
-                if (distance > (npcCharacter.SightRangeNear)) MoveTowardsPoint(destination.Coordinates, npcCharacter.MoveSpeed);
-                else if (distance > 0.5) MoveTowardsPoint(destination.Coordinates, npcCharacter.MoveSpeed / 2);
-                else destination = null;
+                if (destinationWayPoints.Length != 0)
+                {
+                    float distance = Vector3.Distance(destinationWayPoints[currentWaypointIndex], transform.position);
+                    if (distance > (npcCharacter.SightRangeNear)) MoveTowardsPoint(destinationWayPoints[currentWaypointIndex], npcCharacter.MoveSpeed);
+                    else if (distance > 0.5) MoveTowardsPoint(destinationWayPoints[currentWaypointIndex], npcCharacter.MoveSpeed / 2);
+                    else
+                    {
+                        // we have arrived at the final waypoint for this location
+                        if (currentWaypointIndex == destinationWayPoints.Length - 1)
+                        {
+                            destination = null;
+                            destinationWayPoints = new Vector3[0];
+                        }
+                        else currentWaypointIndex++;
+                    }
+                }
             }
             else if (chaseTarget != null) // chase the target
             {
@@ -145,10 +219,10 @@ public class AnimalObjectScript : SubjectObjectScript
         }
         else // this animal is dead
         {
-            if (!isCarcass) //newly dead
+            if (!isDead) //newly dead
             {
                 Inventory.Add(new InventoryItem(5, 1));
-                isCarcass = true;
+                isDead = true;
                 decaytime = 20.0f;
             }
             decaytime -= Time.deltaTime;
@@ -166,7 +240,7 @@ public class AnimalObjectScript : SubjectObjectScript
     /// Returns: NULL if this animal is not dead.</returns>
     public override InventoryItem Harvest()
     {
-        if (isCarcass)
+        if (IsDead)
         {
             return Inventory.Take(new InventoryItem(5, 1));
         }

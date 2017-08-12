@@ -110,13 +110,13 @@ public partial class NpcCore
     /// Get a list of all known locations.
     /// </summary>
     /// <returns></returns>
-    internal List<LocationSubject> GetAllKnownLocations(Vector3 sortByNearestTo = new Vector3())
+    internal List<LocationSubject> GetAllKnownLocations(Vector3 sortByNearestTo = default(Vector3))
     {
         List<SubjectMemory> locationMemories = definition.Memories
                 .FindAll(o => db.GetSubject(o.SubjectID).GetType() == typeof(LocationSubject));
         List<LocationSubject> knownLocations = locationMemories
                 .Select(o => (db.GetSubject(o.SubjectID) as LocationSubject)).ToList();
-        if (sortByNearestTo != null)
+        if (sortByNearestTo != default(Vector3))
         {
             knownLocations = knownLocations.OrderBy(o => Vector3.Distance(sortByNearestTo, o.Coordinates)).ToList();
         }
@@ -428,6 +428,11 @@ public partial class NpcCore
             {
                 if (IsSubjectDangerous(conObject.GetComponent<SubjectObjectScript>().Subject))
                 {
+                    // don't reduce safety if it's dead
+                    if (conObject.GetComponent<SubjectObjectScript>().GetType() == typeof(AnimalObjectScript))
+                    {
+                        if (conObject.GetComponent<AnimalObjectScript>().IsDead) continue;
+                    }
                     // danger! decrease safety
                     dangerFound = true;
                     safety--;
