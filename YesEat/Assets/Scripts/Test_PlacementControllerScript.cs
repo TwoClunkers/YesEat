@@ -16,9 +16,9 @@ public partial class PlacementControllerScript : MonoBehaviour
     public void TestSet2()
     {
         // testing location waypoint generation
-        float testLocationRadius = 7.5f;
+        float testLocationRadius = 5.0f;
         float testSightRadius = 2.0f;
-        GameObject loc1 = T_PlaceLocation(new Vector3(-1.0f, 0, -2.0f), testLocationRadius);
+        GameObject loc1 = T_PlaceLocation(new Vector3(0, 0, 0), testLocationRadius);
         LocationObjectScript locScript = loc1.GetComponent<LocationObjectScript>();
         LocationSubject locSub = locScript.Subject as LocationSubject;
         Vector3[] locs = locSub.GetAreaWaypoints(testSightRadius);
@@ -26,7 +26,7 @@ public partial class PlacementControllerScript : MonoBehaviour
         {
             for (int i = 0; i <= locs.Length - 1; i++)
             {
-                Debug.Log(i + " : " + locs[i].x + "," + locs[i].y + "," + locs[i].z + "\n");
+                //Debug.Log(i + " : " + locs[i].x + "," + locs[i].y + "," + locs[i].z + "\n");
                 T_PlaceLocation(locs[i], testSightRadius);
             }
         }
@@ -39,17 +39,16 @@ public partial class PlacementControllerScript : MonoBehaviour
 
     public void TestSet3()
     {
-        CreateLocation(new Vector3(3.0f, 0, 3.0f), 1.6f);
-        CreateLocation(new Vector3(0, 0, 0), 1.6f);
-        CreateLocation(new Vector3(-3.0f, 0, -3.0f), 1.6f);
-        CreateLocation(new Vector3(3.0f, 0, -3.0f), 1.6f);
-        CreateLocation(new Vector3(-3.0f, 0, 3.0f), 2.0f);
+        CreateLocation(new Vector3(3.0f, 0, 3.0f), 2.0f);
+        CreateLocation(new Vector3(0, 0, -2.0f), 1.6f);
+        CreateLocation(new Vector3(-3.0f, 0, -4.5f), 1.7f);
+        CreateLocation(new Vector3(3.0f, 0, -4.0f), 1.6f);
+        CreateLocation(new Vector3(-3.0f, 0, 3.0f), 4.0f);
+
         SpawnObject(DbIds.Bush, new Vector3(-4.0f, 0, -4.0f));
-        GameObject plink = SpawnObject(DbIds.Plinkett, new Vector3(3.5f, 0, -4.0f));
-        AnimalObjectScript plinkScript = plink.GetComponent<AnimalObjectScript>();
-        //plinkScript.T_Npc.T_SetValues(newFood: 61);
-        GameObject gob = SpawnObject(DbIds.Gobber, new Vector3(3.5f, 0, 3.5f));
-        AnimalObjectScript gobScript = gob.GetComponent<AnimalObjectScript>();
+        SpawnObject(DbIds.Plinkett, new Vector3(3.5f, 0, -4.0f));
+        SpawnObject(DbIds.Gobber, new Vector3(3.5f, 0, 3.5f));
+
     }
 
     public void TestSet4()
@@ -64,7 +63,19 @@ public partial class PlacementControllerScript : MonoBehaviour
 
     public void TestSet6()
     {
-
+        // make the selected target hungry.
+        if (lastSelector != null)
+        {
+            SubjectObjectScript objScript = lastSelector.GetComponentInParent<SubjectObjectScript>();
+            if (objScript != null)
+            {
+                if (objScript.GetType() == typeof(AnimalObjectScript))
+                {
+                    AnimalObjectScript animal = objScript as AnimalObjectScript;
+                    animal.T_Npc.T_SetValues(newFood: animal.T_Npc.Definition.FoodHungry);
+                }
+            }
+        }
     }
 
     /// <summary>

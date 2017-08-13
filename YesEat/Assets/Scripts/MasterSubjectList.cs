@@ -48,7 +48,7 @@ public class MasterSubjectList
             SafetyDeadly = -10,
             SafetyHigh = 10,
             SightRangeFar = 10,
-            SightRangeNear = 2,
+            SightRangeNear = 2.5f,
             StarvingDamage = 3,
             Traits = new NpcCharacterTraits(NpcTraits.Herbivore)
         };

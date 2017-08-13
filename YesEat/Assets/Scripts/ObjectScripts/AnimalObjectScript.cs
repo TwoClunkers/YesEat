@@ -89,8 +89,27 @@ public class AnimalObjectScript : SubjectObjectScript
         destination = newLocation;
         isCurrentLocationExplored = false;
         // queue up the waypoints for the new location
+
+
         destinationWayPoints = newLocation.GetAreaWaypoints(npcCharacter.SightRangeNear);
-        if (destinationWayPoints.Length > 1) destinationWayPoints = ShiftToNearestFirst(destinationWayPoints);
+
+        if (destinationWayPoints.Length > 1)
+        {
+            destinationWayPoints = ShiftToNearestFirst(destinationWayPoints);
+        }
+
+        // debugging- show generated waypoints in editor interface
+        for (int i = 0; i < destinationWayPoints.Length; i++)
+        {
+            Color waypointColor = Color.red;
+            if (subject.SubjectID == DbIds.Plinkett) { waypointColor = Color.blue; }
+            if (subject.SubjectID == DbIds.Gobber) { waypointColor = Color.yellow; }
+            Vector3 wayPtTop =
+                new Vector3(destinationWayPoints[i].x,
+                0.25f + ((float)i / destinationWayPoints.Length) * 0.5f,
+                destinationWayPoints[i].z);
+            Debug.DrawLine(destinationWayPoints[i], wayPtTop, waypointColor, 10.0f);
+        }
         currentWaypointIndex = 0;
     }
 
@@ -214,25 +233,33 @@ public class AnimalObjectScript : SubjectObjectScript
                 {
                     float distance = Vector3.Distance(destinationWayPoints[currentWaypointIndex], transform.position);
                     if (distance > (npcCharacter.SightRangeNear)) MoveTowardsPoint(destinationWayPoints[currentWaypointIndex], npcCharacter.MoveSpeed);
-                    else if (distance > 0.5) MoveTowardsPoint(destinationWayPoints[currentWaypointIndex], npcCharacter.MoveSpeed / 2);
+                    else if (distance > 0.25) MoveTowardsPoint(destinationWayPoints[currentWaypointIndex], npcCharacter.MoveSpeed * 0.85f);
                     else
                     {
-                        // we have arrived at the final waypoint for this location
-                        if (currentWaypointIndex == destinationWayPoints.Length - 1)
+                        if (currentWaypointIndex == destinationWayPoints.GetUpperBound(0))
                         {
-                            destination = null;
-                            destinationWayPoints = new Vector3[0];
+                            // we have arrived at the final waypoint for this location
                             isCurrentLocationExplored = true;
+                            // remember the location now that it is explored fully
+                            UnityEngine.Object[] scripts = FindObjectsOfType(typeof(LocationObjectScript));
+                            LocationObjectScript inspectLocationScript = scripts.Single(o =>
+                                (o as LocationObjectScript).Subject.SubjectID == destination.SubjectID)
+                                as LocationObjectScript;
+                            inspectLocationScript.TeachNpc(npcCharacter);
+
+                            npcCharacter.Inspect(inspectLocationScript.gameObject);
+
+                            destinationWayPoints = new Vector3[0];
+                            destination = null;
                         }
                         else currentWaypointIndex++;
                     }
-                    // Debug.DrawLine(new Vector3(transform.position.x, 0.5f, transform.position.z), destinationWayPoints[currentWaypointIndex], Color.red, 1, false);
                 }
             }
             else if (chaseTarget != null) // chase the target
             {
                 float distance = Vector3.Distance(chaseTarget.transform.position, transform.position);
-                if (distance > 1.0) MoveTowardsPoint(chaseTarget.transform.position, npcCharacter.MoveSpeed);
+                if (distance > 0.75) MoveTowardsPoint(chaseTarget.transform.position, npcCharacter.MoveSpeed);
                 else
                 {
                     Vector3 targetDir = chaseTarget.transform.position - transform.position;
@@ -246,7 +273,7 @@ public class AnimalObjectScript : SubjectObjectScript
         {
             if (!isDead) //newly dead
             {
-                Inventory.Add(new InventoryItem(DbIds.Meat, 3));
+                Inventory.Add(new InventoryItem(DbIds.Meat, 5));
                 isDead = true;
                 decaytime = 20.0f;
             }
@@ -290,6 +317,12 @@ public class AnimalObjectScript : SubjectObjectScript
         transform.rotation = Quaternion.LookRotation(newDir);
         //then we can move forward
         transform.position += (transform.forward * step);
+
+        // Debug: draw line to current targetPosition
+        if (destinationWayPoints.Length > 0)
+        {
+            Debug.DrawLine(new Vector3(transform.position.x, 0.5f, transform.position.z), targetPosition, (subject.SubjectID == DbIds.Plinkett) ? Color.blue : Color.yellow);
+        }
     }
 
     /// <summary>

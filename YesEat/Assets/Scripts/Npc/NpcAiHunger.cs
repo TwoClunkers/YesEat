@@ -92,6 +92,10 @@ public partial class NpcCore
                         AiExplore();
                     }
                 }
+                else
+                {
+                    objectScript.MoveToNewLocation(objectScript.Location);
+                }
             }
         }
     }

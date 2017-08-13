@@ -131,7 +131,6 @@ public partial class NpcCore
     internal List<LocationSubject> FindObject(Subject SubjectToFind, Vector3 CurrentPosition, List<int> ExcludeLocationIDs = null)
     {
         List<LocationSubject> foundObjects = new List<LocationSubject>();
-        List<SubjectMemory> locMems = definition.Memories.FindAll(o => o.GetType() == typeof(LocationMemory)).ToList();
         foreach (SubjectMemory subMem in definition.Memories)
         {
             if (subMem.GetType() == typeof(LocationSubject))
@@ -466,8 +465,11 @@ public partial class NpcCore
                 Inspect(conObject);
             }
         }
-        // reset safety if no danger was found near us
-        if (!dangerFound) safety = 0;
+        // increase safety if no danger was found near us
+        if (!dangerFound)
+        {
+            if (safety < 0) safety++;
+        }
 
         UpdateDrivers();
 
@@ -502,18 +504,22 @@ public partial class NpcCore
     internal void Inspect(GameObject objectToInspect)
     {
         // inspect the object, add to memories.
-        SubjectObjectScript objectScript = objectToInspect.GetComponent<SubjectObjectScript>();
-        if (objectScript.GetType() == typeof(LocationObjectScript))
+        SubjectObjectScript inspectObjectScript = objectToInspect.GetComponent<SubjectObjectScript>();
+        if (inspectObjectScript.GetType() == typeof(LocationObjectScript))
         {
-            (objectScript as LocationObjectScript).TeachNpc(this);
-            // if it's in the unexploredLocations list, remove it.
-            unexploredLocations.Remove(objectScript.Subject as LocationSubject);
-            // if it's in the reExploreLocations list, remove it.
-            reExploreLocations.Remove(objectScript.Subject as LocationSubject);
+            LocationObjectScript locObjScript = inspectObjectScript as LocationObjectScript;
+            //only add location to memory if all waypoints are explored
+            if (objectScript.IsCurrentLocationExplored)
+            {
+                // if it's in the unexploredLocations list, remove it.
+                unexploredLocations.Remove(locObjScript.Subject as LocationSubject);
+                // if it's in the reExploreLocations list, remove it.
+                reExploreLocations.Remove(locObjScript.Subject as LocationSubject);
+            }
         }
         else
         {
-            objectScript.Subject.TeachNpc(this);
+            inspectObjectScript.Subject.TeachNpc(this);
         }
     }
 
@@ -537,8 +543,11 @@ public partial class NpcCore
                 {
                     food += foodSubject.FoodValue;
                     food = System.Math.Min(food, definition.FoodMax);
+
                     // heal a little when we eat.
                     health += definition.HealthRegen * 2;
+                    health = Mathf.Min(health, definition.HealthMax);
+
                     wasConsumed = true;
                 }
                 status.UnsetState(NpcStates.Eating); //unset eating flag
