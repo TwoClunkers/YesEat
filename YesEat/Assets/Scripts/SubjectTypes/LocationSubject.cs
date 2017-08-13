@@ -109,10 +109,7 @@ public class LocationSubject : Subject
                 loopIndex -= 1;
             }
         }
-        else
-        {
-            waypoints.Add(coordinates);
-        }
+        waypoints.Add(coordinates);
 
         return waypoints.ToArray();
 

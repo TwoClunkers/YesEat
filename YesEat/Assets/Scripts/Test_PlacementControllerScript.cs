@@ -39,7 +39,17 @@ public partial class PlacementControllerScript : MonoBehaviour
 
     public void TestSet3()
     {
-
+        CreateLocation(new Vector3(3.0f, 0, 3.0f), 1.6f);
+        CreateLocation(new Vector3(0, 0, 0), 1.6f);
+        CreateLocation(new Vector3(-3.0f, 0, -3.0f), 1.6f);
+        CreateLocation(new Vector3(3.0f, 0, -3.0f), 1.6f);
+        CreateLocation(new Vector3(-3.0f, 0, 3.0f), 2.0f);
+        SpawnObject(DbIds.Bush, new Vector3(-4.0f, 0, -4.0f));
+        GameObject plink = SpawnObject(DbIds.Plinkett, new Vector3(3.5f, 0, -4.0f));
+        AnimalObjectScript plinkScript = plink.GetComponent<AnimalObjectScript>();
+        //plinkScript.T_Npc.T_SetValues(newFood: 61);
+        GameObject gob = SpawnObject(DbIds.Gobber, new Vector3(3.5f, 0, 3.5f));
+        AnimalObjectScript gobScript = gob.GetComponent<AnimalObjectScript>();
     }
 
     public void TestSet4()
@@ -69,12 +79,12 @@ public partial class PlacementControllerScript : MonoBehaviour
         bool testResult = false;
         // Ross -- Tested & working 8/8/17 19:45
         // Given: A Gobber is hungry and is within range of a Plinkett.
-        Subject newSubject = masterSubjectList.GetSubject(1);
+        Subject newSubject = masterSubjectList.GetSubject(DbIds.Plinkett);
         GameObject testPlinkett = Instantiate(newSubject.Prefab, new Vector3(0, 0, 1), Quaternion.identity);
         AnimalObjectScript sPlinkett = testPlinkett.GetComponent<AnimalObjectScript>();
         sPlinkett.InitializeFromSubject(masterSubjectList, newSubject);
         // When: Plinkett is attacked by Gobber.
-        sPlinkett.Damage(masterSubjectList.GetSubject(6), 10);
+        sPlinkett.Damage(masterSubjectList.GetSubject(DbIds.Gobber), 10);
         // Then: Plinkett's memory of Gobber has negative safety.
         SubjectMemory subMem = sPlinkett.T_Npc.T_GetMemory(6);
         List<SubjectMemory> sMem = sPlinkett.T_Npc.T_Memories;
@@ -105,7 +115,7 @@ public partial class PlacementControllerScript : MonoBehaviour
         GameObject loc5 = T_PlaceLocation(new Vector3(-3.0f, 0, 3.0f), 1.6f);
 
         // Given: A Plinkett memory has a negative safety for Gobbers.
-        Subject newSubject = masterSubjectList.GetSubject(1);
+        Subject newSubject = masterSubjectList.GetSubject(DbIds.Plinkett);
         GameObject testPlinkett = Instantiate(newSubject.Prefab, new Vector3(0, 0, 1), Quaternion.identity);
         AnimalObjectScript sPlinkett = testPlinkett.GetComponent<AnimalObjectScript>();
         sPlinkett.InitializeFromSubject(masterSubjectList, newSubject);
@@ -113,7 +123,7 @@ public partial class PlacementControllerScript : MonoBehaviour
 
         int startingSafety = sPlinkett.GetSafety();
 
-        Subject gobSubject = masterSubjectList.GetSubject(6);
+        Subject gobSubject = masterSubjectList.GetSubject(DbIds.Gobber);
         GameObject testGob = Instantiate(gobSubject.Prefab, new Vector3(0, 0, 2), Quaternion.identity);
         testGob.GetComponent<AnimalObjectScript>().InitializeFromSubject(masterSubjectList, gobSubject);
 
@@ -142,13 +152,13 @@ public partial class PlacementControllerScript : MonoBehaviour
     /// <param name="newRadius">The radius of the new location.</param>
     public GameObject T_PlaceLocation(Vector3 newPosition, float newRadius)
     {
-        LocationSubject newLocation = new LocationSubject(masterSubjectList.GetSubject(2) as LocationSubject);
+        LocationSubject newLocation = new LocationSubject(masterSubjectList.GetSubject(DbIds.Location) as LocationSubject);
+        newLocation.Name = "Location " + Time.time;
+        newLocation.Description = "New Location " + Time.time;
         newLocation.Radius = newRadius;
         newLocation.Coordinates = newPosition;
-        newLocation.Description = "New Location " + Time.time;
         newLocation.Icon = null;
         newLocation.Layer = 1;
-        newLocation.Name = "Location " + Time.time;
         //add the next id available
         newLocation.SubjectID = masterSubjectList.GetNextID();
 

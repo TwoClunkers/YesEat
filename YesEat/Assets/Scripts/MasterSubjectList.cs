@@ -2,6 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+public static class DbIds
+{
+    // \/   \/   \/  UPDATE LAST INDEX  \/   \/   \/
+    public static int Plinkett = 1;
+    public static int Location = 2;
+    public static int Bush = 3;
+    public static int Berry = 4;
+    public static int Meat = 5;
+    public static int Gobber = 6;
+    // \/   \/   \/  UPDATE LAST INDEX  \/   \/   \/
+    public static int LastIndex = 6;
+}
+
 /// <summary>
 /// A Character's attitude about a specific subject.
 /// </summary>
@@ -17,7 +30,7 @@ public class MasterSubjectList
         masterSubjectList = new List<Subject>();
 
         //`-.,.-'-.,.-'-.,.-'-.,.-'-.,.-'
-        maxID = 1; // == Plinkett
+        maxID = DbIds.Plinkett; // == Plinkett
         //,.-`-.,.-`-.,.-`-.,.-`-.,.-`-.,
         NpcDefinition plinkettNpcDefinition = new NpcDefinition()
         {
@@ -37,7 +50,7 @@ public class MasterSubjectList
             SightRangeFar = 10,
             SightRangeNear = 2,
             StarvingDamage = 3,
-            Traits = new NpcCharacterTraits(NpcTraits.NestMaker & NpcTraits.Herbivore)
+            Traits = new NpcCharacterTraits(NpcTraits.Herbivore)
         };
         AnimalSubject plinkett = new AnimalSubject()
         {
@@ -58,7 +71,7 @@ public class MasterSubjectList
         masterSubjectList.Add(plinkett);
 
         //`-.,.-'-.,.-'-.,.-'-.,.-'-.,.-'
-        maxID = 2; // == Location
+        maxID = DbIds.Location; // == Location
         //,.-`-.,.-`-.,.-`-.,.-`-.,.-`-.,
         LocationSubject NewLocationOne = new LocationSubject()
         {
@@ -75,7 +88,7 @@ public class MasterSubjectList
         masterSubjectList.Add(NewLocationOne);
 
         //`-.,.-'-.,.-'-.,.-'-.,.-'-.,.-'
-        maxID = 3; // == Bush
+        maxID = DbIds.Bush; // == Bush
         //,.-`-.,.-`-.,.-`-.,.-`-.,.-`-.,
         PlantSubject Bush = new PlantSubject()
         {
@@ -96,7 +109,7 @@ public class MasterSubjectList
         masterSubjectList.Add(Bush);
 
         //`-.,.-'-.,.-'-.,.-'-.,.-'-.,.-'
-        maxID = 4; // == Berry
+        maxID = DbIds.Berry; // == Berry
         //,.-`-.,.-`-.,.-`-.,.-`-.,.-`-.,
         FoodSubject Berry = new FoodSubject()
         {
@@ -114,7 +127,7 @@ public class MasterSubjectList
         masterSubjectList.Add(Berry);
 
         //`-.,.-'-.,.-'-.,.-'-.,.-'-.,.-'
-        maxID = 5; // == Meat
+        maxID = DbIds.Meat; // == Meat
         //,.-`-.,.-`-.,.-`-.,.-`-.,.-`-.,
         FoodSubject Meat = new FoodSubject()
         {
@@ -132,7 +145,7 @@ public class MasterSubjectList
         masterSubjectList.Add(Meat);
 
         //`-.,.-'-.,.-'-.,.-'-.,.-'-.,.-'
-        maxID = 6; // == Gobber
+        maxID = DbIds.Gobber; // == Gobber
         //,.-`-.,.-`-.,.-`-.,.-`-.,.-`-.,
         NpcDefinition gobberNpcDefinition = new NpcDefinition()
         {
@@ -169,8 +182,11 @@ public class MasterSubjectList
             SubjectID = maxID,
             Prefab = Resources.Load("GameObjects/Gobber") as GameObject
         };
-
         masterSubjectList.Add(gobber);
+
+        // \/ \/ DO NOT CHANGE \/ \/
+        maxID = DbIds.LastIndex;
+        // /\ /\ DO NOT CHANGE /\ /\
     }
 
     /// <summary>

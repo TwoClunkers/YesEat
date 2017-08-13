@@ -13,7 +13,7 @@ public class LocationObjectScript : SubjectObjectScript
 
     public int testNumber;
 
-    
+
     void Awake()
     {
         testNumber = 0;
@@ -143,6 +143,7 @@ public class LocationObjectScript : SubjectObjectScript
     {
         subject.TeachNpc(npc);
         LocationMemory locationMemory = npc.Definition.Memories.Find(o => o.SubjectID == Subject.SubjectID) as LocationMemory;
+        locationMemory.LastTimeSeen = DateTime.Now;
         locationMemory.ObjectMemories = localObjects;
     }
 }

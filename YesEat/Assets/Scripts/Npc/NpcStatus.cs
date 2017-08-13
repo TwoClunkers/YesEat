@@ -7,11 +7,12 @@ public partial class NpcCore
     [System.Flags]
     public enum NpcStates
     {
-        Idle,
-        Moving,
-        Eating,
-        Fighting,
-        Dead
+        Idle = (1 << 1),
+        Moving = (1 << 2),
+        Eating = (1 << 3),
+        Starving = (1 << 4),
+        Fighting = (1 << 5),
+        Dead = (1 << 6)
     }
 
     public class NpcStatus

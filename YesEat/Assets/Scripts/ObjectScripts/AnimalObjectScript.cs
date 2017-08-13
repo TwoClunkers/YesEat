@@ -22,6 +22,7 @@ public class AnimalObjectScript : SubjectObjectScript
     private float decaytime;
     private Inventory inventory;
     private SubjectObjectScript chaseTarget;
+    private bool isCurrentLocationExplored;
     #endregion
 
     public NpcCore T_Npc { get { return npcCharacter; } set { npcCharacter = value; } }
@@ -33,6 +34,8 @@ public class AnimalObjectScript : SubjectObjectScript
     }
 
     public bool IsDead { get { return isDead; } }
+
+    public bool IsCurrentLocationExplored { get { return isCurrentLocationExplored; } }
 
     // Don't Use this for Initialization
     void Start()
@@ -49,6 +52,7 @@ public class AnimalObjectScript : SubjectObjectScript
         npcCharacter = new NpcCore(this, masterSubjectList, subject);
         Inventory = new Inventory((subject as AnimalSubject).InventorySize, masterSubjectList);
         destinationWayPoints = new Vector3[0];
+        isCurrentLocationExplored = false;
     }
 
     public int GetHealth()
@@ -83,12 +87,18 @@ public class AnimalObjectScript : SubjectObjectScript
         // remove chase target if we're moving to a location
         chaseTarget = null;
         destination = newLocation;
+        isCurrentLocationExplored = false;
         // queue up the waypoints for the new location
         destinationWayPoints = newLocation.GetAreaWaypoints(npcCharacter.SightRangeNear);
         if (destinationWayPoints.Length > 1) destinationWayPoints = ShiftToNearestFirst(destinationWayPoints);
         currentWaypointIndex = 0;
     }
 
+    /// <summary>
+    /// Shift the array items so the nearest point is at index 0.
+    /// </summary>
+    /// <param name="wayPointsToShift">The array to shift.</param>
+    /// <returns>The shifted array.</returns>
     private Vector3[] ShiftToNearestFirst(Vector3[] wayPointsToShift)
     {
         if (wayPointsToShift.Length > 1)
@@ -107,8 +117,8 @@ public class AnimalObjectScript : SubjectObjectScript
                 // shift array elements so the nearest is the first.
                 Vector3[] newWayPoints = new Vector3[wayPointsToShift.Length];
 
-                Array.Copy(wayPointsToShift, nearestIndex, newWayPoints, 0, (wayPointsToShift.Length - 1) - nearestIndex);
-                Array.Copy(wayPointsToShift, 0, newWayPoints, (wayPointsToShift.Length - 1) - nearestIndex, nearestIndex - 1);
+                Array.Copy(wayPointsToShift, nearestIndex, newWayPoints, 0, wayPointsToShift.Length - nearestIndex);
+                Array.Copy(wayPointsToShift, 0, newWayPoints, wayPointsToShift.Length - nearestIndex, nearestIndex);
                 return newWayPoints;
             }
             else
@@ -122,13 +132,20 @@ public class AnimalObjectScript : SubjectObjectScript
         }
     }
 
+    /// <summary>
+    /// Recursive method that finds the point nearest to the destinationPoint via Hill Climb searching.
+    /// </summary>
+    /// <param name="destinationPoint">The point that the wayPoints[] will be compared to.</param>
+    /// <param name="wayPoints">The array of ordered points.</param>
+    /// <param name="i">The starting index of the search.</param>
+    /// <returns>The index of the nearest point.</returns>
     private int GetNearestPoint(Vector3 destinationPoint, Vector3[] wayPoints, int i)
     {
-        if (i < 0) i = wayPoints.Length - i;
+        if (i < 0) i = wayPoints.Length - 1;
         if (i > wayPoints.Length - 1) i = 0;
         int iUp = i + 1;
         int iDown = i - 1;
-        if (iDown < 0) iDown = wayPoints.Length - i;
+        if (iDown < 0) iDown = wayPoints.Length - 1;
         if (iUp > wayPoints.Length - 1) iUp = 0;
 
         float iUpDist = Vector3.Distance(destinationPoint, wayPoints[iUp]);
@@ -205,23 +222,31 @@ public class AnimalObjectScript : SubjectObjectScript
                         {
                             destination = null;
                             destinationWayPoints = new Vector3[0];
+                            isCurrentLocationExplored = true;
                         }
                         else currentWaypointIndex++;
                     }
+                    // Debug.DrawLine(new Vector3(transform.position.x, 0.5f, transform.position.z), destinationWayPoints[currentWaypointIndex], Color.red, 1, false);
                 }
             }
             else if (chaseTarget != null) // chase the target
             {
                 float distance = Vector3.Distance(chaseTarget.transform.position, transform.position);
                 if (distance > 1.0) MoveTowardsPoint(chaseTarget.transform.position, npcCharacter.MoveSpeed);
-                else chaseTarget = null;
+                else
+                {
+                    Vector3 targetDir = chaseTarget.transform.position - transform.position;
+                    transform.rotation = Quaternion.LookRotation(targetDir);
+                    chaseTarget = null;
+                }
             }
+
         }
         else // this animal is dead
         {
             if (!isDead) //newly dead
             {
-                Inventory.Add(new InventoryItem(5, 1));
+                Inventory.Add(new InventoryItem(DbIds.Meat, 3));
                 isDead = true;
                 decaytime = 20.0f;
             }
@@ -255,9 +280,13 @@ public class AnimalObjectScript : SubjectObjectScript
     private void MoveTowardsPoint(Vector3 targetPosition, float moveSpeed)
     {
         Vector3 targetDir = targetPosition - transform.position;
-        //first, lets turn in the direction we need to go
-        float step = moveSpeed * Time.deltaTime;
-        Vector3 newDir = Vector3.RotateTowards(transform.forward, targetDir, step, 0.0F);
+        float step = (moveSpeed * Time.deltaTime);
+        Vector3 newDir;
+        if (Vector3.Distance(transform.position, targetPosition) > 1.0)
+        { newDir = Vector3.RotateTowards(transform.forward, targetDir, step, 0.0F); }
+        else
+        { newDir = targetDir; }
+        // turn in the direction we need to go
         transform.rotation = Quaternion.LookRotation(newDir);
         //then we can move forward
         transform.position += (transform.forward * step);

@@ -24,12 +24,10 @@ public partial class NpcCore
     private NpcDriversList drivers;
     private List<GameObject> considerObjects;
     private AnimalObjectScript objectScript;
-    private List<NpcCore> combatTargets;
     private List<LocationSubject> unexploredLocations;
     private List<LocationSubject> reExploreLocations;
     private List<int> searchedObjects;
     private List<int> searchedLocations;
-    private float lastFoodSearch;
     #endregion
 
     #region Constructors
@@ -48,7 +46,6 @@ public partial class NpcCore
         definition = new NpcDefinition();
         status = new NpcStatus();
         drivers = new NpcDriversList();
-        combatTargets = new List<NpcCore>();
         unexploredLocations = new List<LocationSubject>();
         subjectID = -1;
         searchedObjects = new List<int>();
@@ -77,7 +74,6 @@ public partial class NpcCore
             safety = definition.SafetyHigh;
             status = new NpcStatus();
             drivers = new NpcDriversList();
-            combatTargets = new List<NpcCore>();
             unexploredLocations = new List<LocationSubject>();
             searchedObjects = new List<int>();
             searchedLocations = new List<int>();
@@ -96,13 +92,13 @@ public partial class NpcCore
     {
         if (definition.Traits.HasTrait(NpcTraits.Herbivore))
         {
-            foodID = 4; // berry
-            foodSourceID = 3; // bush
+            foodID = DbIds.Berry;
+            foodSourceID = DbIds.Bush;
         }
         else if (definition.Traits.HasTrait(NpcTraits.Carnivore))
         {
-            foodID = 5; // meat
-            foodSourceID = 1; // plinkett
+            foodID = DbIds.Meat;
+            foodSourceID = DbIds.Plinkett;
         }
     }
 
@@ -113,9 +109,11 @@ public partial class NpcCore
     internal List<LocationSubject> GetAllKnownLocations(Vector3 sortByNearestTo = default(Vector3))
     {
         List<SubjectMemory> locationMemories = definition.Memories
-                .FindAll(o => db.GetSubject(o.SubjectID).GetType() == typeof(LocationSubject));
+                .FindAll(o => db.GetSubject(o.SubjectID).GetType() == typeof(LocationSubject))
+                .OrderBy(o => (o as LocationMemory).LastTimeSeen).ToList();
         List<LocationSubject> knownLocations = locationMemories
                 .Select(o => (db.GetSubject(o.SubjectID) as LocationSubject)).ToList();
+
         if (sortByNearestTo != default(Vector3))
         {
             knownLocations = knownLocations.OrderBy(o => Vector3.Distance(sortByNearestTo, o.Coordinates)).ToList();
@@ -132,25 +130,42 @@ public partial class NpcCore
     /// <returns>The found locations or null if no locations were found.</returns>
     internal List<LocationSubject> FindObject(Subject SubjectToFind, Vector3 CurrentPosition, List<int> ExcludeLocationIDs = null)
     {
-        List<LocationSubject> foundObjects;
-        if (ExcludeLocationIDs == null)
+        List<LocationSubject> foundObjects = new List<LocationSubject>();
+        List<SubjectMemory> locMems = definition.Memories.FindAll(o => o.GetType() == typeof(LocationMemory)).ToList();
+        foreach (SubjectMemory subMem in definition.Memories)
         {
-            // Find nearest location where subjectToFind can be found.
-            List<SubjectMemory> locMems = definition.Memories.FindAll(o => o.GetType() == typeof(LocationMemory)).ToList();
-            locMems = locMems.FindAll(o => (o as LocationMemory).ObjectMemories.Exists(x => x.SubjectID == SubjectToFind.SubjectID));
-            locMems = locMems.OrderBy(o => Vector3.Distance(CurrentPosition, (db.GetSubject(o.SubjectID) as LocationSubject).Coordinates)).ToList();
-            foundObjects = locMems.Select(o => db.GetSubject(o.SubjectID) as LocationSubject).ToList();
+            if (subMem.GetType() == typeof(LocationSubject))
+            {
+                LocationMemory locMem = subMem as LocationMemory;
+                if (locMem.ObjectMemories.Count > 0)
+                {
+                    foreach (ObjectMemory objMem in locMem.ObjectMemories)
+                    {
+                        if (objMem.SubjectID == SubjectToFind.SubjectID)
+                        {
+                            if (ExcludeLocationIDs != null)
+                            {
+                                if (ExcludeLocationIDs.Contains(subMem.SubjectID)) continue;
+                            }
+                            foundObjects.Add(db.GetSubject(locMem.SubjectID) as LocationSubject);
+                        }
+                    }
+                }
+            }
         }
-        else
-        {
-            List<SubjectMemory> locMems = definition.Memories.FindAll(o => o.GetType() == typeof(LocationMemory)).ToList();
-            locMems = locMems.FindAll(o => (o as LocationMemory).ObjectMemories.Exists(x => x.SubjectID == SubjectToFind.SubjectID));
-            locMems = locMems.OrderBy(o => Vector3.Distance(CurrentPosition, (db.GetSubject(o.SubjectID) as LocationSubject).Coordinates)).ToList();
-            foundObjects = locMems.Select(o => db.GetSubject(o.SubjectID) as LocationSubject).ToList();
-            // exclude
-            foundObjects = foundObjects.FindAll(o => !ExcludeLocationIDs.Contains(o.SubjectID));
-        }
+        // sort by distance
+        foundObjects = foundObjects.OrderBy(o => Vector3.Distance(o.Coordinates, CurrentPosition)).ToList();
+
         return foundObjects;
+    }
+
+    /// <summary>
+    /// Get the quantity of known LocationSubjects.
+    /// </summary>
+    /// <returns>Quantity found.</returns>
+    private int GetKnownLocationCount()
+    {
+        return definition.Memories.Count(o => db.GetSubject(o.SubjectID).GetType() == typeof(LocationSubject));
     }
 
     /// <summary>
@@ -334,8 +349,11 @@ public partial class NpcCore
         }
         else if (health <= definition.HealthDanger)
         {
-            // dangerously low on health, safety is now max priority
-            drivers.SetTopDriver(NpcDrivers.Safety);
+            // dangerously low on health if starving find food, else find safety
+            if (food <= 0)
+                drivers.SetTopDriver(NpcDrivers.Hunger);
+            else
+                drivers.SetTopDriver(NpcDrivers.Safety);
         }
 
         // of the basic needs safety is the highest priority
@@ -343,6 +361,11 @@ public partial class NpcCore
         {
             status.UnsetState(NpcStates.Fighting);
             drivers.SetTopDriver(NpcDrivers.Safety);
+        }
+        else
+        {
+            // if safety is above deadly remove safety as priority
+            drivers.Remove(NpcDrivers.Safety);
         }
     }
 
@@ -514,6 +537,8 @@ public partial class NpcCore
                 {
                     food += foodSubject.FoodValue;
                     food = System.Math.Min(food, definition.FoodMax);
+                    // heal a little when we eat.
+                    health += definition.HealthRegen * 2;
                     wasConsumed = true;
                 }
                 status.UnsetState(NpcStates.Eating); //unset eating flag
@@ -551,12 +576,10 @@ public partial class NpcCore
 
         UpdateMemory(NpcMemoryChangeEvent.HealthDamage, subjectAttacker);
 
-
         if (NpcAttacker != null)
         {
             if (ShouldFight(NpcAttacker, damageAmount))
             {
-                combatTargets.Add(NpcAttacker);
                 status.SetState(NpcStates.Fighting);
                 //TODO: add a subroutine that will trigger a fight action if fighting state is set.
             }

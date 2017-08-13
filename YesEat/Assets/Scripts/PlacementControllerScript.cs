@@ -96,7 +96,7 @@ public partial class PlacementControllerScript : MonoBehaviour
                         plantPanel.SetActive(false);
                         animalPanel.SetActive(false);
                         _Center.text = "Center: <b>" + locationSub.Coordinates.ToString() + "</b>";
-                        _Radius.text = "Radius: <b>" + locationSub.Radius.ToString() + "</b>";   
+                        _Radius.text = "Radius: <b>" + locationSub.Radius.ToString() + "</b>";
                     }
                     else
                     {
@@ -161,7 +161,7 @@ public partial class PlacementControllerScript : MonoBehaviour
                     //We will let everything start with a radius of 0.5
                     if (CheckPlacementPosition(centerPosition, 0.5f, null))
                     {
-                        if(placeID == 2) //this is a location, which requires 2 steps
+                        if (placeID == 2) //this is a location, which requires 2 steps
                         {
                             placedObject = Instantiate(locationStart, centerPosition, Quaternion.identity);
                             //calculate our edge and manipulate the scale until finalized
@@ -187,7 +187,7 @@ public partial class PlacementControllerScript : MonoBehaviour
                                     placementStarted = true;
                                 }
                             }
-                        } 
+                        }
                     }
                 }
             }
@@ -331,7 +331,7 @@ public partial class PlacementControllerScript : MonoBehaviour
             }
         }
         //if we are here, there were no non-location objects found
-        if(locationObj != null)
+        if (locationObj != null)
         {
             GameObject newSelector = Instantiate(selectionMarker, locationObj.transform);
             lastSelector = newSelector;
@@ -369,10 +369,10 @@ public partial class PlacementControllerScript : MonoBehaviour
     /// </summary>
     /// <param name="center"></param>
     /// <param name="radius"></param>
-    public void CreateLocation(Vector3 center, float radius)
+    public GameObject CreateLocation(Vector3 center, float radius)
     {
         //first, pull the genaric LocationSubject from the masterSubjectList and create prefab
-        LocationSubject locFromMaster = masterSubjectList.GetSubject(2) as LocationSubject;
+        LocationSubject locFromMaster = masterSubjectList.GetSubject(DbIds.Location) as LocationSubject;
         GameObject newLocationObject = Instantiate(locFromMaster.Prefab, center, Quaternion.identity);
         newLocationObject.transform.localScale = new Vector3(radius * 2, 0.1f, radius * 2);
 
@@ -385,36 +385,61 @@ public partial class PlacementControllerScript : MonoBehaviour
         newLocSubject.Radius = radius;
         newLocSubject.Coordinates = center;
         newLocSubject.Layer = 1;
+
         //add the next id available
         newLocSubject.SubjectID = masterSubjectList.GetNextID();
+        script.InitializeFromSubject(masterSubjectList, newLocSubject);
+
         //now add our card to the master list
         if (!masterSubjectList.AddSubject(newLocSubject)) Debug.Log("FAIL ADD");
         //store to the script attached to our new object
-        script.Subject = newLocSubject;
+        return newLocationObject;
+    }
+
+    /// <summary>
+    /// Instantiates newSubjectId's prefab at the spawnPoint position.
+    /// </summary>
+    /// <param name="newSubjectId">The SubjectID of the NPC to spawn.</param>
+    /// <param name="spawnPoint">The position to spawn the NPC at.</param>
+    public GameObject SpawnObject(int newSubjectId, Vector3 spawnPoint)
+    {
+        //Use the id to pull the Subject card
+        Subject newSubject = masterSubjectList.GetSubject(newSubjectId);
+        if (newSubject != null)
+        {
+            GameObject newObject = Instantiate(newSubject.Prefab, spawnPoint, Quaternion.identity);
+            if (newObject != null)
+            {
+                SubjectObjectScript script = newObject.GetComponent<SubjectObjectScript>() as SubjectObjectScript;
+                script.InitializeFromSubject(masterSubjectList, newSubject);
+                return newObject;
+            }
+        }
+        return null;
     }
 
     //Button attachments
     public void OnSelectLocation(bool isClicked)
     {
-        placeID = 2;
+        placeID = DbIds.Location;
         placementStarted = false;
     }
 
     public void OnSelectBush(bool isClicked)
     {
-        placeID = 3;
+        placeID = DbIds.Bush;
         placementStarted = false;
     }
 
     public void OnSelectPlinket()
     {
-        placeID = 1;
+        placeID = DbIds.Plinkett;
         placementStarted = false;
     }
 
     public void OnSelectGobber()
     {
-        placeID = 6;
+        placeID = DbIds.Gobber;
         placementStarted = false;
     }
 

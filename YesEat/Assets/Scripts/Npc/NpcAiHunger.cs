@@ -19,12 +19,11 @@ public partial class NpcCore
         }
         else
         {
-            // if it's been a long time since last search clear out attemptedHarvest list
-            lastFoodSearch += Time.deltaTime;
-            if (lastFoodSearch > 30)
+            // if we've searched all the locations we known of, start over.
+            if (GetKnownLocationCount() == searchedLocations.Count && unexploredLocations.Count == 0)
             {
-                searchedObjects.Clear();
                 searchedLocations.Clear();
+                searchedObjects.Clear();
             }
 
             // get list of all foodSource objects in near range
@@ -72,25 +71,26 @@ public partial class NpcCore
             else
             {
                 // there are no food sources in close range
-                // TODO: explore the whole location via waypoints before adding it to the searched list.
-
-
-
-                // find a location with foodSourceID
-                searchedLocations.Add(objectScript.Location.SubjectID);
-                List<LocationSubject> foodLocations = FindObject(db.GetSubject(foodSourceID), objectScript.transform.position, searchedLocations);
-                if (foodLocations.Count > 0)
+                // explore the whole location via waypoints before adding it to the searched list.
+                if (objectScript.IsCurrentLocationExplored)
                 {
-                    LocationSubject foodLocation = foodLocations[0];
-                    // travel to the location if we are not already there
-                    if (objectScript.Location.SubjectID != foodLocation.SubjectID)
+                    // find a location with foodSourceID
+                    if (!searchedLocations.Contains(objectScript.Location.SubjectID))
+                        searchedLocations.Add(objectScript.Location.SubjectID);
+                    List<LocationSubject> foodLocations = FindObject(db.GetSubject(foodSourceID), objectScript.transform.position, searchedLocations);
+                    if (foodLocations.Count > 0)
                     {
-                        objectScript.MoveToNewLocation(foodLocation);
+                        LocationSubject foodLocation = foodLocations[0];
+                        // travel to the location if we are not already there
+                        if (objectScript.Location.SubjectID != foodLocation.SubjectID)
+                        {
+                            objectScript.MoveToNewLocation(foodLocation);
+                        }
                     }
-                }
-                else
-                {
-                    AiExplore();
+                    else
+                    {
+                        AiExplore();
+                    }
                 }
             }
         }
