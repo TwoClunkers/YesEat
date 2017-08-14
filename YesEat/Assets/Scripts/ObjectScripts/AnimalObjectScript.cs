@@ -281,6 +281,30 @@ public class AnimalObjectScript : SubjectObjectScript
             UpdateDeadnessColor();
             if (decaytime < 0) Destroy(this.gameObject);
         }
+
+        // Debug: near vision range
+        DrawDebugCircle(transform.position, npcCharacter.SightRangeNear, 20, new Color(0, 0, 1, 0.5f));
+        // Debug: far vision range
+        DrawDebugCircle(transform.position, npcCharacter.SightRangeFar, 20, new Color(0, 0, 0, 0.3f));
+    }
+
+    private void DrawDebugCircle(Vector3 debugCircleCenter, float debugCircleRadius, int debugCircleVertices, Color debugCircleColor)
+    {
+        Vector3[] visionCircle = new Vector3[debugCircleVertices];
+        float degree = (float)360 / debugCircleVertices;
+        for (int i = 0; i < debugCircleVertices; i++)
+        {
+            Vector3 newPoint = new Vector3(
+                            (Mathf.Cos((degree * i) * Mathf.Deg2Rad) * debugCircleRadius) + debugCircleCenter.x, 0,
+                            (Mathf.Sin((degree * i) * Mathf.Deg2Rad) * debugCircleRadius) + debugCircleCenter.z);
+            visionCircle[i] = newPoint;
+        }
+        Vector3 lastPt = visionCircle[visionCircle.GetUpperBound(0)];
+        foreach (Vector3 pt in visionCircle)
+        {
+            Debug.DrawLine(lastPt, pt, debugCircleColor);
+            lastPt = pt;
+        }
     }
 
     /// <summary>

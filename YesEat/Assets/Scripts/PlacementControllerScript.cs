@@ -5,7 +5,6 @@ using UnityEngine.UI;
 public partial class PlacementControllerScript : MonoBehaviour
 {
     public MasterSubjectList masterSubjectList;
-    public GameObject currentSelection;
     public GameObject thoughtBubble;
     public GameObject selectionMarker;
     public GameObject lastSelector;
@@ -35,6 +34,7 @@ public partial class PlacementControllerScript : MonoBehaviour
     private Vector3 edgePosition;
     private float lastDistance;
     private GameObject placedObject;
+    private Vector3 cameraDestination;
 
     // Use this for initialization
     void Start()
@@ -42,15 +42,58 @@ public partial class PlacementControllerScript : MonoBehaviour
         masterSubjectList = new MasterSubjectList();
         centerPosition = new Vector3();
         edgePosition = new Vector3();
-        currentSelection = null;
         placeID = -2;
         testPanel.SetActive(true);
         lastDistance = 0;
+        cameraDestination = Camera.main.transform.position;
     }
 
     // Update is called once per frame
     void Update()
     {
+        // ------------------------------------------------------------------------
+        // ------------------------ START CAMERA MOVEMENT -------------------------
+        // ------------------------------------------------------------------------
+        if (lastSelector != null)
+        {
+            cameraDestination = new Vector3(lastSelector.transform.position.x,
+                cameraDestination.y,
+                lastSelector.transform.position.z);
+        }
+        else if (Input.GetMouseButton(2))
+        {
+            // panning camera
+            float mouseY = Input.GetAxis("Mouse Y");
+            if (mouseY != 0)
+            {
+                cameraDestination = new Vector3(cameraDestination.x,
+                    cameraDestination.y,
+                    Camera.main.transform.position.z + mouseY * (cameraDestination.y / 25));
+            }
+            float mouseX = Input.GetAxis("Mouse X");
+            if (mouseX != 0)
+            {
+                cameraDestination = new Vector3(Camera.main.transform.position.x + mouseX * (cameraDestination.y / 25),
+                    cameraDestination.y,
+                    cameraDestination.z);
+            }
+        }
+        float mouseWheelDelta = Input.GetAxis("Mouse ScrollWheel");
+        if (mouseWheelDelta != 0)
+        {
+            Vector3 camPosition = Camera.main.transform.position;
+            cameraDestination = new Vector3(camPosition.x,
+                camPosition.y - mouseWheelDelta * (camPosition.y),
+            Camera.main.transform.position.z);
+
+        }
+        if (Vector3.Distance(Camera.main.transform.position, cameraDestination) > 0.1f)
+        {
+            Camera.main.transform.position = Vector3.Slerp(Camera.main.transform.position, cameraDestination, Time.deltaTime * 20.0f);
+        }
+        // ------------------------------------------------------------------------
+        // ------------------------ END CAMERA MOVEMENT ---------------------------
+        // ------------------------------------------------------------------------
 
         if ((lastSelector != null) && (lastSelector.transform.parent != null))
         {
@@ -148,7 +191,7 @@ public partial class PlacementControllerScript : MonoBehaviour
                 }
             }
         }
-        else //currentSelection is placeable
+        else // is placeable
         {
             if (!placementStarted)
             {
@@ -235,8 +278,6 @@ public partial class PlacementControllerScript : MonoBehaviour
     /// <returns></returns>
     public bool CheckPlacementPosition(Vector3 center, float radius, GameObject excludeObject)
     {
-
-        //if (currentSelection == null) return false; //nothing to place;
         //First we catch all the colliders in our area
         Collider[] hitColliders = Physics.OverlapSphere(center, radius);
 
