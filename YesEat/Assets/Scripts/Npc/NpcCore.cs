@@ -133,7 +133,7 @@ public partial class NpcCore
         List<LocationSubject> foundObjects = new List<LocationSubject>();
         foreach (SubjectMemory subMem in definition.Memories)
         {
-            if (subMem.GetType() == typeof(LocationSubject))
+            if (subMem.GetType() == typeof(LocationMemory))
             {
                 LocationMemory locMem = subMem as LocationMemory;
                 if (locMem.ObjectMemories.Count > 0)
@@ -386,6 +386,18 @@ public partial class NpcCore
     public float SightRangeNear { get { return definition.SightRangeNear; } }
     public float MoveSpeed { get { return definition.MoveSpeed; } }
     #endregion
+
+    /// <summary>
+    /// Add a Location to the searchedLocations list.
+    /// </summary>
+    /// <param name="searchedLocation">The LocationSubject's SubjectID to add.</param>
+    public void AddSearchedLocation(int searchedLocationId)
+    {
+        if (!searchedLocations.Contains(searchedLocationId))
+        {
+            searchedLocations.Add(searchedLocationId);
+        }
+    }
 
     /// <summary>
     /// This NPC's Definition.

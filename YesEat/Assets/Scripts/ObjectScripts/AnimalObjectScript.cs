@@ -68,6 +68,8 @@ public class AnimalObjectScript : SubjectObjectScript
         return npcCharacter.Food;
     }
 
+    public LocationSubject CurrentDestination { get { return destination; } }
+
     /// <summary>
     /// Begin path finding to a new location.
     /// </summary>
@@ -240,6 +242,7 @@ public class AnimalObjectScript : SubjectObjectScript
                         {
                             // we have arrived at the final waypoint for this location
                             isCurrentLocationExplored = true;
+                            npcCharacter.AddSearchedLocation(destination.SubjectID);
                             // remember the location now that it is explored fully
                             UnityEngine.Object[] scripts = FindObjectsOfType(typeof(LocationObjectScript));
                             LocationObjectScript inspectLocationScript = scripts.Single(o =>
