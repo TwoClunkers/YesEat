@@ -76,4 +76,36 @@ public struct NpcDefinition
     /// Amount of damage dealt when attacking.
     /// </summary>
     public int AttackDamage;
+
+    /// <summary>
+    /// Copy and existing Definition.
+    /// </summary>
+    /// <param name="newDefinition">Definition to copy.</param>
+    public NpcDefinition(NpcDefinition newDefinition)
+    {
+        Nest = (newDefinition.Nest == null) ? null : new LocationMemory(newDefinition.Nest);
+
+        Memories = new List<SubjectMemory>(newDefinition.Memories);
+
+        NpcCharacterTraits newTraits = new NpcCharacterTraits(newDefinition.Traits.Traits);
+        Traits = newTraits;
+
+        MetabolizeInterval = newDefinition.MetabolizeInterval;
+        HealthRegen = newDefinition.HealthRegen;
+        StarvingDamage = newDefinition.StarvingDamage;
+
+        HealthDanger = newDefinition.HealthDanger;
+        HealthMax = newDefinition.HealthMax;
+        FoodHungry = newDefinition.FoodHungry;
+        FoodMax = newDefinition.FoodMax;
+        FoodMetabolizeRate = newDefinition.FoodMetabolizeRate;
+        SafetyDeadly = newDefinition.SafetyDeadly;
+        SafetyHigh = newDefinition.SafetyHigh;
+
+        MoveSpeed = newDefinition.MoveSpeed;
+        SightRangeNear = newDefinition.SightRangeNear;
+        SightRangeFar = newDefinition.SightRangeFar;
+        AttackDamage = newDefinition.AttackDamage;
+    }
+
 }

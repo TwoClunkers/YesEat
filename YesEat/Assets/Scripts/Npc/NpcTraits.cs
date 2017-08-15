@@ -16,29 +16,31 @@ public class NpcCharacterTraits
 
     public NpcCharacterTraits() { }
 
-    public NpcCharacterTraits(NpcTraits Traits) { _traits = Traits; }
+    public NpcCharacterTraits(NpcTraits Traits) { this.Traits = Traits; }
 
     /// <summary>
     /// Is this NPC a nest maker?
     /// </summary>
     public bool IsNestMaker { get { return HasTrait(NpcTraits.NestMaker); } }
 
+    public NpcTraits Traits { get { return _traits; } set { _traits = value; } }
+
     /// <summary>
     /// Turns on the changeTrait flag.
     /// </summary>
     /// <param name="changeTrait">The flag to turn on.</param>
-    public void SetTrait(NpcTraits changeTrait) { _traits |= changeTrait; }
+    public void SetTrait(NpcTraits changeTrait) { Traits |= changeTrait; }
 
     /// <summary>
     /// Turns off the changeTrait flag.
     /// </summary>
     /// <param name="changeTrait">The flag to be turned off.</param>
-    public void UnsetTrait(NpcTraits changeTrait) { _traits &= ~changeTrait; }
+    public void UnsetTrait(NpcTraits changeTrait) { Traits &= ~changeTrait; }
 
     /// <summary>
     /// Check if checkTrait is set.
     /// </summary>
     /// <param name="checkTrait">The trait to check for.</param>
     /// <returns>True:set, False: not set.</returns>
-    public bool HasTrait(NpcTraits checkTrait) { return (_traits & checkTrait) != 0; }
+    public bool HasTrait(NpcTraits checkTrait) { return (Traits & checkTrait) != 0; }
 }

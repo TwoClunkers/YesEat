@@ -27,6 +27,24 @@ public class ItemSubject : Subject
     }
 
     /// <summary>
+    /// Copy an existing ItemSubject.
+    /// </summary>
+    public override Subject Copy()
+    {
+        ItemSubject newItemSubject = new ItemSubject();
+        newItemSubject.subjectID = subjectID;
+        newItemSubject.name = name;
+        newItemSubject.description = description;
+        newItemSubject.icon = icon;
+        newItemSubject.prefab = prefab;
+        newItemSubject.relatedSubjects = relatedSubjects;
+
+        newItemSubject.buildDirections = buildDirections;
+        newItemSubject.maxStack = maxStack;
+        return newItemSubject;
+    }
+
+    /// <summary>
     /// The BuildRecipe used to make this Item
     /// </summary>
     public BuildRecipe BuildDirections

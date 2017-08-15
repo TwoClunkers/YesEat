@@ -44,6 +44,25 @@ public class LocationSubject : Subject
     }
 
     /// <summary>
+    /// Copy an existing LocationSubject.
+    /// </summary>
+    public override Subject Copy()
+    {
+        LocationSubject newLocationSubject = new LocationSubject();
+        newLocationSubject.subjectID = subjectID;
+        newLocationSubject.name = name;
+        newLocationSubject.description = description;
+        newLocationSubject.icon = icon;
+        newLocationSubject.prefab = prefab;
+        newLocationSubject.relatedSubjects = relatedSubjects;
+
+        newLocationSubject.coordinates = coordinates;
+        newLocationSubject.radius = radius;
+        newLocationSubject.layer = layer;
+        return newLocationSubject;
+    }
+
+    /// <summary>
     /// The center of the location.
     /// </summary>
     public Vector3 Coordinates

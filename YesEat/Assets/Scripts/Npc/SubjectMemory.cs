@@ -32,6 +32,13 @@ public class SubjectMemory
         set { food = value; }
     }
 
+    public SubjectMemory(SubjectMemory copySubjectMemory)
+    {
+        subjectID = copySubjectMemory.subjectID;
+        safety = copySubjectMemory.safety;
+        food = copySubjectMemory.food;
+    }
+
     public SubjectMemory(int SubjectID, sbyte SafetyValue, sbyte FoodValue)
     {
         this.subjectID = SubjectID;

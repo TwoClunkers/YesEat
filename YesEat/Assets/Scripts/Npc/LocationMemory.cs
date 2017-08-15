@@ -10,6 +10,13 @@ public class LocationMemory : SubjectMemory
     private List<ObjectMemory> objectMemories;
     private int locationSubjectID;
     private DateTime lastTimeSeen;
+
+    public LocationMemory(LocationMemory copyLocationMemory) : base(copyLocationMemory)
+    {
+        objectMemories = new List<ObjectMemory>(copyLocationMemory.objectMemories);
+        locationSubjectID = copyLocationMemory.locationSubjectID;
+        lastTimeSeen = copyLocationMemory.LastTimeSeen;
+    }
     #endregion
 
     public LocationMemory(int SubjectID, sbyte SafetyValue, sbyte FoodValue) : base(SubjectID, SafetyValue, FoodValue) { }

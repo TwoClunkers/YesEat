@@ -204,13 +204,13 @@ public class MasterSubjectList
             if (subjectType != null)
             {
                 if (tempType == subjectType)
-                    return tempSubject;
+                    return tempSubject.Copy();
                 else
                     return null;
             }
             else
             {
-                return tempSubject;
+                return tempSubject.Copy();
             }
         }
         else

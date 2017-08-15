@@ -24,6 +24,24 @@ public class FoodSubject : ItemSubject
     }
 
     /// <summary>
+    /// Copy an existing FoodSubject.
+    /// </summary>
+    public override Subject Copy()
+    {
+        FoodSubject newFoodSubject = new FoodSubject();
+        newFoodSubject.subjectID = subjectID;
+        newFoodSubject.name = name;
+        newFoodSubject.description = description;
+        newFoodSubject.icon = icon;
+        newFoodSubject.prefab = prefab;
+        newFoodSubject.relatedSubjects = relatedSubjects;
+
+        newFoodSubject.foodType = foodType;
+        newFoodSubject.foodValue = foodValue;
+        return newFoodSubject;
+    }
+
+    /// <summary>
     /// What kind of food is this?
     /// </summary>
     public int FoodType

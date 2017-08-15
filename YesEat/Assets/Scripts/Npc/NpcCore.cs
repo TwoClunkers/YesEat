@@ -448,10 +448,8 @@ public partial class NpcCore
     public void AiCoreProcess()
     {
         considerObjects = objectScript.Observe();
-        unexploredLocations = objectScript.GetObservedLocations();
-        unexploredLocations = unexploredLocations
-            .FindAll(o => !definition.Memories.Exists(x => x.SubjectID == o.SubjectID));
-        unexploredLocations = unexploredLocations
+        unexploredLocations = objectScript.GetObservedLocations()
+            .FindAll(o => !definition.Memories.Exists(x => x.SubjectID == o.SubjectID))
             .OrderBy(o => Vector3.Distance(objectScript.transform.position, o.Coordinates)).ToList();
 
         // Consider each subject starting with the closest.

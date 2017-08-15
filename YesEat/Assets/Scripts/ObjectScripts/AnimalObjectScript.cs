@@ -380,15 +380,6 @@ public class AnimalObjectScript : SubjectObjectScript
         // store the observations locally
         seenLocationObjects = seenLocationList.ToArray();
 
-        // if our position is within 1 unit of a location center add the location to our memory.
-        foreach (GameObject locationObject in seenLocationObjects)
-        {
-            if (Vector3.Distance(locationObject.transform.position, transform.position) <= 1)
-            {
-                npcCharacter.Inspect(locationObject);
-            }
-        }
-
         // return a list of observed objects
         nearList.OrderBy(o => Vector3.Distance(transform.position, o.transform.position));
         return nearList;
@@ -404,6 +395,9 @@ public class AnimalObjectScript : SubjectObjectScript
         if (farObjectList.Count() > 0)
         {
             List<LocationSubject> observedLocations = farObjectList.Select(o => o.GetComponent<SubjectObjectScript>().Subject as LocationSubject).ToList();
+
+            Debug.DrawLine(transform.position, new Vector3(transform.position.x, 2.0f, transform.position.z), Color.white, 0.1f);
+
             return observedLocations;
         }
         else

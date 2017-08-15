@@ -29,6 +29,28 @@ public class AnimalSubject : Subject
     }
 
     /// <summary>
+    /// Copy an existing AnimalSubject.
+    /// </summary>
+    public override Subject Copy()
+    {
+        AnimalSubject newAnimalSubject = new AnimalSubject();
+        newAnimalSubject.subjectID = subjectID;
+        newAnimalSubject.name = name;
+        newAnimalSubject.description = description;
+        newAnimalSubject.icon = icon;
+        newAnimalSubject.prefab = prefab;
+        newAnimalSubject.relatedSubjects = relatedSubjects;
+
+        newAnimalSubject.maxGrowth = maxGrowth;
+        newAnimalSubject.growthTime = growthTime;
+        newAnimalSubject.matureTime = matureTime;
+        newAnimalSubject.inventorySize = inventorySize;
+        newAnimalSubject.lootID = lootID;
+        newAnimalSubject.definition = new NpcDefinition(definition);
+        return newAnimalSubject;
+    }
+
+    /// <summary>
     /// Max Growth tells us at which step you stop growing
     /// </summary>
     public int MaxGrowth

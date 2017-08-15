@@ -37,6 +37,12 @@ public abstract class Subject
     }
 
     /// <summary>
+    /// Create a copy of a subject.
+    /// </summary>
+    /// <param name="fromSubject">The subject to copy.</param>
+    public abstract Subject Copy();
+
+    /// <summary>
     /// The subject ID is used to find the right subject
     /// </summary>
     public int SubjectID

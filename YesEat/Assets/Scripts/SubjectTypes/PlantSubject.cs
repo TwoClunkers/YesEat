@@ -31,6 +31,28 @@ public class PlantSubject : Subject
     }
 
     /// <summary>
+    /// Copy an existing PlantSubject.
+    /// </summary>
+    public override Subject Copy()
+    {
+        PlantSubject newPlantSubject = new PlantSubject();
+        newPlantSubject.subjectID = subjectID;
+        newPlantSubject.name = name;
+        newPlantSubject.description = description;
+        newPlantSubject.icon = icon;
+        newPlantSubject.prefab = prefab;
+        newPlantSubject.relatedSubjects = relatedSubjects;
+
+        newPlantSubject.produceID = produceID;
+        newPlantSubject.produceTime = produceTime;
+        newPlantSubject.maxGrowth = maxGrowth;
+        newPlantSubject.growthTime = growthTime;
+        newPlantSubject.matureGrowth = matureGrowth;
+        newPlantSubject.inventorySize = inventorySize;
+        return newPlantSubject;
+    }
+
+    /// <summary>
     /// What does this plant produce?
     /// </summary>
     public int ProduceID
