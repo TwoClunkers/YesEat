@@ -92,14 +92,25 @@ public class AnimalObjectScript : SubjectObjectScript
         isCurrentLocationExplored = false;
         // queue up the waypoints for the new location
 
-
-        destinationWayPoints = newLocation.GetAreaWaypoints(npcCharacter.SightRangeNear);
-
-        if (destinationWayPoints.Length > 1)
+        // flip a coin on which method of area waypoints to use
+        if (UnityEngine.Random.Range(0.0f, 1.0f) > 0.5f)
         {
-            destinationWayPoints = ShiftToNearestFirst(destinationWayPoints);
+            destinationWayPoints = newLocation.GetAreaWaypoints(npcCharacter.SightRangeNear);
+            if (destinationWayPoints.Length > 1)
+            {
+                destinationWayPoints = ShiftToNearestFirst(destinationWayPoints);
+            }
         }
-
+        else
+        {
+            destinationWayPoints = newLocation.GetAreaWaypoints(npcCharacter.SightRangeNear, 1);
+            if (destinationWayPoints.Length > 1)
+            {
+                destinationWayPoints = destinationWayPoints
+                    .OrderBy(o => Vector3.Distance(transform.position, o))
+                    .ToArray();
+            }
+        }
         // debugging- show generated waypoints in editor interface
         for (int i = 0; i < destinationWayPoints.Length; i++)
         {

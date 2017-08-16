@@ -107,52 +107,97 @@ public class LocationSubject : Subject
     /// </summary>
     /// <param name="sightRadius">The sight radius of the mob that will explore the area.</param>
     /// <returns>An array of waypoints.</returns>
-    public Vector3[] GetAreaWaypoints(float sightRadius)
+    public Vector3[] GetAreaWaypoints(float sightRadius, int generatorType = 0)
     {
         List<Vector3> waypoints = new List<Vector3>();
-        float lappedSightRadius = (sightRadius * 0.85f);
-        if (lappedSightRadius < radius)
+        float lappedSightRadius;
+        float sightDiameter;
+        float loopRadius;
+        float currentLoopStepDegrees;
+        int maxLoops;
+        int loopIndex;
+        int maxPointsThisLoop;
+        float randomAngle = UnityEngine.Random.Range(0.1f, 89.1f);
+        switch (generatorType)
         {
-            float sightDiameter = lappedSightRadius * 2;
-            float loopRadius;
-            float currentLoopStepDegrees;
-            int maxLoops = (int)Mathf.Ceil(radius / sightDiameter);
-            int loopIndex = maxLoops;
-            int maxPointsThisLoop;
-            while (loopIndex > 0)
-            {
-                loopRadius = radius - ((float)loopIndex * sightDiameter) + lappedSightRadius;
-                if (loopRadius < lappedSightRadius)
+            default:
+                lappedSightRadius = (sightRadius * 0.85f);
+                if (lappedSightRadius < radius)
                 {
-                    if ((radius - ((loopIndex - 1) * sightDiameter)) > lappedSightRadius)
+                    sightDiameter = lappedSightRadius * 2;
+                    maxLoops = (int)Mathf.Ceil(radius / sightDiameter);
+                    loopIndex = maxLoops;
+                    while (loopIndex > 0)
                     {
-                        currentLoopStepDegrees = 120.0f;
-                        loopRadius = lappedSightRadius;
+                        loopRadius = radius - ((float)loopIndex * sightDiameter) + lappedSightRadius;
+                        if (loopRadius < lappedSightRadius)
+                        {
+                            if ((radius - ((loopIndex - 1) * sightDiameter)) > lappedSightRadius)
+                            {
+                                currentLoopStepDegrees = 120.0f;
+                                loopRadius = lappedSightRadius;
+                            }
+                            else
+                            {
+                                currentLoopStepDegrees = 360.0f;
+                                loopRadius = 0;
+                            }
+                        }
+                        else
+                        {
+                            currentLoopStepDegrees = (Mathf.Asin(lappedSightRadius / loopRadius) * Mathf.Rad2Deg) * 2;
+                        }
+                        maxPointsThisLoop = (int)Mathf.Ceil(360 / currentLoopStepDegrees);
+                        currentLoopStepDegrees = 360 / (float)maxPointsThisLoop;
+                        for (int i = 0; i < maxPointsThisLoop; i++)
+                        {
+                            float degree = (currentLoopStepDegrees * i) + randomAngle;
+                            Vector3 newPoint = new Vector3(
+                                Mathf.Cos(degree * Mathf.Deg2Rad) * loopRadius, 0,
+                                Mathf.Sin(degree * Mathf.Deg2Rad) * loopRadius);
+                            waypoints.Add(newPoint + coordinates);
+
+                        }
+                        loopIndex -= 1;
+                    }
+                }
+                break;
+            case 1:
+                lappedSightRadius = sightRadius;
+                if (lappedSightRadius < radius)
+                {
+                    sightDiameter = lappedSightRadius * 2;
+                    loopRadius = radius;
+                    if (loopRadius < lappedSightRadius)
+                    {
+                        if (radius > lappedSightRadius)
+                        {
+                            currentLoopStepDegrees = 120.0f;
+                            loopRadius = lappedSightRadius;
+                        }
+                        else
+                        {
+                            currentLoopStepDegrees = 360.0f;
+                            loopRadius = 0;
+                        }
                     }
                     else
                     {
-                        currentLoopStepDegrees = 360.0f;
-                        loopRadius = 0;
+                        currentLoopStepDegrees = (Mathf.Asin(lappedSightRadius / loopRadius) * Mathf.Rad2Deg) * 2;
+                    }
+                    maxPointsThisLoop = (int)Mathf.Ceil(360 / currentLoopStepDegrees);
+                    currentLoopStepDegrees = 360 / (float)maxPointsThisLoop;
+                    for (int i = 0; i < maxPointsThisLoop; i++)
+                    {
+                        float degree = (currentLoopStepDegrees * i) + randomAngle;
+                        Vector3 newPoint = new Vector3(
+                            Mathf.Cos(degree * Mathf.Deg2Rad) * loopRadius, 0,
+                            Mathf.Sin(degree * Mathf.Deg2Rad) * loopRadius);
+                        waypoints.Add(newPoint + coordinates);
+
                     }
                 }
-                else
-                {
-                    currentLoopStepDegrees = (Mathf.Asin(lappedSightRadius / loopRadius) * Mathf.Rad2Deg) * 2;
-                }
-                maxPointsThisLoop = (int)Mathf.Ceil(360 / currentLoopStepDegrees);
-                //maxPointsThisLoop++;
-                currentLoopStepDegrees = 360 / (float)maxPointsThisLoop;
-                for (int i = 0; i < maxPointsThisLoop; i++)
-                {
-                    float degree = currentLoopStepDegrees * i;
-                    Vector3 newPoint = new Vector3(
-                        Mathf.Cos(degree * Mathf.Deg2Rad) * loopRadius, 0,
-                        Mathf.Sin(degree * Mathf.Deg2Rad) * loopRadius);
-                    waypoints.Add(newPoint + coordinates);
-
-                }
-                loopIndex -= 1;
-            }
+                break;
         }
         // always return at least the center point of the location
         if (waypoints.Count < 1)

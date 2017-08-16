@@ -16,12 +16,14 @@ public partial class PlacementControllerScript : MonoBehaviour
     public void TestSet2()
     {
         // testing location waypoint generation
-        float testLocationRadius = 5.0f;
+        float testLocationRadius = 6.0f;
         float testSightRadius = 2.0f;
-        GameObject loc1 = T_PlaceLocation(new Vector3(0, 0, 0), testLocationRadius);
+        Vector3 loc1Offset = new Vector3(-testLocationRadius - (2 * testSightRadius), 0, 0);
+        Vector3 loc2Offset = new Vector3(0, 0, -testLocationRadius - (2 * testSightRadius));
+        GameObject loc1 = T_PlaceLocation(loc1Offset, testLocationRadius);
         LocationObjectScript locScript = loc1.GetComponent<LocationObjectScript>();
         LocationSubject locSub = locScript.Subject as LocationSubject;
-        Vector3[] locs = locSub.GetAreaWaypoints(testSightRadius);
+        Vector3[] locs = locSub.GetAreaWaypoints(testSightRadius, 1);
         if (locs.Length > 0)
         {
             for (int i = 0; i <= locs.Length - 1; i++)
@@ -32,9 +34,26 @@ public partial class PlacementControllerScript : MonoBehaviour
         }
         else
         {
-            Debug.Log("!  -- No waypoints generated.");
+            Debug.Log("  -- loc1 !  -- No waypoints generated.");
         }
-        //Destroy(loc1);
+
+        GameObject loc2 = T_PlaceLocation(loc2Offset, testLocationRadius);
+        LocationObjectScript loc2Script = loc2.GetComponent<LocationObjectScript>();
+        LocationSubject loc2Sub = loc2Script.Subject as LocationSubject;
+        Vector3[] locs2 = loc2Sub.GetAreaWaypoints(testSightRadius);
+        if (locs2.Length > 0)
+        {
+            for (int i = 0; i <= locs2.Length - 1; i++)
+            {
+                //Debug.Log(i + " : " + locs[i].x + "," + locs[i].y + "," + locs[i].z + "\n");
+                T_PlaceLocation(locs2[i], testSightRadius);
+            }
+        }
+        else
+        {
+            Debug.Log(" -- loc2 !  -- No waypoints generated.");
+        }
+
     }
 
     public void TestSet3()
