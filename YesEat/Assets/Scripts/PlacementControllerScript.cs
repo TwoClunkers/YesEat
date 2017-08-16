@@ -367,8 +367,7 @@ public partial class PlacementControllerScript : MonoBehaviour
                 //if not a location, we can create a selectionMarker as a child
                 GameObject newSelector = Instantiate(selectionMarker, hitColliders[i].transform);
                 lastSelector = newSelector;
-                break;
-                //if (hitColliders[i].tag == "Location") continue;
+                return;
             }
         }
         //if we are here, there were no non-location objects found
