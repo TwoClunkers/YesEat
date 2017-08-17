@@ -381,10 +381,13 @@ public partial class NpcCore
 
     #region Public Methods
 
-    #region Expose Definition values as read only
+    #region Expose read only values
     public float SightRangeFar { get { return definition.SightRangeFar; } }
     public float SightRangeNear { get { return definition.SightRangeNear; } }
     public float MoveSpeed { get { return definition.MoveSpeed; } }
+    public int Health { get { return health; } }
+    public int Food { get { return food; } }
+    public int Safety { get { return safety; } }
     #endregion
 
     /// <summary>
@@ -507,6 +510,150 @@ public partial class NpcCore
 
     }
 
+    private void AiExplore()
+    {
+        // explore unknown locations
+        if (unexploredLocations.Count > 0)
+        {
+            objectScript.MoveToNewLocation(unexploredLocations[0]);
+        }
+        else
+        {
+            // explore known locations for new stuff
+            // populate locations to re-explore
+            if (reExploreLocations.Count == 0)
+            {
+                reExploreLocations = GetAllKnownLocations();
+            }
+            objectScript.MoveToNewLocation(reExploreLocations[0]);
+        }
+    }
+
+    private void AiHunger()
+    {
+        // Get list of food in inventory
+        InventoryItem foodItem = objectScript.Inventory.Take(new InventoryItem(foodID, 1));
+        if (foodItem.StackSize > 0)
+        {
+            // eat food in inventory
+            Eat(foodItem);
+        }
+        else
+        {
+            // get list of all foodSource objects in near range
+            // exclude objects we've already attempted harvesting from
+            List<SubjectObjectScript> foodSource = considerObjects
+                .Select(o => o.GetComponent<SubjectObjectScript>() as SubjectObjectScript)
+                .Where(o => o.Subject.SubjectID == foodSourceID)
+                .Where(o => !searchedObjects.Contains(o.GetInstanceID())).ToList();
+
+            // go to the first food source and harvest from it
+            if (foodSource.Count > 0)
+            {
+                SubjectObjectScript foodSourceObject = foodSource[0];
+
+                // if it's within harvest range
+                if (Vector3.Distance(foodSourceObject.transform.position, objectScript.transform.position) <= 1.0)
+                {
+                    // we're within range, stop chasing
+                    objectScript.ChaseStop();
+                    //  Attempt to harvest from the food source
+                    InventoryItem harvestedItem = foodSourceObject.Harvest();
+                    if (harvestedItem != null)
+                    {
+                        if (harvestedItem.StackSize > 0)
+                        {
+                            objectScript.Inventory.Add(harvestedItem);
+                        }
+                        else
+                        {
+                            // didn't get anything from this source
+                            searchedObjects.Add(foodSourceObject.GetInstanceID());
+                        }
+                    }
+                    else // null means this is an animal that isn't dead, attack it.
+                    {
+                        AnimalObjectScript animal = foodSourceObject as AnimalObjectScript;
+                        animal.Damage(Subject, definition.AttackDamage, this);
+                    }
+                }
+                else //out of harvest range, chase this food source
+                {
+                    objectScript.ChaseStart(foodSourceObject);
+                }
+            }
+            else
+            {
+                // if we've searched all the locations we known of, start over.
+                if (GetKnownLocationCount() == searchedLocations.Count && unexploredLocations.Count == 0)
+                {
+                    searchedLocations.Clear();
+                    searchedObjects.Clear();
+                }
+                // there are no food sources in close range
+                // find a location with foodSourceID
+                List<LocationSubject> foodLocations =
+                    FindObject(db.GetSubject(foodSourceID), objectScript.transform.position, searchedLocations);
+
+                if (foodLocations.Count > 0)
+                {
+                    objectScript.MoveToNewLocation(foodLocations[0]);
+                }
+                else
+                {
+                    AiExplore();
+                }
+
+            }
+        }
+    }
+
+    private void AiNest()
+    {
+        throw new NotImplementedException();
+        //|     []Nest:
+        //|         []Current location qualifies for nesting?
+        //|             [No]Search for nesting location
+        //|                 ()Return
+        //|             [Yes]Have Item for building nest?
+        //|                 [No]Search for nest building item
+        //|                     []Collect nest building item
+        //|                         ()Return
+        //|                 [Yes]Build nest
+        //|                     []Done building nest?
+        //|                         (No)Return
+        //|                         [Yes]Save nest location to memory
+        //|                             []Remove nest from drivers
+    }
+
+    private void AiSafety()
+    {
+        // If safety is the top priority, combat is an unsafe action.
+        // Stop combat, run for your life.
+        status.UnsetState(NpcStates.Fighting);
+        // if we have a nest assume it is safe and go there first
+        if (HaveNest())
+        {
+            // if not at nest move there first
+            if (objectScript.Location.SubjectID != definition.Nest.LocationSubjectID)
+            {
+                objectScript.MoveToNewLocation(db.GetSubject(definition.Nest.SubjectID) as LocationSubject);
+                return;
+            }
+        }
+
+        // don't have nest or we're at nest and it isn't safe. move to safe location
+        LocationSubject safeLocation = FindSafeLocation(objectScript);
+        if (safeLocation != null)
+        {
+            objectScript.MoveToNewLocation(safeLocation);
+        }
+        else
+        {
+            AiExplore();
+        }
+    }
+
     /// <summary>
     /// Add objectToInspect to the NPC's Memories.
     /// </summary>
@@ -617,8 +764,5 @@ public partial class NpcCore
     /// </summary>
     public bool IsDead { get { return status.IsStateSet(NpcStates.Dead); } }
 
-    public int Health { get { return health; } }
-    public int Food { get { return food; } }
-    public int Safety { get { return safety; } }
     #endregion
 }
