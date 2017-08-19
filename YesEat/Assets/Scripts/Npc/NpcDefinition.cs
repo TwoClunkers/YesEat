@@ -7,17 +7,29 @@
 public struct NpcDefinition
 {
     /// <summary>
+    /// The attributes this NPC likes.
+    /// </summary>
+    public SubjectAttributes Likes;
+    /// <summary>
+    /// The attributes this NPC hates.
+    /// </summary>
+    public SubjectAttributes Dislikes;
+
+    /// <summary>
     /// Memory of nest location.
     /// </summary>
     public LocationMemory Nest;
+
     /// <summary>
     /// Memories of every known subject.
     /// </summary>
     public List<SubjectMemory> Memories;
+
     /// <summary>
     /// Static traits like NestMaker, Herbivore, Carnivore, etc.
     /// </summary>
     public NpcCharacterTraits Traits;
+
     /// <summary>
     /// The time between Metabolize() ticks.
     /// </summary>
@@ -32,14 +44,6 @@ public struct NpcDefinition
     public int StarvingDamage;
 
     /// <summary>
-    /// Threshold at which health is considered dangerously low, greatly reducing safety.
-    /// </summary>
-    public int HealthDanger;
-    /// <summary>
-    /// Maximum health.
-    /// </summary>
-    public int HealthMax;
-    /// <summary>
     /// Threshold at which eating food becomes a priority.
     /// </summary>
     public int FoodHungry;
@@ -51,6 +55,16 @@ public struct NpcDefinition
     /// The amount of food metabolized each MetabolizeInterval.
     /// </summary>
     public int FoodMetabolizeRate;
+
+    /// <summary>
+    /// Threshold at which health is considered dangerously low, greatly reducing safety.
+    /// </summary>
+    public int HealthDanger;
+    /// <summary>
+    /// Maximum health.
+    /// </summary>
+    public int HealthMax;
+
     /// <summary>
     /// Threshold at which safety becomes top priority.
     /// </summary>
@@ -60,6 +74,7 @@ public struct NpcDefinition
     /// </summary>
     public int SafetyHigh;
 
+    // world interaction
     /// <summary>
     /// Typical movement speed.
     /// </summary>
@@ -83,6 +98,9 @@ public struct NpcDefinition
     /// <param name="newDefinition">Definition to copy.</param>
     public NpcDefinition(NpcDefinition newDefinition)
     {
+        Likes = new SubjectAttributes();
+        Dislikes = new SubjectAttributes();
+
         Nest = (newDefinition.Nest == null) ? null : new LocationMemory(newDefinition.Nest);
 
         Memories = new List<SubjectMemory>(newDefinition.Memories);

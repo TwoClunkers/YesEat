@@ -8,7 +8,7 @@ using UnityEngine;
 public class ItemSubject : Subject
 {
     #region Private members
-    private BuildRecipe buildDirections;
+    private BuildRecipe _recipe;
     int maxStack;
     #endregion
 
@@ -19,7 +19,7 @@ public class ItemSubject : Subject
         icon = new Sprite();
 
         //qualities = new int[2];
-        buildDirections = null;
+        _recipe = null;
         maxStack = 10;
     }
 
@@ -28,7 +28,7 @@ public class ItemSubject : Subject
     /// </summary>
     public ItemSubject(ItemSubject copyItemSubject) : base(copyItemSubject)
     {
-        buildDirections = new BuildRecipe(copyItemSubject.buildDirections);
+        _recipe = new BuildRecipe(copyItemSubject._recipe);
         maxStack = copyItemSubject.maxStack;
     }
 
@@ -43,10 +43,10 @@ public class ItemSubject : Subject
     /// <summary>
     /// The BuildRecipe used to make this Item
     /// </summary>
-    public BuildRecipe BuildDirections
+    public BuildRecipe Recipe
     {
-        get { return buildDirections; }
-        set { buildDirections = value; }
+        get { return _recipe; }
+        set { _recipe = value; }
     }
 
     /// <summary>
@@ -76,6 +76,3 @@ public class ItemSubject : Subject
         npcCharacter.Definition.Memories.Add(new SubjectMemory(subjectID, 0, 0));
     }
 }
-
-
-

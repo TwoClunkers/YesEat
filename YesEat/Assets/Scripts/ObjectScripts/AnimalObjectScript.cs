@@ -240,47 +240,7 @@ public class AnimalObjectScript : SubjectObjectScript
             }
 
             // ===  Movement ===
-            if (destination != null) // traveling to a new location
-            {
-                if (destinationWayPoints.Length != 0)
-                {
-                    float distance = Vector3.Distance(destinationWayPoints[currentWaypointIndex], transform.position);
-                    if (distance > (npcCharacter.SightRangeNear)) MoveTowardsPoint(destinationWayPoints[currentWaypointIndex], npcCharacter.MoveSpeed);
-                    else if (distance > 0.25) MoveTowardsPoint(destinationWayPoints[currentWaypointIndex], npcCharacter.MoveSpeed * 0.85f);
-                    else
-                    {
-                        if (currentWaypointIndex == destinationWayPoints.GetUpperBound(0))
-                        {
-                            // we have arrived at the final waypoint for this location
-                            isCurrentLocationExplored = true;
-                            npcCharacter.AddSearchedLocation(destination.SubjectID);
-                            // remember the location now that it is explored fully
-                            UnityEngine.Object[] scripts = FindObjectsOfType(typeof(LocationObjectScript));
-                            LocationObjectScript inspectLocationScript = scripts.Single(o =>
-                                (o as LocationObjectScript).Subject.SubjectID == destination.SubjectID)
-                                as LocationObjectScript;
-                            inspectLocationScript.TeachNpc(npcCharacter);
-
-                            npcCharacter.Inspect(inspectLocationScript.gameObject);
-
-                            destinationWayPoints = new Vector3[0];
-                            destination = null;
-                        }
-                        else currentWaypointIndex++;
-                    }
-                }
-            }
-            else if (chaseTarget != null) // chase the target
-            {
-                float distance = Vector3.Distance(chaseTarget.transform.position, transform.position);
-                if (distance > 0.75) MoveTowardsPoint(chaseTarget.transform.position, npcCharacter.MoveSpeed);
-                else
-                {
-                    Vector3 targetDir = chaseTarget.transform.position - transform.position;
-                    transform.rotation = Quaternion.LookRotation(targetDir);
-                    chaseTarget = null;
-                }
-            }
+            DoMovement();
 
         }
         else // this animal is dead
@@ -300,6 +260,54 @@ public class AnimalObjectScript : SubjectObjectScript
         DrawDebugCircle(transform.position, npcCharacter.SightRangeNear, 20, new Color(0, 0, 1, 0.5f));
         // Debug: far vision range
         DrawDebugCircle(transform.position, npcCharacter.SightRangeFar, 20, new Color(0, 0, 0, 0.3f));
+    }
+
+    /// <summary>
+    /// Move the GameObject based on destination or chaseTarget.
+    /// </summary>
+    private void DoMovement()
+    {
+        if (destination != null) // traveling to a new location
+        {
+            if (destinationWayPoints.Length != 0)
+            {
+                float distance = Vector3.Distance(destinationWayPoints[currentWaypointIndex], transform.position);
+                if (distance > (npcCharacter.SightRangeNear)) MoveTowardsPoint(destinationWayPoints[currentWaypointIndex], npcCharacter.MoveSpeed);
+                else if (distance > 0.25) MoveTowardsPoint(destinationWayPoints[currentWaypointIndex], npcCharacter.MoveSpeed * 0.85f);
+                else
+                {
+                    if (currentWaypointIndex == destinationWayPoints.GetUpperBound(0))
+                    {
+                        // we have arrived at the final waypoint for this location
+                        isCurrentLocationExplored = true;
+                        npcCharacter.AddSearchedLocation(destination.SubjectID);
+                        // remember the location now that it is explored fully
+                        UnityEngine.Object[] scripts = FindObjectsOfType(typeof(LocationObjectScript));
+                        LocationObjectScript inspectLocationScript = scripts.Single(o =>
+                            (o as LocationObjectScript).Subject.SubjectID == destination.SubjectID)
+                            as LocationObjectScript;
+                        inspectLocationScript.TeachNpc(npcCharacter);
+
+                        npcCharacter.Inspect(inspectLocationScript.gameObject);
+
+                        destinationWayPoints = new Vector3[0];
+                        destination = null;
+                    }
+                    else currentWaypointIndex++;
+                }
+            }
+        }
+        else if (chaseTarget != null) // chase the target
+        {
+            float distance = Vector3.Distance(chaseTarget.transform.position, transform.position);
+            if (distance > 0.75) MoveTowardsPoint(chaseTarget.transform.position, npcCharacter.MoveSpeed);
+            else
+            {
+                Vector3 targetDir = chaseTarget.transform.position - transform.position;
+                transform.rotation = Quaternion.LookRotation(targetDir);
+                chaseTarget = null;
+            }
+        }
     }
 
     private void DrawDebugCircle(Vector3 debugCircleCenter, float debugCircleRadius, int debugCircleVertices, Color debugCircleColor)
