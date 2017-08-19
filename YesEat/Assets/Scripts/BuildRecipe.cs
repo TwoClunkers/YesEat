@@ -7,13 +7,23 @@ using UnityEngine;
 
 public class BuildRecipe
 {
-	#region Private members
+    #region Private members
 
-	#endregion
+    #endregion
 
-	public BuildRecipe ()
-	{
-	}
+    public BuildRecipe()
+    {
+    }
+
+    /// <summary>
+    /// Copy an existing BuildRecipe.
+    /// </summary>
+    /// <param name="copyBuildRecipe">The recipe to copy.</param>
+    public BuildRecipe(BuildRecipe copyBuildRecipe)
+    {
+        // todo assign private fields
+
+    }
 
 }
 

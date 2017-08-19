@@ -30,26 +30,22 @@ public class PlantSubject : Subject
         inventorySize = 3;
     }
 
+    public PlantSubject(PlantSubject copyPlantSubject) : base(copyPlantSubject)
+    {
+        produceID = copyPlantSubject.produceID;
+        produceTime = copyPlantSubject.produceTime;
+        maxGrowth = copyPlantSubject.maxGrowth;
+        growthTime = copyPlantSubject.growthTime;
+        matureGrowth = copyPlantSubject.matureGrowth;
+        inventorySize = copyPlantSubject.inventorySize;
+    }
+
     /// <summary>
     /// Copy an existing PlantSubject.
     /// </summary>
     public override Subject Copy()
     {
-        PlantSubject newPlantSubject = new PlantSubject();
-        newPlantSubject.subjectID = subjectID;
-        newPlantSubject.name = name;
-        newPlantSubject.description = description;
-        newPlantSubject.icon = icon;
-        newPlantSubject.prefab = prefab;
-        newPlantSubject.relatedSubjects = relatedSubjects;
-
-        newPlantSubject.produceID = produceID;
-        newPlantSubject.produceTime = produceTime;
-        newPlantSubject.maxGrowth = maxGrowth;
-        newPlantSubject.growthTime = growthTime;
-        newPlantSubject.matureGrowth = matureGrowth;
-        newPlantSubject.inventorySize = inventorySize;
-        return newPlantSubject;
+        return new PlantSubject(this);
     }
 
     /// <summary>

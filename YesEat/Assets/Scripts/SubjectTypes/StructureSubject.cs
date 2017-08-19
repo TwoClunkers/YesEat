@@ -23,18 +23,18 @@ public class StructureSubject : Subject
     /// <summary>
     /// Copy an existing StructureSubject.
     /// </summary>
+    public StructureSubject(StructureSubject copyStructureSubject) : base(copyStructureSubject)
+    {
+        buildDirections = new BuildRecipe(copyStructureSubject.buildDirections);
+    }
+
+    /// <summary>
+    /// Copy this StructureSubject.
+    /// </summary>
+    /// <returns>A new copy of this StructureSubject</returns>
     public override Subject Copy()
     {
-        StructureSubject newStructureSubject = new StructureSubject();
-        newStructureSubject.subjectID = subjectID;
-        newStructureSubject.name = name;
-        newStructureSubject.description = description;
-        newStructureSubject.icon = icon;
-        newStructureSubject.prefab = prefab;
-        newStructureSubject.relatedSubjects = relatedSubjects;
-
-        newStructureSubject.buildDirections = buildDirections;
-        return newStructureSubject;
+        return new StructureSubject(this);
     }
 
     /// <summary>

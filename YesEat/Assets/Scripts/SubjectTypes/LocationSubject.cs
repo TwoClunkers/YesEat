@@ -31,16 +31,11 @@ public class LocationSubject : Subject
     /// <summary>
     /// Create new LocationSubject object based on an existing one.
     /// </summary>
-    public LocationSubject(LocationSubject newLocation) : base()
+    public LocationSubject(LocationSubject copyLocation) : base(copyLocation)
     {
-        name = newLocation.Name;
-        description = newLocation.Description;
-        icon = newLocation.Icon;
-        coordinates = newLocation.Coordinates;
-        radius = newLocation.Radius;
-        prefab = newLocation.Prefab;
-        layer = newLocation.Layer;
-        relatedSubjects = newLocation.RelatedSubjects;
+        coordinates = copyLocation.Coordinates;
+        layer = copyLocation.Layer;
+        radius = copyLocation.Radius;
     }
 
     /// <summary>
@@ -48,18 +43,7 @@ public class LocationSubject : Subject
     /// </summary>
     public override Subject Copy()
     {
-        LocationSubject newLocationSubject = new LocationSubject();
-        newLocationSubject.subjectID = subjectID;
-        newLocationSubject.name = name;
-        newLocationSubject.description = description;
-        newLocationSubject.icon = icon;
-        newLocationSubject.prefab = prefab;
-        newLocationSubject.relatedSubjects = relatedSubjects;
-
-        newLocationSubject.coordinates = coordinates;
-        newLocationSubject.radius = radius;
-        newLocationSubject.layer = layer;
-        return newLocationSubject;
+        return new LocationSubject(this);
     }
 
     /// <summary>

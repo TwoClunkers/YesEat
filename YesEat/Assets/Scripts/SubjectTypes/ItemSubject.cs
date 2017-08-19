@@ -8,11 +8,8 @@ using UnityEngine;
 public class ItemSubject : Subject
 {
     #region Private members
-    //private int[] qualities;
     private BuildRecipe buildDirections;
     int maxStack;
-    //private int bulk;
-    //private int weight;
     #endregion
 
     public ItemSubject() : base()
@@ -29,19 +26,18 @@ public class ItemSubject : Subject
     /// <summary>
     /// Copy an existing ItemSubject.
     /// </summary>
+    public ItemSubject(ItemSubject copyItemSubject) : base(copyItemSubject)
+    {
+        buildDirections = new BuildRecipe(copyItemSubject.buildDirections);
+        maxStack = copyItemSubject.maxStack;
+    }
+
+    /// <summary>
+    /// Copy an existing ItemSubject.
+    /// </summary>
     public override Subject Copy()
     {
-        ItemSubject newItemSubject = new ItemSubject();
-        newItemSubject.subjectID = subjectID;
-        newItemSubject.name = name;
-        newItemSubject.description = description;
-        newItemSubject.icon = icon;
-        newItemSubject.prefab = prefab;
-        newItemSubject.relatedSubjects = relatedSubjects;
-
-        newItemSubject.buildDirections = buildDirections;
-        newItemSubject.maxStack = maxStack;
-        return newItemSubject;
+        return new ItemSubject(this);
     }
 
     /// <summary>

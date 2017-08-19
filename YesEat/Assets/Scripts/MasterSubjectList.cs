@@ -29,9 +29,6 @@ public class MasterSubjectList
     {
         masterSubjectList = new List<Subject>();
 
-        //`-.,.-'-.,.-'-.,.-'-.,.-'-.,.-'
-        maxID = DbIds.Plinkett; // == Plinkett
-        //,.-`-.,.-`-.,.-`-.,.-`-.,.-`-.,
         NpcDefinition plinkettNpcDefinition = new NpcDefinition()
         {
             Memories = new List<SubjectMemory>(),
@@ -54,6 +51,14 @@ public class MasterSubjectList
         };
         AnimalSubject plinkett = new AnimalSubject()
         {
+            Attributes =
+                new SubjectAttributes()
+                {
+                    Attributes =
+                    SubjectAttributesEnum.SoundsQuiet
+                    | SubjectAttributesEnum.FeelsSoft
+                    | SubjectAttributesEnum.LooksBright
+                },
             Definition = plinkettNpcDefinition,
             Description = "A herbivore.",
             GrowthTime = 5,
@@ -64,17 +69,21 @@ public class MasterSubjectList
             MaxGrowth = 400,
             Name = "Plinkett",
             RelatedSubjects = new int[0],
-            SubjectID = maxID,
+            SubjectID = DbIds.Plinkett,
             Prefab = Resources.Load("GameObjects/Plinkett") as GameObject
         };
 
         masterSubjectList.Add(plinkett);
 
-        //`-.,.-'-.,.-'-.,.-'-.,.-'-.,.-'
-        maxID = DbIds.Location; // == Location
-        //,.-`-.,.-`-.,.-`-.,.-`-.,.-`-.,
         LocationSubject NewLocationOne = new LocationSubject()
         {
+            Attributes =
+                new SubjectAttributes()
+                {
+                    Attributes =
+                    SubjectAttributesEnum.LooksBright
+                    | SubjectAttributesEnum.SoundsQuiet
+                },
             Coordinates = new UnityEngine.Vector3(1, 1, 1),
             Description = "A very positional kind of location",
             Icon = new UnityEngine.Sprite(),
@@ -82,17 +91,22 @@ public class MasterSubjectList
             Name = "Location",
             Radius = 2,
             RelatedSubjects = new int[0],
-            SubjectID = maxID,
+            SubjectID = DbIds.Location,
             Prefab = Resources.Load("GameObjects/LocationMarker") as GameObject
         };
         masterSubjectList.Add(NewLocationOne);
 
-        //`-.,.-'-.,.-'-.,.-'-.,.-'-.,.-'
-        maxID = DbIds.Bush; // == Bush
-        //,.-`-.,.-`-.,.-`-.,.-`-.,.-`-.,
         PlantSubject Bush = new PlantSubject()
         {
-            SubjectID = maxID,
+            Attributes =
+                new SubjectAttributes()
+                {
+                    Attributes =
+                    SubjectAttributesEnum.SmellsFloral
+                    | SubjectAttributesEnum.LooksDark
+                    | SubjectAttributesEnum.FeelsHard
+                },
+            SubjectID = DbIds.Bush,
             Name = "Bush",
             Description = "A Berry Bush",
             Icon = new UnityEngine.Sprite(),
@@ -108,12 +122,17 @@ public class MasterSubjectList
         };
         masterSubjectList.Add(Bush);
 
-        //`-.,.-'-.,.-'-.,.-'-.,.-'-.,.-'
-        maxID = DbIds.Berry; // == Berry
-        //,.-`-.,.-`-.,.-`-.,.-`-.,.-`-.,
         FoodSubject Berry = new FoodSubject()
         {
-            SubjectID = maxID,
+            Attributes =
+                new SubjectAttributes()
+                {
+                    Attributes =
+                    SubjectAttributesEnum.SmellsFloral
+                    | SubjectAttributesEnum.TastesSweet
+                    | SubjectAttributesEnum.FeelsSoft
+                },
+            SubjectID = DbIds.Berry,
             Name = "Berry",
             Description = "A Juicy Berry",
             Icon = new UnityEngine.Sprite(),
@@ -126,12 +145,17 @@ public class MasterSubjectList
         };
         masterSubjectList.Add(Berry);
 
-        //`-.,.-'-.,.-'-.,.-'-.,.-'-.,.-'
-        maxID = DbIds.Meat; // == Meat
-        //,.-`-.,.-`-.,.-`-.,.-`-.,.-`-.,
         FoodSubject Meat = new FoodSubject()
         {
-            SubjectID = maxID,
+            Attributes =
+                new SubjectAttributes()
+                {
+                    Attributes =
+                    SubjectAttributesEnum.FeelsSoft
+                    | SubjectAttributesEnum.LooksDark
+                    | SubjectAttributesEnum.TastesSalty
+                },
+            SubjectID = DbIds.Meat,
             Name = "Meat",
             Description = "It was once muscle...",
             Icon = new UnityEngine.Sprite(),
@@ -144,9 +168,6 @@ public class MasterSubjectList
         };
         masterSubjectList.Add(Meat);
 
-        //`-.,.-'-.,.-'-.,.-'-.,.-'-.,.-'
-        maxID = DbIds.Gobber; // == Gobber
-        //,.-`-.,.-`-.,.-`-.,.-`-.,.-`-.,
         NpcDefinition gobberNpcDefinition = new NpcDefinition()
         {
             Memories = new List<SubjectMemory>(),
@@ -169,6 +190,15 @@ public class MasterSubjectList
         };
         AnimalSubject gobber = new AnimalSubject()
         {
+            Attributes =
+                new SubjectAttributes()
+                {
+                    Attributes =
+                    SubjectAttributesEnum.SmellsPungent
+                    | SubjectAttributesEnum.SoundsLoud
+                    | SubjectAttributesEnum.FeelsHard
+                    | SubjectAttributesEnum.LooksDark
+                },
             Definition = gobberNpcDefinition,
             Description = "A carnivore.",
             GrowthTime = 5,
@@ -179,7 +209,7 @@ public class MasterSubjectList
             MaxGrowth = 400,
             Name = "Gobber",
             RelatedSubjects = new int[0],
-            SubjectID = maxID,
+            SubjectID = DbIds.Gobber,
             Prefab = Resources.Load("GameObjects/Gobber") as GameObject
         };
         masterSubjectList.Add(gobber);

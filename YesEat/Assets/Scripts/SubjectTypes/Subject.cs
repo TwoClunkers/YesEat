@@ -9,37 +9,50 @@ using UnityEngine;
 public abstract class Subject
 {
     #region Private members
-    protected int subjectID;
-    protected string name;
+    private SubjectAttributes attributes;
     protected string description;
     protected Sprite icon;
+    protected string name;
     protected GameObject prefab;
     protected int[] relatedSubjects;
+    protected int subjectID;
     #endregion
 
     public Subject()
     {
-        subjectID = 0;
-        name = "Name";
-        description = "This is the description";
+        Attributes = new SubjectAttributes();
+        description = "This is the subject description.";
         icon = null;
+        name = "Subject Name";
         prefab = null;
         relatedSubjects = new int[0];
+        subjectID = 0;
+    }
+
+    public Subject(Subject copySubject)
+    {
+        Attributes = copySubject.Attributes;
+        description = copySubject.description;
+        icon = copySubject.icon;
+        name = copySubject.name;
+        prefab = copySubject.prefab;
+        relatedSubjects = copySubject.relatedSubjects;
+        subjectID = copySubject.subjectID;
     }
 
     //for use by derived classes
     public Subject(String newName, String newDescription, Sprite newSprite, int[] newRelated)
     {
-        name = newName;
+        Attributes = new SubjectAttributes();
         description = newDescription;
         icon = newSprite;
+        name = newName;
         relatedSubjects = newRelated;
     }
 
     /// <summary>
-    /// Create a copy of a subject.
+    /// Copy this subject.
     /// </summary>
-    /// <param name="fromSubject">The subject to copy.</param>
     public abstract Subject Copy();
 
     /// <summary>
@@ -97,6 +110,8 @@ public abstract class Subject
         get { return prefab; }
         set { prefab = value; }
     }
+
+    public SubjectAttributes Attributes { get { return attributes; } set { attributes = value; } }
 
     public override bool Equals(object obj)
     {
