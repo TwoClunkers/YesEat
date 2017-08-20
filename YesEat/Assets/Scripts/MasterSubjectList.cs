@@ -97,7 +97,7 @@ public class MasterSubjectList
             Description = "A Berry Bush",
             Icon = new UnityEngine.Sprite(),
             RelatedSubjects = new int[0],
-            Prefab = Resources.Load("GameObjects/Bush") as GameObject,
+            Prefab = Resources.Load("GameObjects/Tree") as GameObject,
 
             ProduceID = 4,
             ProduceTime = 2,
