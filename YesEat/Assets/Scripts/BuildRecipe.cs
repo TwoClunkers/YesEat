@@ -18,6 +18,12 @@ public class Ingredient
         this.quantity = quantity;
     }
 
+    public Ingredient(Ingredient copyIngredient)
+    {
+        subjectId = copyIngredient.subjectId;
+        quantity = copyIngredient.quantity;
+    }
+
 }
 
 /// <summary>
@@ -45,8 +51,14 @@ public class BuildRecipe
     /// <param name="copyBuildRecipe">The recipe to copy.</param>
     public BuildRecipe(BuildRecipe copyBuildRecipe)
     {
-        // assign private fields
-        _ingredients = copyBuildRecipe._ingredients;
+        if (copyBuildRecipe != null)
+        {
+            _ingredients = new Ingredient[copyBuildRecipe._ingredients.Length];
+            for (int i = 0; i < copyBuildRecipe._ingredients.Length; i++)
+            {
+                _ingredients[i] = copyBuildRecipe._ingredients[i];
+            }
+        }
     }
 
 }

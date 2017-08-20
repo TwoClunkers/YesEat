@@ -65,14 +65,12 @@ public partial class PlacementControllerScript : MonoBehaviour
         CreateLocation(new Vector3(-3.0f, 0, 3.0f), 4.0f);
 
         SpawnObject(DbIds.Bush, new Vector3(-4.0f, 0, -4.0f));
-        SpawnObject(DbIds.Plinkett, new Vector3(3.5f, 0, -4.0f));
-        SpawnObject(DbIds.Gobber, new Vector3(3.5f, 0, 3.5f));
-
+        T_SpawnMobPacks();
     }
 
     public void TestSet4()
     {
-
+        T_SpawnMobPacks();
     }
 
     public void TestSet5()
@@ -201,5 +199,16 @@ public partial class PlacementControllerScript : MonoBehaviour
         return location1;
     }
 
+    private void T_SpawnMobPacks()
+    {
+        SpawnObject(DbIds.Plinkett, new Vector3(3.5f, 0, -4.0f));
+        SpawnObject(DbIds.Plinkett, new Vector3(2.5f, 0, -4.5f));
+        SpawnObject(DbIds.Plinkett, new Vector3(3.0f, 0, -3.5f));
+        SpawnObject(DbIds.Plinkett, new Vector3(4.5f, 0, -5.0f));
+        AnimalObjectScript gob = SpawnObject(DbIds.Gobber, new Vector3(3.5f, 0, 3.5f)).GetComponent<AnimalObjectScript>();
+        gob.T_Npc.T_SetValues(newFood: 50);
+        AnimalObjectScript gob2 = SpawnObject(DbIds.Gobber, new Vector3(3.0f, 0, 2.5f)).GetComponent<AnimalObjectScript>();
+        gob2.T_Npc.T_SetValues(newFood: 50);
+    }
 }
 

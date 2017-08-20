@@ -82,15 +82,23 @@ public struct NpcDefinition
     /// <summary>
     /// Near range of sight.
     /// </summary>
-    public float SightRangeNear;
+    public float RangeSightNear;
+    /// <summary>
+    /// Mid range of sight.
+    /// </summary>
+    public float RangeSightMid;
     /// <summary>
     /// Far range of sight.
     /// </summary>
-    public float SightRangeFar;
+    public float RangeSightFar;
     /// <summary>
     /// Amount of damage dealt when attacking.
     /// </summary>
     public int AttackDamage;
+    /// <summary>
+    /// The maximum range required to perform 'Close' actions.
+    /// </summary>
+    public float RangeActionClose;
 
     /// <summary>
     /// Copy and existing Definition.
@@ -98,8 +106,8 @@ public struct NpcDefinition
     /// <param name="newDefinition">Definition to copy.</param>
     public NpcDefinition(NpcDefinition newDefinition)
     {
-        Likes = new SubjectAttributes();
-        Dislikes = new SubjectAttributes();
+        Likes = newDefinition.Likes;
+        Dislikes = newDefinition.Dislikes;
 
         Nest = (newDefinition.Nest == null) ? null : new LocationMemory(newDefinition.Nest);
 
@@ -121,9 +129,11 @@ public struct NpcDefinition
         SafetyHigh = newDefinition.SafetyHigh;
 
         MoveSpeed = newDefinition.MoveSpeed;
-        SightRangeNear = newDefinition.SightRangeNear;
-        SightRangeFar = newDefinition.SightRangeFar;
+        RangeSightNear = newDefinition.RangeSightNear;
+        RangeSightMid = newDefinition.RangeSightMid;
+        RangeSightFar = newDefinition.RangeSightFar;
         AttackDamage = newDefinition.AttackDamage;
+        RangeActionClose = newDefinition.RangeActionClose;
     }
 
 }

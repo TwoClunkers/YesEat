@@ -20,6 +20,11 @@ public partial class NpcCore
         private NpcStates _status;
 
         /// <summary>
+        /// Check if the character is dead.
+        /// </summary>
+        public bool IsDead { get { return IsStateSet(NpcStates.Dead); } }
+
+        /// <summary>
         /// Check if the character is currently able to eat. Cannot eat while experiencing disabling statuses like Fear, Stun, Unconscious.
         /// </summary>
         /// <returns>Yes|No</returns>

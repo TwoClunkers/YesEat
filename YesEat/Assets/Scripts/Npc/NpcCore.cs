@@ -23,11 +23,15 @@ public partial class NpcCore
     private NpcDefinition definition;
     private NpcDriversList drivers;
     private List<GameObject> considerObjects;
-    private AnimalObjectScript objectScript;
+    private AnimalObjectScript mob;
     private List<LocationSubject> unexploredLocations;
     private List<LocationSubject> reExploreLocations;
     private List<int> searchedObjects;
     private List<int> searchedLocations;
+
+    private float AiCoreTickCounter;
+    private float AiTickRate;
+    private float MetabolizeTickCounter;
     #endregion
 
     #region Constructors
@@ -39,7 +43,7 @@ public partial class NpcCore
     public NpcCore(AnimalObjectScript ParentObjectScript, MasterSubjectList MasterSubjectListRef)
     {
         db = MasterSubjectListRef;
-        objectScript = ParentObjectScript;
+        mob = ParentObjectScript;
         health = 100;
         food = 100;
         safety = 100;
@@ -52,6 +56,7 @@ public partial class NpcCore
         searchedLocations = new List<int>();
         reExploreLocations = new List<LocationSubject>();
         SetFoodPreference();
+        AiTickRate = 0.5f;
     }
 
     /// <summary>
@@ -65,7 +70,7 @@ public partial class NpcCore
         db = MasterSubjectListRef;
         if (BasedOnSubject is AnimalSubject)
         {
-            objectScript = ParentObjectScript;
+            mob = ParentObjectScript;
             AnimalSubject animalSubject = BasedOnSubject as AnimalSubject;
             definition = animalSubject.Definition;
             subjectID = animalSubject.SubjectID;
@@ -79,6 +84,7 @@ public partial class NpcCore
             searchedLocations = new List<int>();
             reExploreLocations = new List<LocationSubject>();
             SetFoodPreference();
+            AiTickRate = 0.5f;
         }
     }
     #endregion
@@ -373,8 +379,9 @@ public partial class NpcCore
     /// </summary>
     internal void Die()
     {
-        status.SetState(NpcStates.Dead);
+        mob.SetDeathDecay(20.0f);
         drivers.Clear();
+        status.SetState(NpcStates.Dead);
     }
 
     #endregion
@@ -382,12 +389,15 @@ public partial class NpcCore
     #region Public Methods
 
     #region Expose read only values
-    public float SightRangeFar { get { return definition.SightRangeFar; } }
-    public float SightRangeNear { get { return definition.SightRangeNear; } }
+    public float RangeSightFar { get { return definition.RangeSightFar; } }
+    public float RangeSightMid { get { return definition.RangeSightMid; } }
+    public float RangeSightNear { get { return definition.RangeSightNear; } }
+    public float RangeActionClose { get { return definition.RangeActionClose; } }
     public float MoveSpeed { get { return definition.MoveSpeed; } }
     public int Health { get { return health; } }
     public int Food { get { return food; } }
     public int Safety { get { return safety; } }
+    public NpcDrivers GetDriver() { return drivers[0]; }
     #endregion
 
     /// <summary>
@@ -421,6 +431,29 @@ public partial class NpcCore
     /// </summary>
     public AnimalSubject Subject { get { return db.GetSubject(subjectID, typeof(AnimalSubject)) as AnimalSubject; } }
 
+    public void Update()
+    {
+        if (!IsDead)
+        {
+            MetabolizeTickCounter += Time.deltaTime;
+            if (MetabolizeTickCounter >= Definition.MetabolizeInterval)
+            {
+                Metabolize();
+                MetabolizeTickCounter -= Definition.MetabolizeInterval;
+            }
+
+            AiCoreTickCounter += Time.deltaTime;
+            if (AiCoreTickCounter > AiTickRate)
+            {
+                AiCoreProcess();
+                AiCoreTickCounter -= AiTickRate;
+            }
+
+            // ===  Movement ===
+            mob.DoMovement();
+        }
+    }
+
     /// <summary>
     /// Reduce food. Reduce health if starving. Regenerate health if not starving.
     /// </summary>
@@ -450,10 +483,10 @@ public partial class NpcCore
     /// </summary>
     public void AiCoreProcess()
     {
-        considerObjects = objectScript.Observe();
-        unexploredLocations = objectScript.GetObservedLocations()
+        considerObjects = mob.Observe();
+        unexploredLocations = mob.GetObservedLocations()
             .FindAll(o => !definition.Memories.Exists(x => x.SubjectID == o.SubjectID))
-            .OrderBy(o => Vector3.Distance(objectScript.transform.position, o.Coordinates)).ToList();
+            .OrderBy(o => Vector3.Distance(mob.transform.position, o.Coordinates)).ToList();
 
         // Consider each subject starting with the closest.
         bool dangerFound = false;
@@ -515,7 +548,7 @@ public partial class NpcCore
         // explore unknown locations
         if (unexploredLocations.Count > 0)
         {
-            objectScript.MoveToNewLocation(unexploredLocations[0]);
+            mob.MoveToNewLocation(unexploredLocations[0]);
         }
         else
         {
@@ -525,14 +558,14 @@ public partial class NpcCore
             {
                 reExploreLocations = GetAllKnownLocations();
             }
-            objectScript.MoveToNewLocation(reExploreLocations[0]);
+            mob.MoveToNewLocation(reExploreLocations[0]);
         }
     }
 
     private void AiHunger()
     {
         // Get list of food in inventory
-        InventoryItem foodItem = objectScript.Inventory.Take(new InventoryItem(foodID, 1));
+        InventoryItem foodItem = mob.Inventory.Take(new InventoryItem(foodID, 1));
         if (foodItem.StackSize > 0)
         {
             // eat food in inventory
@@ -553,22 +586,24 @@ public partial class NpcCore
                 SubjectObjectScript foodSourceObject = foodSource[0];
 
                 // if it's within harvest range
-                if (Vector3.Distance(foodSourceObject.transform.position, objectScript.transform.position) <= 1.0)
+                if (Vector3.Distance(foodSourceObject.transform.position, mob.transform.position) <= definition.RangeActionClose)
                 {
                     // we're within range, stop chasing
-                    objectScript.ChaseStop();
+                    //mob.ChaseStop();
+
                     //  Attempt to harvest from the food source
                     InventoryItem harvestedItem = foodSourceObject.Harvest();
                     if (harvestedItem != null)
                     {
                         if (harvestedItem.StackSize > 0)
                         {
-                            objectScript.Inventory.Add(harvestedItem);
+                            mob.Inventory.Add(harvestedItem);
                         }
                         else
                         {
                             // didn't get anything from this source
                             searchedObjects.Add(foodSourceObject.GetInstanceID());
+                            mob.ChaseStop();
                         }
                     }
                     else // null means this is an animal that isn't dead, attack it.
@@ -579,7 +614,18 @@ public partial class NpcCore
                 }
                 else //out of harvest range, chase this food source
                 {
-                    objectScript.ChaseStart(foodSourceObject);
+                    // if the current target is still within view don't switch targets
+                    if (mob.GetChaseTarget() == null)
+                    {
+                        mob.ChaseStart(foodSourceObject);
+                    }
+                    else
+                    {
+                        if (Vector3.Distance(mob.GetChaseTarget().transform.position, mob.transform.position) > definition.RangeSightMid)
+                        {
+                            mob.ChaseStart(foodSourceObject);
+                        }
+                    }
                 }
             }
             else
@@ -593,11 +639,11 @@ public partial class NpcCore
                 // there are no food sources in close range
                 // find a location with foodSourceID
                 List<LocationSubject> foodLocations =
-                    FindObject(db.GetSubject(foodSourceID), objectScript.transform.position, searchedLocations);
+                    FindObject(db.GetSubject(foodSourceID), mob.transform.position, searchedLocations);
 
                 if (foodLocations.Count > 0)
                 {
-                    objectScript.MoveToNewLocation(foodLocations[0]);
+                    mob.MoveToNewLocation(foodLocations[0]);
                 }
                 else
                 {
@@ -635,18 +681,18 @@ public partial class NpcCore
         if (HaveNest())
         {
             // if not at nest move there first
-            if (objectScript.Location.SubjectID != definition.Nest.LocationSubjectID)
+            if (mob.Location.SubjectID != definition.Nest.LocationSubjectID)
             {
-                objectScript.MoveToNewLocation(db.GetSubject(definition.Nest.SubjectID) as LocationSubject);
+                mob.MoveToNewLocation(db.GetSubject(definition.Nest.SubjectID) as LocationSubject);
                 return;
             }
         }
 
         // don't have nest or we're at nest and it isn't safe. move to safe location
-        LocationSubject safeLocation = FindSafeLocation(objectScript);
+        LocationSubject safeLocation = FindSafeLocation(mob);
         if (safeLocation != null)
         {
-            objectScript.MoveToNewLocation(safeLocation);
+            mob.MoveToNewLocation(safeLocation);
         }
         else
         {
@@ -666,7 +712,7 @@ public partial class NpcCore
         {
             LocationObjectScript locObjScript = inspectObjectScript as LocationObjectScript;
             //only add location to memory if all waypoints are explored
-            if (objectScript.IsCurrentLocationExplored)
+            if (mob.IsCurrentLocationExplored)
             {
                 // if it's in the unexploredLocations list, remove it.
                 unexploredLocations.Remove(locObjScript.Subject as LocationSubject);
@@ -762,7 +808,7 @@ public partial class NpcCore
     /// <summary>
     /// True = Dead. False = Not dead.
     /// </summary>
-    public bool IsDead { get { return status.IsStateSet(NpcStates.Dead); } }
+    public bool IsDead { get { return status.IsDead; } }
 
     #endregion
 }
