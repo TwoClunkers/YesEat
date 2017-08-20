@@ -52,7 +52,7 @@ public class PlantObjectScript : SubjectObjectScript
                 lastProduce = Time.time;
             }
         }
-        
+
     }
 
     public float CurrentGrowth
@@ -63,7 +63,7 @@ public class PlantObjectScript : SubjectObjectScript
 
     public float InventoryPercent()
     {
-        return inventory.FillRatio();
+        return Mathf.Round(inventory.FillRatio() * 100);
     }
 
 
@@ -106,9 +106,8 @@ public class PlantObjectScript : SubjectObjectScript
     /// </summary>
     /// <param name="_masterSubjectList"></param>
     /// <param name="newSubject"></param>
-    public override void InitializeFromSubject(MasterSubjectList _masterSubjectList, Subject newSubject)
+    public override void InitializeFromSubject(Subject newSubject)
     {
-        masterSubjectList = _masterSubjectList;
         subject = newSubject;
         if (newSubject is PlantSubject)
         {
@@ -118,7 +117,7 @@ public class PlantObjectScript : SubjectObjectScript
             maxGrowth = plantSubject.MaxGrowth;
             growthTime = plantSubject.GrowthTime;
             matureGrowth = plantSubject.MatureGrowth;
-            inventory = new Inventory(plantSubject.InventorySize, _masterSubjectList);
+            inventory = new Inventory(plantSubject.InventorySize);
 
             mature = false;
             age = 0.1f;
@@ -133,7 +132,7 @@ public class PlantObjectScript : SubjectObjectScript
             maxGrowth = 1;
             growthTime = 20;
             matureGrowth = 15;
-            inventory = new Inventory(3, _masterSubjectList);
+            inventory = new Inventory(3);
 
             mature = false;
             age = 0.1f;

@@ -14,6 +14,7 @@ public class AnimalSubject : Subject
     private int lootID;
     private int matureTime;
     private int maxGrowth;
+    private BuildRecipe nestRecipe;
     #endregion
 
     public AnimalSubject() : base()
@@ -39,6 +40,7 @@ public class AnimalSubject : Subject
         lootID = copyAnimalSubject.lootID;
         matureTime = copyAnimalSubject.matureTime;
         maxGrowth = copyAnimalSubject.maxGrowth;
+        nestRecipe = new BuildRecipe(copyAnimalSubject.nestRecipe);
     }
 
     /// <summary>
@@ -108,4 +110,9 @@ public class AnimalSubject : Subject
         get { return lootID; }
         set { lootID = value; }
     }
+
+    /// <summary>
+    /// The BuildRecipe for this NPC's nest.
+    /// </summary>
+    public BuildRecipe NestRecipe { get { return nestRecipe; } set { nestRecipe = value; } }
 }

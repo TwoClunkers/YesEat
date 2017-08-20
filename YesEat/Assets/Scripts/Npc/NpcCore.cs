@@ -18,7 +18,6 @@ public partial class NpcCore
     private int foodSourceID;
     private int foodID;
 
-    private MasterSubjectList db;
     private NpcStatus status;
     private NpcDefinition definition;
     private NpcDriversList drivers;
@@ -40,9 +39,8 @@ public partial class NpcCore
     /// </summary>
     /// <param name="ParentObjectScript">The in-game object that represents this NPC.</param>
     /// <param name="MasterSubjectListRef">A reference to the main MasterSubjectList.</param>
-    public NpcCore(AnimalObjectScript ParentObjectScript, MasterSubjectList MasterSubjectListRef)
+    public NpcCore(AnimalObjectScript ParentObjectScript)
     {
-        db = MasterSubjectListRef;
         mob = ParentObjectScript;
         health = 100;
         food = 100;
@@ -65,9 +63,8 @@ public partial class NpcCore
     /// <param name="ParentObject">The in-game object that represents this NPC.</param>
     /// <param name="MasterSubjectListRef">A reference to the main MasterSubjectList.</param>
     /// <param name="BasedOnSubject">Subject's NpcDefinition will define the character's initial resource pools, thresholds for fulfilling basic needs, and memories.</param>
-    public NpcCore(AnimalObjectScript ParentObjectScript, MasterSubjectList MasterSubjectListRef, Subject BasedOnSubject)
+    public NpcCore(AnimalObjectScript ParentObjectScript, Subject BasedOnSubject)
     {
-        db = MasterSubjectListRef;
         if (BasedOnSubject is AnimalSubject)
         {
             mob = ParentObjectScript;
@@ -115,10 +112,10 @@ public partial class NpcCore
     internal List<LocationSubject> GetAllKnownLocations(Vector3 sortByNearestTo = default(Vector3))
     {
         List<SubjectMemory> locationMemories = definition.Memories
-                .FindAll(o => db.GetSubject(o.SubjectID).GetType() == typeof(LocationSubject))
+                .FindAll(o => MasterSubjectList.GetSubject(o.SubjectID).GetType() == typeof(LocationSubject))
                 .OrderBy(o => (o as LocationMemory).LastTimeSeen).ToList();
         List<LocationSubject> knownLocations = locationMemories
-                .Select(o => (db.GetSubject(o.SubjectID) as LocationSubject)).ToList();
+                .Select(o => (MasterSubjectList.GetSubject(o.SubjectID) as LocationSubject)).ToList();
 
         if (sortByNearestTo != default(Vector3))
         {
@@ -152,7 +149,7 @@ public partial class NpcCore
                             {
                                 if (ExcludeLocationIDs.Contains(subMem.SubjectID)) continue;
                             }
-                            foundObjects.Add(db.GetSubject(locMem.SubjectID) as LocationSubject);
+                            foundObjects.Add(MasterSubjectList.GetSubject(locMem.SubjectID) as LocationSubject);
                         }
                     }
                 }
@@ -170,7 +167,7 @@ public partial class NpcCore
     /// <returns>Quantity found.</returns>
     private int GetKnownLocationCount()
     {
-        return definition.Memories.Count(o => db.GetSubject(o.SubjectID).GetType() == typeof(LocationSubject));
+        return definition.Memories.Count(o => MasterSubjectList.GetSubject(o.SubjectID).GetType() == typeof(LocationSubject));
     }
 
     /// <summary>
@@ -312,10 +309,10 @@ public partial class NpcCore
         // get a list of all safe locations we remember
         List<SubjectMemory> foundLocations = definition.Memories
                                             .FindAll(o => (o.Safety > 0))
-                                            .OrderBy(o => Vector3.Distance((db.GetSubject(o.SubjectID) as LocationSubject).Coordinates,
+                                            .OrderBy(o => Vector3.Distance((MasterSubjectList.GetSubject(o.SubjectID) as LocationSubject).Coordinates,
                                                 objectScript.gameObject.transform.position)).ToList();
         if (foundLocations.Count > 0)
-            return db.GetSubject(foundLocations[0].SubjectID) as LocationSubject;
+            return MasterSubjectList.GetSubject(foundLocations[0].SubjectID) as LocationSubject;
         else
             return null;
     }
@@ -379,9 +376,9 @@ public partial class NpcCore
     /// </summary>
     internal void Die()
     {
-        mob.SetDeathDecay(20.0f);
         drivers.Clear();
         status.SetState(NpcStates.Dead);
+        mob.SetDeathDecay(20.0f);
     }
 
     #endregion
@@ -429,7 +426,7 @@ public partial class NpcCore
     /// <summary>
     /// This NPC's subject.
     /// </summary>
-    public AnimalSubject Subject { get { return db.GetSubject(subjectID, typeof(AnimalSubject)) as AnimalSubject; } }
+    public AnimalSubject Subject { get { return MasterSubjectList.GetSubject(subjectID, typeof(AnimalSubject)) as AnimalSubject; } }
 
     public void Update()
     {
@@ -639,7 +636,7 @@ public partial class NpcCore
                 // there are no food sources in close range
                 // find a location with foodSourceID
                 List<LocationSubject> foodLocations =
-                    FindObject(db.GetSubject(foodSourceID), mob.transform.position, searchedLocations);
+                    FindObject(MasterSubjectList.GetSubject(foodSourceID), mob.transform.position, searchedLocations);
 
                 if (foodLocations.Count > 0)
                 {
@@ -656,20 +653,39 @@ public partial class NpcCore
 
     private void AiNest()
     {
-        throw new NotImplementedException();
-        //|     []Nest:
-        //|         []Current location qualifies for nesting?
-        //|             [No]Search for nesting location
-        //|                 ()Return
-        //|             [Yes]Have Item for building nest?
-        //|                 [No]Search for nest building item
-        //|                     []Collect nest building item
-        //|                         ()Return
-        //|                 [Yes]Build nest
-        //|                     []Done building nest?
-        //|                         (No)Return
-        //|                         [Yes]Save nest location to memory
-        //|                             []Remove nest from drivers
+        // find nearest safe location
+        LocationSubject safeLocation = FindSafeLocation(mob);
+        if (safeLocation != null)
+        {
+            // a safe location is in memory, are we already there?
+            if (safeLocation == mob.Location)
+            {
+                // we are currently in the nearest safe location
+                // TODO: build nest
+                //if (mob.Inventory.CheckItem() { }
+
+                //|             [Yes]Have Item for building nest?
+                //|                 [No]Search for nest building item
+                //|                     []Collect nest building item
+                //|                         ()Return
+                //|                 [Yes]Build nest
+                //|                     []Done building nest?
+                //|                         (No)Return
+                //|                         [Yes]Save nest location to memory
+                //|                             []Remove nest from drivers
+            }
+            else
+            {
+                // go to the nearest safe location
+                mob.MoveToNewLocation(safeLocation);
+            }
+        }
+        else
+        {
+            // do not know of any safe locations, explore.
+            AiExplore();
+        }
+
     }
 
     private void AiSafety()
@@ -683,7 +699,7 @@ public partial class NpcCore
             // if not at nest move there first
             if (mob.Location.SubjectID != definition.Nest.LocationSubjectID)
             {
-                mob.MoveToNewLocation(db.GetSubject(definition.Nest.SubjectID) as LocationSubject);
+                mob.MoveToNewLocation(MasterSubjectList.GetSubject(definition.Nest.SubjectID) as LocationSubject);
                 return;
             }
         }
@@ -741,7 +757,7 @@ public partial class NpcCore
             if (food < definition.FoodMax)
             {
                 status.SetState(NpcStates.Eating); //set eating flag
-                FoodSubject foodSubject = db.GetSubject(FoodItem.SubjectID, typeof(FoodSubject)) as FoodSubject;
+                FoodSubject foodSubject = MasterSubjectList.GetSubject(FoodItem.SubjectID, typeof(FoodSubject)) as FoodSubject;
                 if (foodSubject != null)
                 {
                     food += foodSubject.FoodValue;

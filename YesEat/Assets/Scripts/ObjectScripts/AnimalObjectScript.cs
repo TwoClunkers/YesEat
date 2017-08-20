@@ -39,12 +39,11 @@ public class AnimalObjectScript : SubjectObjectScript
 
     }
 
-    public override void InitializeFromSubject(MasterSubjectList _masterSubjectList, Subject newSubject)
+    public override void InitializeFromSubject(Subject newSubject)
     {
         subject = newSubject as AnimalSubject;
-        masterSubjectList = _masterSubjectList;
-        npcCharacter = new NpcCore(this, masterSubjectList, subject);
-        Inventory = new Inventory((subject as AnimalSubject).InventorySize, masterSubjectList);
+        npcCharacter = new NpcCore(this, subject);
+        Inventory = new Inventory((subject as AnimalSubject).InventorySize);
         destinationWayPoints = new Vector3[0];
         isCurrentLocationExplored = false;
         decaytime = 20.0f;
@@ -240,7 +239,7 @@ public class AnimalObjectScript : SubjectObjectScript
     /// </summary>
     public void SetDeathDecay(float duration)
     {
-        Inventory.Add(new InventoryItem(DbIds.Meat, 5));
+        Inventory.Add(new InventoryItem(npcCharacter.Subject.LootID, 5));
         decaytime = duration;
     }
 
@@ -328,7 +327,7 @@ public class AnimalObjectScript : SubjectObjectScript
     {
         if (IsDead)
         {
-            return Inventory.Take(new InventoryItem(5, 1));
+            return Inventory.Take(new InventoryItem(DbIds.Meat, 1));
         }
         else return null;
     }

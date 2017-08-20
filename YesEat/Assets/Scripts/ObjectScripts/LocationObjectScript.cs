@@ -133,7 +133,7 @@ public class LocationObjectScript : SubjectObjectScript
         return null;
     }
 
-    public override void InitializeFromSubject(MasterSubjectList _masterSubjectList, Subject newSubject)
+    public override void InitializeFromSubject(Subject newSubject)
     {
         subject = newSubject as LocationSubject;
         count = 0;

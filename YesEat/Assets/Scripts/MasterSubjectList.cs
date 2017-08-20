@@ -4,20 +4,16 @@ using UnityEngine;
 
 public static class DbIds
 {
-    // \/   \/   \/  UPDATE LAST INDEX  \/   \/   \/
-    public static int Plinkett = 1;          //   \/
-    public static int Location = 2;          //   \/
-    public static int Bush = 3;              //   \/
-    public static int Berry = 4;             //   \/
-    public static int Meat = 5;              //   \/
-    public static int Gobber = 6;            //   \/
-    public static int Branch = 7;            //   \/
-    public static int Leaves = 8;            //   \/
-    public static int PlinkettNest = 9;      //   \/
-    public static int GobberNest = 10;       //   \/
-    // ---- UPDATE LAST INDEX --- \/         //   \/
-    public static int LastIndex = 10; // <<  <<   <<
-    // -------------------------  /\
+    public static int Berry;
+    public static int Branch;
+    public static int Bush;
+    public static int Gobber;
+    public static int GobberNest;
+    public static int Leaves;
+    public static int Location;
+    public static int Meat;
+    public static int Plinkett;
+    public static int PlinkettNest;
 }
 
 /// <summary>
@@ -26,18 +22,206 @@ public static class DbIds
 public class MasterSubjectList
 {
     #region Private members
-    private List<Subject> masterSubjectList;
-    private int maxID;
+    static private List<Subject> masterSubjectList;
+    static private int maxID;
     #endregion
 
-    public MasterSubjectList()
+    static MasterSubjectList()
     {
+        maxID = 0;
         masterSubjectList = new List<Subject>();
         InitializeDatabase();
     }
 
-    private void InitializeDatabase()
+    static private void InitializeDatabase()
     {
+        DbIds.Branch = GetNextID();
+        ItemSubject Branch = new ItemSubject()
+        {
+            Attributes =
+        new SubjectAttributes()
+        {
+            Attributes = SubjectAttributesEnum.FeelsHard
+        },
+            SubjectID = DbIds.Branch,
+            Name = "Branch",
+            Description = "A severed part of a large plant or tree.",
+            Icon = new UnityEngine.Sprite(),
+            RelatedSubjects = new int[0],
+            Prefab = null,
+            Recipe = null,
+            MaxStack = 1,
+        };
+        masterSubjectList.Add(Branch);
+
+        DbIds.Leaves = GetNextID();
+        ItemSubject Leaves = new ItemSubject()
+        {
+            Attributes =
+                new SubjectAttributes()
+                {
+                    Attributes = SubjectAttributesEnum.FeelsSoft
+                },
+            SubjectID = DbIds.Leaves,
+            Name = "Leaves",
+            Description = "Leaves from a plant or tree.",
+            Icon = new UnityEngine.Sprite(),
+            RelatedSubjects = new int[0],
+            Recipe = null,
+            MaxStack = 10,
+            Prefab = null
+        };
+        masterSubjectList.Add(Leaves);
+
+        DbIds.Berry = GetNextID();
+        FoodSubject Berry = new FoodSubject()
+        {
+            Attributes =
+                new SubjectAttributes()
+                {
+                    Attributes =
+                    SubjectAttributesEnum.SmellsFloral
+                    | SubjectAttributesEnum.TastesSweet
+                    | SubjectAttributesEnum.FeelsSoft
+                },
+            SubjectID = DbIds.Berry,
+            Name = "Berry",
+            Description = "A Juicy Berry",
+            Icon = new UnityEngine.Sprite(),
+            RelatedSubjects = new int[0],
+            Prefab = null,
+            Recipe = null,
+            MaxStack = 10,
+            FoodType = 0,
+            FoodValue = 10
+        };
+        masterSubjectList.Add(Berry);
+
+        DbIds.Meat = GetNextID();
+        FoodSubject Meat = new FoodSubject()
+        {
+            Attributes =
+                new SubjectAttributes()
+                {
+                    Attributes =
+                    SubjectAttributesEnum.FeelsSoft
+                    | SubjectAttributesEnum.LooksDark
+                    | SubjectAttributesEnum.TastesSalty
+                },
+            SubjectID = DbIds.Meat,
+            Name = "Meat",
+            Description = "It was once muscle...",
+            Icon = new UnityEngine.Sprite(),
+            RelatedSubjects = new int[0],
+            Prefab = null,
+
+            Recipe = null,
+            MaxStack = 10,
+            FoodType = 1,
+            FoodValue = 10
+        };
+        masterSubjectList.Add(Meat);
+
+        DbIds.PlinkettNest = GetNextID();
+        StructureSubject PlinkettNest = new StructureSubject()
+        {
+            Attributes =
+                new SubjectAttributes()
+                {
+                    Attributes = SubjectAttributesEnum.FeelsSoft
+                    | SubjectAttributesEnum.SoundsQuiet
+                },
+            SubjectID = DbIds.PlinkettNest,
+            Name = "Plinkett Nest",
+            Description = "A spot that looks comfortable for Plinketts.",
+            Icon = new UnityEngine.Sprite(),
+            RelatedSubjects = new int[0],
+
+            Recipe = new BuildRecipe(
+                new Ingredient[]
+                {
+                    new Ingredient(DbIds.Branch, 3),
+                    new Ingredient(DbIds.Leaves, 5)
+                }),
+            Prefab = null
+        };
+        masterSubjectList.Add(PlinkettNest);
+
+        DbIds.GobberNest = GetNextID();
+        StructureSubject GobberNest = new StructureSubject()
+        {
+            Attributes =
+                new SubjectAttributes()
+                {
+                    Attributes = SubjectAttributesEnum.FeelsSoft
+                    | SubjectAttributesEnum.SoundsQuiet
+                },
+            SubjectID = DbIds.GobberNest,
+            Name = "Gobber Nest",
+            Description = "A spot that looks comfortable for Gobbers.",
+            Icon = new UnityEngine.Sprite(),
+            RelatedSubjects = new int[0],
+
+            Recipe = new BuildRecipe(
+                new Ingredient[]
+                {
+                    new Ingredient(DbIds.Branch, 3),
+                    new Ingredient(DbIds.Leaves, 5)
+                }),
+            Prefab = null
+        };
+        masterSubjectList.Add(GobberNest);
+
+        DbIds.Location = GetNextID();
+        LocationSubject NewLocationOne = new LocationSubject()
+        {
+            Attributes =
+                new SubjectAttributes()
+                {
+                    Attributes =
+                    SubjectAttributesEnum.LooksBright
+                    | SubjectAttributesEnum.SoundsQuiet
+                },
+            Coordinates = new UnityEngine.Vector3(1, 1, 1),
+            Description = "A very positional kind of location",
+            Icon = new UnityEngine.Sprite(),
+            Layer = 1,
+            Name = "Location",
+            Radius = 2,
+            RelatedSubjects = new int[0],
+            SubjectID = DbIds.Location,
+            Prefab = Resources.Load("GameObjects/LocationMarker") as GameObject
+        };
+        masterSubjectList.Add(NewLocationOne);
+
+        DbIds.Bush = GetNextID();
+        PlantSubject Bush = new PlantSubject()
+        {
+            Attributes =
+                new SubjectAttributes()
+                {
+                    Attributes =
+                    SubjectAttributesEnum.SmellsFloral
+                    | SubjectAttributesEnum.LooksDark
+                    | SubjectAttributesEnum.FeelsHard
+                },
+            SubjectID = DbIds.Bush,
+            Name = "Bush",
+            Description = "A Berry Bush",
+            Icon = new UnityEngine.Sprite(),
+            RelatedSubjects = new int[0],
+            Prefab = Resources.Load("GameObjects/Bush") as GameObject,
+
+            ProduceID = DbIds.Berry,
+            ProduceTime = 2,
+            MaxGrowth = 30,
+            GrowthTime = 1,
+            MatureGrowth = 2,
+            InventorySize = 3
+        };
+        masterSubjectList.Add(Bush);
+
+        DbIds.Plinkett = GetNextID();
         NpcDefinition plinkettNpcDefinition = new NpcDefinition()
         {
             Likes = new SubjectAttributes()
@@ -83,110 +267,18 @@ public class MasterSubjectList
             GrowthTime = 5,
             Icon = new UnityEngine.Sprite(),
             InventorySize = 1,
-            LootID = 5,
+            LootID = DbIds.Meat,
             MatureTime = 200,
             MaxGrowth = 400,
             Name = "Plinkett",
+            NestRecipe = new BuildRecipe((GetSubject(DbIds.PlinkettNest) as StructureSubject).Recipe),
             RelatedSubjects = new int[0],
             SubjectID = DbIds.Plinkett,
             Prefab = Resources.Load("GameObjects/Plinkett") as GameObject
         };
         masterSubjectList.Add(plinkett);
 
-        LocationSubject NewLocationOne = new LocationSubject()
-        {
-            Attributes =
-                new SubjectAttributes()
-                {
-                    Attributes =
-                    SubjectAttributesEnum.LooksBright
-                    | SubjectAttributesEnum.SoundsQuiet
-                },
-            Coordinates = new UnityEngine.Vector3(1, 1, 1),
-            Description = "A very positional kind of location",
-            Icon = new UnityEngine.Sprite(),
-            Layer = 1,
-            Name = "Location",
-            Radius = 2,
-            RelatedSubjects = new int[0],
-            SubjectID = DbIds.Location,
-            Prefab = Resources.Load("GameObjects/LocationMarker") as GameObject
-        };
-        masterSubjectList.Add(NewLocationOne);
-
-        PlantSubject Bush = new PlantSubject()
-        {
-            Attributes =
-                new SubjectAttributes()
-                {
-                    Attributes =
-                    SubjectAttributesEnum.SmellsFloral
-                    | SubjectAttributesEnum.LooksDark
-                    | SubjectAttributesEnum.FeelsHard
-                },
-            SubjectID = DbIds.Bush,
-            Name = "Bush",
-            Description = "A Berry Bush",
-            Icon = new UnityEngine.Sprite(),
-            RelatedSubjects = new int[0],
-            Prefab = Resources.Load("GameObjects/Bush") as GameObject,
-
-            ProduceID = 4,
-            ProduceTime = 2,
-            MaxGrowth = 30,
-            GrowthTime = 1,
-            MatureGrowth = 2,
-            InventorySize = 3
-        };
-        masterSubjectList.Add(Bush);
-
-        FoodSubject Berry = new FoodSubject()
-        {
-            Attributes =
-                new SubjectAttributes()
-                {
-                    Attributes =
-                    SubjectAttributesEnum.SmellsFloral
-                    | SubjectAttributesEnum.TastesSweet
-                    | SubjectAttributesEnum.FeelsSoft
-                },
-            SubjectID = DbIds.Berry,
-            Name = "Berry",
-            Description = "A Juicy Berry",
-            Icon = new UnityEngine.Sprite(),
-            RelatedSubjects = new int[0],
-            Prefab = null,
-            Recipe = null,
-            MaxStack = 10,
-            FoodType = 0,
-            FoodValue = 10
-        };
-        masterSubjectList.Add(Berry);
-
-        FoodSubject Meat = new FoodSubject()
-        {
-            Attributes =
-                new SubjectAttributes()
-                {
-                    Attributes =
-                    SubjectAttributesEnum.FeelsSoft
-                    | SubjectAttributesEnum.LooksDark
-                    | SubjectAttributesEnum.TastesSalty
-                },
-            SubjectID = DbIds.Meat,
-            Name = "Meat",
-            Description = "It was once muscle...",
-            Icon = new UnityEngine.Sprite(),
-            RelatedSubjects = new int[0],
-            Prefab = null,
-
-            Recipe = null,
-            MaxStack = 10,
-            FoodType = 1,
-            FoodValue = 10
-        };
-        masterSubjectList.Add(Meat);
-
+        DbIds.Gobber = GetNextID();
         NpcDefinition gobberNpcDefinition = new NpcDefinition()
         {
             Likes = new SubjectAttributes()
@@ -233,104 +325,23 @@ public class MasterSubjectList
             GrowthTime = 5,
             Icon = new UnityEngine.Sprite(),
             InventorySize = 1,
-            LootID = 5,
+            LootID = DbIds.Meat,
             MatureTime = 200,
             MaxGrowth = 400,
             Name = "Gobber",
+            NestRecipe = new BuildRecipe((GetSubject(DbIds.GobberNest) as StructureSubject).Recipe),
             RelatedSubjects = new int[0],
             SubjectID = DbIds.Gobber,
             Prefab = Resources.Load("GameObjects/Gobber") as GameObject
         };
         masterSubjectList.Add(gobber);
 
-        ItemSubject Branch = new ItemSubject()
-        {
-            Attributes =
-                new SubjectAttributes()
-                {
-                    Attributes = SubjectAttributesEnum.FeelsHard
-                },
-            SubjectID = DbIds.Branch,
-            Name = "Branch",
-            Description = "A severed part of a large plant or tree.",
-            Icon = new UnityEngine.Sprite(),
-            RelatedSubjects = new int[0],
-            Prefab = null,
-            Recipe = null,
-            MaxStack = 1,
-        };
-        masterSubjectList.Add(Branch);
-
-        ItemSubject Leaves = new ItemSubject()
-        {
-            Attributes =
-                new SubjectAttributes()
-                {
-                    Attributes = SubjectAttributesEnum.FeelsSoft
-                },
-            SubjectID = DbIds.Leaves,
-            Name = "Leaves",
-            Description = "Leaves from a plant or tree.",
-            Icon = new UnityEngine.Sprite(),
-            RelatedSubjects = new int[0],
-            Recipe = null,
-            MaxStack = 10,
-            Prefab = null
-        };
-        masterSubjectList.Add(Leaves);
-
-        StructureSubject PlinkettNest = new StructureSubject()
-        {
-            Attributes =
-                new SubjectAttributes()
-                {
-                    Attributes = SubjectAttributesEnum.FeelsSoft
-                    | SubjectAttributesEnum.SoundsQuiet
-                },
-            SubjectID = DbIds.PlinkettNest,
-            Name = "Plinkett Nest",
-            Description = "A spot that looks comfortable for Plinketts.",
-            Icon = new UnityEngine.Sprite(),
-            RelatedSubjects = new int[0],
-
-            Recipe = new BuildRecipe(
-                new Ingredient[]
-                {
-                    new Ingredient(DbIds.Branch, 3),
-                    new Ingredient(DbIds.Leaves, 5)
-                }),
-            Prefab = null
-        };
-        masterSubjectList.Add(PlinkettNest);
-
-        StructureSubject GobberNest = new StructureSubject()
-        {
-            Attributes =
-                new SubjectAttributes()
-                {
-                    Attributes = SubjectAttributesEnum.FeelsSoft
-                    | SubjectAttributesEnum.SoundsQuiet
-                },
-            SubjectID = DbIds.GobberNest,
-            Name = "Gobber Nest",
-            Description = "A spot that looks comfortable for Gobbers.",
-            Icon = new UnityEngine.Sprite(),
-            RelatedSubjects = new int[0],
-
-            Recipe = new BuildRecipe(
-                new Ingredient[]
-                {
-                    new Ingredient(DbIds.Branch, 3),
-                    new Ingredient(DbIds.Leaves, 5)
-                }),
-            Prefab = null
-        };
-        masterSubjectList.Add(GobberNest);
-
-        // \/ \/ DO NOT CHANGE \/ \/
-        maxID = DbIds.LastIndex;
-        // /\ /\ DO NOT CHANGE /\ /\
     }
+
+    /// <summary>
+    /// Is called to ensure static constructor fires at game launch.
+    /// </summary>
+    public static void Init() { }
 
     /// <summary>
     /// Get Subject using subjectID.
@@ -338,7 +349,7 @@ public class MasterSubjectList
     /// <param name="subjectID">subjectID of Subject to find.</param>
     /// <param name="subjectType">Required type of subject.</param>
     /// <returns>Returns null if subject is not found or the type of the returned subject does not match subjectType.</returns>
-    public Subject GetSubject(int subjectID, Type subjectType = null)
+    static public Subject GetSubject(int subjectID, Type subjectType = null)
     {
         if (masterSubjectList.Exists(o => o.SubjectID == subjectID))
         {
@@ -365,14 +376,14 @@ public class MasterSubjectList
     /// GetNextID bumps up the ID count to assign to new subjects
     /// </summary>
     /// <returns></returns>
-    public int GetNextID()
+    static public int GetNextID()
     {
         maxID += 1;
 
         return maxID;
     }
 
-    public bool AddSubject(Subject newSubject)
+    static public bool AddSubject(Subject newSubject)
     {
         //if we don't have a valid subject or if the ID is in use return false
         if (newSubject == null) return false;

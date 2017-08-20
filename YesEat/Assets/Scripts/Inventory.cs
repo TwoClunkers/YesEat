@@ -7,14 +7,13 @@ class Inventory
     #region Private members
     private int size;
     private InventoryItem[] inventorySlots;
-    private MasterSubjectList masterSubjectList;
     #endregion
 
     /// <summary>
     /// Constructor for an Inventory object. Must set the initial size in constructor.
     /// </summary>
     /// <param name="newSize"></param>
-    public Inventory(int newSize, MasterSubjectList masterSubjectListRef) 
+    public Inventory(int newSize) 
     {
         size = newSize;
         inventorySlots = new InventoryItem[size];
@@ -22,7 +21,6 @@ class Inventory
         {
             inventorySlots[i] = new InventoryItem();
         }
-        masterSubjectList = masterSubjectListRef;
     }
 
     /// <summary>
@@ -81,14 +79,14 @@ class Inventory
             //If this slot matches, we can stack on top of it
             if(inventorySlots[i].SubjectID == newInventoryItem.SubjectID)
             {
-                int remainder = inventorySlots[i].Add(newInventoryItem, masterSubjectList);
+                int remainder = inventorySlots[i].Add(newInventoryItem);
                 newInventoryItem.StackSize = remainder;
             }
             //If we still have some, and have an empty slot, we can make a new stack.
             if(inventorySlots[i].StackSize < 1)
             {
                 inventorySlots[i].SubjectID = newInventoryItem.SubjectID;
-                int remainder = inventorySlots[i].Add(newInventoryItem, masterSubjectList);
+                int remainder = inventorySlots[i].Add(newInventoryItem);
                 newInventoryItem.StackSize = remainder;
             }
             //If the passed InventoryItem is empty, we can reset the subject id and break
@@ -168,7 +166,7 @@ class Inventory
         {
             if (inventorySlots[i].IsOnList(reservedItems)) continue;
 
-            Subject newSubject = masterSubjectList.GetSubject(inventorySlots[i].SubjectID, limitType) as Subject;
+            Subject newSubject = MasterSubjectList.GetSubject(inventorySlots[i].SubjectID, limitType) as Subject;
 
             //if we have a non-null subject, than we found a matching type
             if(newSubject != null)

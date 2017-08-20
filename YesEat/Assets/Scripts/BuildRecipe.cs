@@ -35,6 +35,8 @@ public class BuildRecipe
     private Ingredient[] _ingredients;
     #endregion
 
+    public Ingredient[] Ingredients { get { return _ingredients; } set { _ingredients = value; } }
+
     public BuildRecipe()
     {
         _ingredients = new Ingredient[0];
