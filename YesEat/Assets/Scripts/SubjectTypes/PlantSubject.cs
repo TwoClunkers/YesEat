@@ -36,6 +36,16 @@ public class PlantSubject : Subject
         heightRatio = 1.0f;
     }
 
+    public PlantSubject(PlantSubject copyPlantSubject) : base(copyPlantSubject)
+    {
+        produceID = copyPlantSubject.produceID;
+        produceTime = copyPlantSubject.produceTime;
+        maxGrowth = copyPlantSubject.maxGrowth;
+        growthTime = copyPlantSubject.growthTime;
+        matureGrowth = copyPlantSubject.matureGrowth;
+        inventorySize = copyPlantSubject.inventorySize;
+    }
+
     /// <summary>
     /// Copy an existing PlantSubject.
     /// </summary>

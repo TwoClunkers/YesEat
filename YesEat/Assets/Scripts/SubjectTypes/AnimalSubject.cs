@@ -8,12 +8,12 @@ using UnityEngine;
 public class AnimalSubject : Subject
 {
     #region Private members
-    private int maxGrowth;
-    private int growthTime;
-    private int matureTime;
-    private int inventorySize;
-    private int lootID;
     private NpcDefinition definition;
+    private int inventorySize;
+    private int growthTime;
+    private int lootID;
+    private int matureTime;
+    private int maxGrowth;
     #endregion
 
     public AnimalSubject() : base()
@@ -31,23 +31,22 @@ public class AnimalSubject : Subject
     /// <summary>
     /// Copy an existing AnimalSubject.
     /// </summary>
+    public AnimalSubject(AnimalSubject copyAnimalSubject) : base(copyAnimalSubject)
+    {
+        definition = new NpcDefinition(copyAnimalSubject.definition);
+        inventorySize = copyAnimalSubject.inventorySize;
+        growthTime = copyAnimalSubject.growthTime;
+        lootID = copyAnimalSubject.lootID;
+        matureTime = copyAnimalSubject.matureTime;
+        maxGrowth = copyAnimalSubject.maxGrowth;
+    }
+
+    /// <summary>
+    /// Copy an existing AnimalSubject.
+    /// </summary>
     public override Subject Copy()
     {
-        AnimalSubject newAnimalSubject = new AnimalSubject();
-        newAnimalSubject.subjectID = subjectID;
-        newAnimalSubject.name = name;
-        newAnimalSubject.description = description;
-        newAnimalSubject.icon = icon;
-        newAnimalSubject.prefab = prefab;
-        newAnimalSubject.relatedSubjects = relatedSubjects;
-
-        newAnimalSubject.maxGrowth = maxGrowth;
-        newAnimalSubject.growthTime = growthTime;
-        newAnimalSubject.matureTime = matureTime;
-        newAnimalSubject.inventorySize = inventorySize;
-        newAnimalSubject.lootID = lootID;
-        newAnimalSubject.definition = new NpcDefinition(definition);
-        return newAnimalSubject;
+        return new AnimalSubject(this);
     }
 
     /// <summary>

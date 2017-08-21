@@ -8,7 +8,7 @@ using UnityEngine;
 public class StructureSubject : Subject
 {
     #region Private members
-    private BuildRecipe buildDirections;
+    private BuildRecipe recipe;
     #endregion
 
     public StructureSubject() : base()
@@ -17,33 +17,33 @@ public class StructureSubject : Subject
         description = "A Structure that is Built";
         icon = new Sprite();
 
-        buildDirections = new BuildRecipe();
+        recipe = new BuildRecipe();
     }
 
     /// <summary>
     /// Copy an existing StructureSubject.
     /// </summary>
+    public StructureSubject(StructureSubject copyStructureSubject) : base(copyStructureSubject)
+    {
+        recipe = new BuildRecipe(copyStructureSubject.recipe);
+    }
+
+    /// <summary>
+    /// Copy this StructureSubject.
+    /// </summary>
+    /// <returns>A new copy of this StructureSubject</returns>
     public override Subject Copy()
     {
-        StructureSubject newStructureSubject = new StructureSubject();
-        newStructureSubject.subjectID = subjectID;
-        newStructureSubject.name = name;
-        newStructureSubject.description = description;
-        newStructureSubject.icon = icon;
-        newStructureSubject.prefab = prefab;
-        newStructureSubject.relatedSubjects = relatedSubjects;
-
-        newStructureSubject.buildDirections = buildDirections;
-        return newStructureSubject;
+        return new StructureSubject(this);
     }
 
     /// <summary>
     /// The BuildRecipe used to make this Structure
     /// </summary>
-    public BuildRecipe BuildDirections
+    public BuildRecipe Recipe
     {
-        get { return buildDirections; }
-        set { buildDirections = value; }
+        get { return recipe; }
+        set { recipe = value; }
     }
 
     public override void TeachNpc(NpcCore npcCharacter)

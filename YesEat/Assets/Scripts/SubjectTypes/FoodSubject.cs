@@ -26,19 +26,18 @@ public class FoodSubject : ItemSubject
     /// <summary>
     /// Copy an existing FoodSubject.
     /// </summary>
+    public FoodSubject(FoodSubject copyFoodSubject) : base(copyFoodSubject)
+    {
+        foodType = copyFoodSubject.foodType;
+        foodValue = copyFoodSubject.foodValue;
+    }
+
+    /// <summary>
+    /// Copy an existing FoodSubject.
+    /// </summary>
     public override Subject Copy()
     {
-        FoodSubject newFoodSubject = new FoodSubject();
-        newFoodSubject.subjectID = subjectID;
-        newFoodSubject.name = name;
-        newFoodSubject.description = description;
-        newFoodSubject.icon = icon;
-        newFoodSubject.prefab = prefab;
-        newFoodSubject.relatedSubjects = relatedSubjects;
-
-        newFoodSubject.foodType = foodType;
-        newFoodSubject.foodValue = foodValue;
-        return newFoodSubject;
+        return new FoodSubject(this);
     }
 
     /// <summary>
