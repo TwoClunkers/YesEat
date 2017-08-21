@@ -11,9 +11,12 @@ public class PlantSubject : Subject
     private int produceID;
     private int produceTime;
     private int maxGrowth;
-    private int growthTime;
+    private int growthRate;
     private int matureGrowth;
     private int inventorySize;
+    private Vector3[] nodeList;
+    private GameObject nodeAttachment;
+    private float heightRatio;
     #endregion
 
     public PlantSubject() : base()
@@ -25,9 +28,12 @@ public class PlantSubject : Subject
         produceID = 0;
         produceTime = 0;
         maxGrowth = 3;
-        growthTime = 0;
+        growthRate = 0;
         matureGrowth = 1;
         inventorySize = 3;
+        nodeList = null;
+        nodeAttachment = null;
+        heightRatio = 1.0f;
     }
 
     /// <summary>
@@ -46,9 +52,11 @@ public class PlantSubject : Subject
         newPlantSubject.produceID = produceID;
         newPlantSubject.produceTime = produceTime;
         newPlantSubject.maxGrowth = maxGrowth;
-        newPlantSubject.growthTime = growthTime;
+        newPlantSubject.growthRate = growthRate;
         newPlantSubject.matureGrowth = matureGrowth;
         newPlantSubject.inventorySize = inventorySize;
+        newPlantSubject.nodeList = nodeList;
+        newPlantSubject.nodeAttachment = nodeAttachment;
         return newPlantSubject;
     }
 
@@ -82,10 +90,10 @@ public class PlantSubject : Subject
     /// <summary>
     /// GrowthTime tells us when you can take a "step" in growth process
     /// </summary>
-    public int GrowthTime
+    public int GrowthRate
     {
-        get { return growthTime; }
-        set { growthTime = value; }
+        get { return growthRate; }
+        set { growthRate = value; }
     }
 
     /// <summary>
@@ -104,6 +112,33 @@ public class PlantSubject : Subject
     {
         get { return inventorySize; }
         set { inventorySize = value; }
+    }
+
+    /// <summary>
+    /// Position of branches
+    /// </summary>
+    public Vector3[] NodeList
+    {
+        get { return nodeList; }
+        set { nodeList = value; }
+    }
+
+    /// <summary>
+    /// NodeAttachment is the gameObject used for new branches
+    /// </summary>
+    public GameObject NodeAttachment
+    {
+        get { return nodeAttachment; }
+        set { nodeAttachment = value; }
+    }
+
+    /// <summary>
+    /// NodeAttachment is the gameObject used for new branches
+    /// </summary>
+    public float HeightRatio
+    {
+        get { return heightRatio; }
+        set { heightRatio = value; }
     }
 
     public override void TeachNpc(NpcCore npcCharacter)

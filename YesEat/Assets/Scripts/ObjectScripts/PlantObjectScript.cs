@@ -4,24 +4,27 @@ using System.Collections;
 public class PlantObjectScript : SubjectObjectScript
 {
     #region Private members
-    private int produceID;
-    private int produceTime;
-    private int maxGrowth;
-    private int growthTime;
-    private int matureGrowth;
     private float currentGrowth;
     private Inventory inventory;
     private bool mature;
     private float age;
     private float lastProduce;
-    #endregion
+    private int branchLevel;
+    private MeshFilter filter;
+    private MeshCollider coll;
+    PlantSubject plantSubject;
+    public Vector3 apex;
 
+    #endregion
+   
     // Use this for initialization
-    void Start()
+    void Awake()
     {
+        plantSubject = subject as PlantSubject;
+
         mature = false;
         age = 0.0f;
-        currentGrowth = 0.5f;
+        currentGrowth = 0.01f;
         lastProduce = Time.time;
     }
 
@@ -30,15 +33,15 @@ public class PlantObjectScript : SubjectObjectScript
     {
         age += Time.deltaTime;
         //we grow
-        if (currentGrowth < maxGrowth)
+        if (currentGrowth < plantSubject.MaxGrowth)
         {
-            if (Mathf.FloorToInt(age) > (currentGrowth * growthTime))
+            if (age > (currentGrowth * plantSubject.GrowthRate))
                 GrowthStep();
         }
         //we produce
         if (mature)
         {
-            if ((Time.time - lastProduce) > produceTime)
+            if ((Time.time - lastProduce) > plantSubject.ProduceTime)
             {
                 ProduceStep();
                 UpdateFullnessColor();
@@ -46,7 +49,7 @@ public class PlantObjectScript : SubjectObjectScript
         }
         else
         {
-            if (currentGrowth >= matureGrowth)
+            if (currentGrowth >= plantSubject.MatureGrowth)
             {
                 mature = true;
                 lastProduce = Time.time;
@@ -66,14 +69,18 @@ public class PlantObjectScript : SubjectObjectScript
         return inventory.FillRatio();
     }
 
-
+    public int BranchLevel
+    {
+        get { return branchLevel; }
+        set { branchLevel = value; }
+    }
     /// <summary>
     /// Harvest to take from inventory
     /// </summary>
     /// <returns></returns>
     public override InventoryItem Harvest()
     {
-        return inventory.Take(new InventoryItem(produceID, 1));
+        return inventory.Take(new InventoryItem(plantSubject.ProduceID, 1));
     }
 
 
@@ -82,7 +89,7 @@ public class PlantObjectScript : SubjectObjectScript
     /// </summary>
     void ProduceStep()
     {
-        InventoryItem producedItem = new InventoryItem(produceID, 1);
+        InventoryItem producedItem = new InventoryItem(plantSubject.ProduceID, 1);
         producedItem = inventory.Add(producedItem);
         lastProduce = Time.time;
     }
@@ -112,29 +119,26 @@ public class PlantObjectScript : SubjectObjectScript
         subject = newSubject;
         if (newSubject is PlantSubject)
         {
-            PlantSubject plantSubject = newSubject as PlantSubject;
-            produceID = plantSubject.ProduceID;
-            produceTime = plantSubject.ProduceTime;
-            maxGrowth = plantSubject.MaxGrowth;
-            growthTime = plantSubject.GrowthTime;
-            matureGrowth = plantSubject.MatureGrowth;
-            inventory = new Inventory(plantSubject.InventorySize, _masterSubjectList);
+            PlantSubject plantSubject = newSubject.Copy() as PlantSubject;
 
+            inventory = new Inventory(plantSubject.InventorySize, _masterSubjectList);
             mature = false;
             age = 0.1f;
-            currentGrowth = 0.5f;
+            currentGrowth = 0.01f;
             lastProduce = Time.time;
+
         }
         else
         {
             //default values used if no valid subject for initialization
-            produceID = 1;
-            produceTime = 20;
-            maxGrowth = 1;
-            growthTime = 20;
-            matureGrowth = 15;
-            inventory = new Inventory(3, _masterSubjectList);
+            
+            plantSubject.ProduceID = 1;
+            plantSubject.ProduceTime = 20;
+            plantSubject.MaxGrowth = 1;
+            plantSubject.GrowthRate = 20;
+            plantSubject.MatureGrowth = 15;
 
+            inventory = new Inventory(3, _masterSubjectList);
             mature = false;
             age = 0.1f;
             currentGrowth = 5.0f;

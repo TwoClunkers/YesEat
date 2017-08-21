@@ -7,6 +7,7 @@ public class MeshObject : MonoBehaviour
     MeshCollider coll;
     public GameObject treePart;
     public GameObject nodeTop;
+    public GameObject nodeSide;
 
     public Vector3 apex;
     public float baseRadius;
@@ -19,20 +20,22 @@ public class MeshObject : MonoBehaviour
     public float growthSupply;
     public int childCount;
     public int branchLevel;
+    public float growthRate;
 
     // Use this for initialization
     void Awake()
     {
         filter = gameObject.GetComponent<MeshFilter>();
         coll = gameObject.GetComponent<MeshCollider>();
-        
+
+        growthRate = Random.value/10;
         growth = 0.1f;
         baseRadius = 0.1f;
         apexRadius = 0.1f;
-        apexRatio = 0.3f;
-        baseRatio = 0.35f;
+        apexRatio = 0.2f;
+        baseRatio = 0.32f;
         apex = new Vector3();
-        growthLimit = 1.0f;
+        growthLimit = Random.value + 0.2f;
         growthSupply = 0.001f;
         branchLevel = 0;
     }
@@ -41,15 +44,11 @@ public class MeshObject : MonoBehaviour
     void Update()
     {
         childCount = transform.childCount;
-        if(isBase)
-        {
-            growthSupply = (Time.deltaTime * 0.01f);
-        }
+        
         if(baseRadius < growthLimit)
         {
+            growthSupply = (Time.deltaTime * growthRate);
             growth += growthSupply;
-            baseRatio -= (Time.deltaTime * 0.001f);
-            apexRatio -= (Time.deltaTime * 0.001f);
 
             baseRadius += growthSupply * baseRatio;
             apexRadius += growthSupply * apexRatio;
@@ -63,8 +62,10 @@ public class MeshObject : MonoBehaviour
                 {
                     nodeTop = Instantiate(treePart, this.transform);
                     nodeTop.transform.localPosition = apex;
+                    nodeTop.transform.localEulerAngles = new Vector3(0, 137.5f, 0);
                     nodeTop.GetComponent<MeshObject>().isBase = false;
                     nodeTop.GetComponent<MeshObject>().branchLevel = branchLevel + 1;
+                    nodeTop.GetComponent<MeshObject>().growthRate = growthRate;
                 }
             }
             else
@@ -72,7 +73,7 @@ public class MeshObject : MonoBehaviour
                 nodeTop.transform.localPosition = apex;
                 nodeTop.GetComponent<MeshObject>().growthLimit = apexRadius-0.01f;
             }
-       
+
         }
           
     }
@@ -80,165 +81,16 @@ public class MeshObject : MonoBehaviour
 
     void UpdateChunk()
     {
-
         MeshData meshData = new MeshData();
-        meshData = AddTaperTube(Vector3.zero, baseRadius, apex, apexRadius, 7, meshData);
-        meshData = AddDisk(apex, apexRadius, 7, meshData);
+        meshData.AddTaperTube(Vector3.zero, baseRadius, apex, apexRadius, 15, Quaternion.identity );
+        meshData.AddDisk(apex, apexRadius, 7, Quaternion.identity);
+        meshData.AddCone(new Vector3(0, 0.1f + apexRadius, 0), apexRadius, new Vector3(0, apexRadius, 0), 10, Quaternion.Euler(-90, 0, 0));
+        meshData.AddCone(new Vector3(0, -0.1f - apexRadius, 0), apexRadius, new Vector3(0, apexRadius, 0), 10, Quaternion.Euler(90, 0, 0));
         RenderMesh(meshData);
     }
 
-    public MeshData AddTaperTube(Vector3 basePoint, float baseRadius, Vector3 apexPoint, float apexRadius, int sides, MeshData meshData)
-    {
-        Quaternion rotation = new Quaternion();
-        Vector3 lastVert = new Vector3();
-        Vector3 nextVert = new Vector3();
-        float texStep = 1.0f / sides;
-        rotation = Quaternion.AngleAxis((360 / sides) * (sides - 1), Vector3.up);
-        lastVert = rotation * Vector3.forward;
-        for (int i = 0; i < sides; i++)
-        {
-            rotation = Quaternion.AngleAxis((360 / sides) * i, Vector3.up);
-            nextVert = rotation * Vector3.forward;
-            meshData.verts.Add(lastVert * apexRadius + apexPoint);
-            meshData.verts.Add(lastVert * baseRadius + basePoint);
-            meshData.verts.Add(nextVert * baseRadius + basePoint);
-            meshData.uvs.Add(new Vector2(texStep * i, 1.0f));
-            meshData.uvs.Add(new Vector2(texStep * i, 0.0f));
-            meshData.uvs.Add(new Vector2(texStep * i + texStep, 0.0f));
-            meshData.AddTriangle();
-            meshData.verts.Add(lastVert * apexRadius + apexPoint);
-            meshData.verts.Add(nextVert * baseRadius + basePoint);
-            meshData.verts.Add(nextVert * apexRadius + apexPoint);
-            meshData.uvs.Add(new Vector2(texStep * i, 1.0f));
-            meshData.uvs.Add(new Vector2(texStep * i + texStep, 0.0f));
-            meshData.uvs.Add(new Vector2(texStep * i + texStep, 1.0f));
-            meshData.AddTriangle();
-            lastVert = nextVert;
-        }
-        return meshData;
-    }
 
-    public MeshData AddCylinder(Vector3 basePoint, Vector3 apexPoint, int sides, MeshData meshData)
-    {
-        meshData = AddDisk(apexPoint, 1.0f, sides, meshData);
-        meshData = AddTube(basePoint, apexPoint, sides, meshData);
-        meshData = AddDisk(basePoint, 1.0f, sides, meshData);
-        return meshData;
-    }
 
-    public MeshData AddDisk(Vector3 centerPoint, float radius, int sides, MeshData meshData)
-    {
-        Quaternion rotation = new Quaternion();
-        Vector3 lastVert = new Vector3();
-        Vector3 nextVert = new Vector3();
-        rotation = Quaternion.AngleAxis((360 / sides) * (sides - 1), Vector3.up);
-        lastVert = rotation * Vector3.forward;
-        for (int i = 0; i < sides; i++)
-        {
-            rotation = Quaternion.AngleAxis((360 / sides) * i, Vector3.up);
-            nextVert = rotation * Vector3.forward;
-            meshData.verts.Add(centerPoint);
-            meshData.verts.Add(lastVert*radius + centerPoint);
-            meshData.verts.Add(nextVert*radius + centerPoint);
-            meshData.uvs.Add(new Vector2(0.5f, 0.5f));
-            meshData.uvs.Add(new Vector2(lastVert.x / 2 + 0.5f, lastVert.z / 2 + 0.5f));
-            meshData.uvs.Add(new Vector2(nextVert.x / 2 + 0.5f, nextVert.z / 2 + 0.5f));
-            meshData.AddTriangle();
-            lastVert = nextVert;
-        }
-        return meshData;
-    }
-
-    public MeshData AddTube(Vector3 basePoint, Vector3 apexPoint, int sides, MeshData meshData)
-    {
-        Quaternion rotation = new Quaternion();
-        Vector3 lastVert = new Vector3();
-        Vector3 nextVert = new Vector3();
-        float texStep = 1.0f / sides;
-        rotation = Quaternion.AngleAxis((360 / sides) * (sides - 1), Vector3.up);
-        lastVert = rotation * Vector3.forward;
-        for (int i = 0; i < sides; i++)
-        {
-            rotation = Quaternion.AngleAxis((360 / sides) * i, Vector3.up);
-            nextVert = rotation * Vector3.forward;
-            meshData.verts.Add(lastVert + apexPoint);
-            meshData.verts.Add(lastVert + basePoint);
-            meshData.verts.Add(nextVert + basePoint);
-            meshData.uvs.Add(new Vector2(texStep * i, 1.0f));
-            meshData.uvs.Add(new Vector2(texStep * i, 0.0f));
-            meshData.uvs.Add(new Vector2(texStep * i + texStep, 0.0f));
-            meshData.AddTriangle();
-            meshData.verts.Add(lastVert + apexPoint);
-            meshData.verts.Add(nextVert + basePoint);
-            meshData.verts.Add(nextVert + apexPoint);
-            meshData.uvs.Add(new Vector2(texStep * i, 1.0f));
-            meshData.uvs.Add(new Vector2(texStep * i + texStep, 0.0f));
-            meshData.uvs.Add(new Vector2(texStep * i + texStep, 1.0f));
-            meshData.AddTriangle();
-            lastVert = nextVert;
-        }
-        return meshData;
-    }
-
-    public MeshData AddCone(Vector3 basePoint, Vector3 apexPoint, int sides, MeshData meshData)
-    {
-        Quaternion rotation = new Quaternion();
-        Vector3 lastVert = new Vector3();
-        Vector3 nextVert = new Vector3();
-        rotation = Quaternion.AngleAxis((360 / sides) * (sides-1), Vector3.up);
-        lastVert = rotation * Vector3.forward;
-        for (int i = 0; i < sides; i++)
-        {
-            rotation = Quaternion.AngleAxis((360 / sides) * i, Vector3.up);
-            nextVert = rotation * Vector3.forward;
-            meshData.verts.Add(apexPoint);
-            meshData.verts.Add(lastVert + basePoint);
-            meshData.verts.Add(nextVert + basePoint);
-            meshData.uvs.Add(new Vector2(0.5f, 0.5f));
-            meshData.uvs.Add(new Vector2(lastVert.x/2 + 0.5f, lastVert.z/2 + 0.5f));
-            meshData.uvs.Add(new Vector2(nextVert.x/2 + 0.5f, nextVert.z/2 + 0.5f));
-            meshData.AddTriangle();
-            lastVert = nextVert;
-        }
-        return meshData;
-    }
-
-    public MeshData AddTetrahedron(Vector3[] points, MeshData meshData)
-    {
-        meshData.verts.Add(points[0]);
-        meshData.verts.Add(points[1]);
-        meshData.verts.Add(points[2]);
-        meshData.uvs.Add(new Vector2(0.25f, 0.4f));
-        meshData.uvs.Add(new Vector2(0.5f, 0.0f));
-        meshData.uvs.Add(new Vector2(0.0f, 0.0f));
-        meshData.AddTriangle();
-
-        meshData.verts.Add(points[0]);
-        meshData.verts.Add(points[2]);
-        meshData.verts.Add(points[3]);
-        meshData.uvs.Add(new Vector2(0.25f, 0.4f));
-        meshData.uvs.Add(new Vector2(0.5f, 0.8f));
-        meshData.uvs.Add(new Vector2(0.75f, 0.4f));
-        meshData.AddTriangle();
-
-        meshData.verts.Add(points[0]);
-        meshData.verts.Add(points[3]);
-        meshData.verts.Add(points[1]);
-        meshData.uvs.Add(new Vector2(0.25f, 0.4f));
-        meshData.uvs.Add(new Vector2(0.75f, 0.4f));
-        meshData.uvs.Add(new Vector2(0.5f, 0.0f));
-        meshData.AddTriangle();
-
-        meshData.verts.Add(points[1]);
-        meshData.verts.Add(points[3]);
-        meshData.verts.Add(points[2]);
-        meshData.uvs.Add(new Vector2(0.5f, 0.0f));
-        meshData.uvs.Add(new Vector2(0.75f, 0.4f));
-        meshData.uvs.Add(new Vector2(1.0f, 0.0f));
-        meshData.AddTriangle();
-
-        return meshData;
-    }
 
 
     // Sends the calculated mesh information
