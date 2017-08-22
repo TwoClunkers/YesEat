@@ -18,6 +18,7 @@ public class AnimalObjectScript : SubjectObjectScript
     private float decaytime;
     private Inventory inventory;
     private SubjectObjectScript chaseTarget;
+    private Vector3 targetPosition;
     private bool isCurrentLocationExplored;
     #endregion
 
@@ -47,6 +48,7 @@ public class AnimalObjectScript : SubjectObjectScript
         destinationWayPoints = new Vector3[0];
         isCurrentLocationExplored = false;
         decaytime = 20.0f;
+        targetPosition = default(Vector3);
     }
 
     public int GetHealth()
@@ -63,10 +65,22 @@ public class AnimalObjectScript : SubjectObjectScript
     }
 
     /// <summary>
+    /// Move to target coordinates.
+    /// </summary>
+    /// <param name="newPosition"></param>
+    internal void MoveToPosition(Vector3 newPosition)
+    {
+        if (targetPosition == newPosition) return;
+        chaseTarget = null;
+        destination = null;
+        targetPosition = newPosition;
+    }
+
+    /// <summary>
     /// Begin path finding to a new location.
     /// </summary>
     /// <param name="newLocation">The location to move to.</param>
-    internal void MoveToNewLocation(LocationSubject newLocation)
+    internal void MoveToLocation(LocationSubject newLocation)
     {
         if (newLocation == null)
         {
@@ -87,7 +101,7 @@ public class AnimalObjectScript : SubjectObjectScript
         // flip a coin on which method of area waypoints to use
         if (UnityEngine.Random.Range(0.0f, 1.0f) > 0.5f)
         {
-            destinationWayPoints = newLocation.GetAreaWaypoints(npcCharacter.RangeSightNear);
+            destinationWayPoints = newLocation.GetAreaWaypoints(npcCharacter.RangeSightMid);
             if (destinationWayPoints.Length > 1)
             {
                 destinationWayPoints = ShiftToNearestFirst(destinationWayPoints);
@@ -95,7 +109,7 @@ public class AnimalObjectScript : SubjectObjectScript
         }
         else
         {
-            destinationWayPoints = newLocation.GetAreaWaypoints(npcCharacter.RangeSightNear, 1);
+            destinationWayPoints = newLocation.GetAreaWaypoints(npcCharacter.RangeSightMid, 1);
             if (destinationWayPoints.Length > 1)
             {
                 destinationWayPoints = destinationWayPoints
@@ -227,8 +241,8 @@ public class AnimalObjectScript : SubjectObjectScript
         }
 
         // Debug: near vision range
-        DrawDebugCircle(transform.position, npcCharacter.RangeSightNear, 20, new Color(0, 0, 1, 0.5f));
-        // Debug: near vision range
+        //DrawDebugCircle(transform.position, npcCharacter.RangeSightNear, 20, new Color(0, 0, 1, 0.5f));
+        // Debug: mid vision range
         DrawDebugCircle(transform.position, npcCharacter.RangeSightMid, 20, new Color(0, 1, 0, 0.5f));
         // Debug: far vision range
         DrawDebugCircle(transform.position, npcCharacter.RangeSightFar, 20, new Color(0, 0, 0, 0.3f));
@@ -287,6 +301,17 @@ public class AnimalObjectScript : SubjectObjectScript
                 Vector3 targetDir = chaseTarget.transform.position - transform.position;
                 transform.rotation = Quaternion.LookRotation(targetDir);
                 //chaseTarget = null;
+            }
+        }
+        else if (targetPosition != default(Vector3)) // move to targetPosition
+        {
+            float distance = Vector3.Distance(targetPosition, transform.position);
+            if (distance > npcCharacter.RangeActionClose) MoveTowardsPoint(targetPosition, npcCharacter.MoveSpeed);
+            else
+            {
+                Vector3 targetDir = targetPosition - transform.position;
+                transform.rotation = Quaternion.LookRotation(targetDir);
+                targetPosition = default(Vector3);
             }
         }
     }
@@ -434,4 +459,15 @@ public class AnimalObjectScript : SubjectObjectScript
         }
         else return false;
     }
+
+    public StructureObjectScript DigHole()
+    {
+        StructureSubject holeSubject = MasterSubjectList.GetSubject(DbIds.Hole10) as StructureSubject;
+        StructureObjectScript hole =
+            Instantiate(holeSubject.Prefab, transform.position, transform.rotation).GetComponent<StructureObjectScript>();
+        hole.InitializeFromSubject(holeSubject);
+
+        return hole;
+    }
+
 }

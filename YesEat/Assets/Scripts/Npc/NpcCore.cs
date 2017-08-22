@@ -27,6 +27,7 @@ public partial class NpcCore
     private List<LocationSubject> reExploreLocations;
     private List<int> searchedObjects;
     private List<int> searchedLocations;
+    private List<InventoryItem> neededItems;
 
     private float AiCoreTickCounter;
     private float AiTickRate;
@@ -55,6 +56,7 @@ public partial class NpcCore
         reExploreLocations = new List<LocationSubject>();
         SetFoodPreference();
         AiTickRate = 0.5f;
+        neededItems = new List<InventoryItem>();
     }
 
     /// <summary>
@@ -82,6 +84,7 @@ public partial class NpcCore
             reExploreLocations = new List<LocationSubject>();
             SetFoodPreference();
             AiTickRate = 0.5f;
+            neededItems = new List<InventoryItem>();
         }
     }
     #endregion
@@ -131,7 +134,7 @@ public partial class NpcCore
     /// <param name="CurrentPosition">The current position of this game object.</param>
     /// <param name="ExcludeLocationIDs">The locations to exclude from the results.</param>
     /// <returns>The found locations or null if no locations were found.</returns>
-    internal List<LocationSubject> FindObject(Subject SubjectToFind, Vector3 CurrentPosition, List<int> ExcludeLocationIDs = null)
+    internal List<LocationSubject> GetObjectLocations(Subject SubjectToFind, Vector3 CurrentPosition, List<int> ExcludeLocationIDs = null)
     {
         List<LocationSubject> foundObjects = new List<LocationSubject>();
         foreach (SubjectMemory subMem in definition.Memories)
@@ -292,9 +295,14 @@ public partial class NpcCore
     internal bool HaveNest()
     {
         if (definition.Nest != null)
-            return (definition.Nest.ObjectMemories.Count > 0);
-        else
-            return false;
+        {
+            foreach (ObjectMemory objMem in definition.Nest.ObjectMemories)
+            {
+                if (objMem.SubjectID == Subject.Nest.SubjectID)
+                    return true;
+            }
+        }
+        return false;
     }
 
     /// <summary>
@@ -304,7 +312,7 @@ public partial class NpcCore
     /// <param name="definition">The NPC to check</param>
     /// <param name="objectScript">The GameObject's script.</param>
     /// <returns>The nearest safe location. Returns NULL if no safe locations are found.</returns>
-    internal LocationSubject FindSafeLocation(AnimalObjectScript objectScript)
+    internal LocationSubject GetSafeLocation(AnimalObjectScript objectScript)
     {
         // get a list of all safe locations we remember
         List<SubjectMemory> foundLocations = definition.Memories
@@ -545,7 +553,7 @@ public partial class NpcCore
         // explore unknown locations
         if (unexploredLocations.Count > 0)
         {
-            mob.MoveToNewLocation(unexploredLocations[0]);
+            mob.MoveToLocation(unexploredLocations[0]);
         }
         else
         {
@@ -555,7 +563,7 @@ public partial class NpcCore
             {
                 reExploreLocations = GetAllKnownLocations();
             }
-            mob.MoveToNewLocation(reExploreLocations[0]);
+            mob.MoveToLocation(reExploreLocations[0]);
         }
     }
 
@@ -563,7 +571,7 @@ public partial class NpcCore
     {
         // Get list of food in inventory
         InventoryItem foodItem = mob.Inventory.Take(new InventoryItem(foodID, 1));
-        if (foodItem.StackSize > 0)
+        if (foodItem.Quantity > 0)
         {
             // eat food in inventory
             Eat(foodItem);
@@ -592,7 +600,7 @@ public partial class NpcCore
                     InventoryItem harvestedItem = foodSourceObject.Harvest();
                     if (harvestedItem != null)
                     {
-                        if (harvestedItem.StackSize > 0)
+                        if (harvestedItem.Quantity > 0)
                         {
                             mob.Inventory.Add(harvestedItem);
                         }
@@ -636,11 +644,11 @@ public partial class NpcCore
                 // there are no food sources in close range
                 // find a location with foodSourceID
                 List<LocationSubject> foodLocations =
-                    FindObject(MasterSubjectList.GetSubject(foodSourceID), mob.transform.position, searchedLocations);
+                    GetObjectLocations(MasterSubjectList.GetSubject(foodSourceID), mob.transform.position, searchedLocations);
 
                 if (foodLocations.Count > 0)
                 {
-                    mob.MoveToNewLocation(foodLocations[0]);
+                    mob.MoveToLocation(foodLocations[0]);
                 }
                 else
                 {
@@ -653,39 +661,131 @@ public partial class NpcCore
 
     private void AiNest()
     {
-        // find nearest safe location
-        LocationSubject safeLocation = FindSafeLocation(mob);
-        if (safeLocation != null)
+        if (definition.Nest != null)
         {
-            // a safe location is in memory, are we already there?
-            if (safeLocation == mob.Location)
-            {
-                // we are currently in the nearest safe location
-                // TODO: build nest
-                //if (mob.Inventory.CheckItem() { }
+            SpecialObjectMemory holeMemory = definition.Nest.ObjectMemories.Find(o => o.SubjectID == DbIds.Hole10) as SpecialObjectMemory;
 
-                //|             [Yes]Have Item for building nest?
-                //|                 [No]Search for nest building item
-                //|                     []Collect nest building item
-                //|                         ()Return
-                //|                 [Yes]Build nest
-                //|                     []Done building nest?
-                //|                         (No)Return
-                //|                         [Yes]Save nest location to memory
-                //|                             []Remove nest from drivers
+            // we are currently in the nearest safe location and it is saved
+            if (holeMemory != null)
+            {
+                // do we already have neededIngredients?
+                if (neededItems.Count == 0)
+                {
+                    // we don't know that we need ingredients, go to hole
+                    if (Vector3.Distance(mob.transform.position, holeMemory.Position) > definition.RangeActionClose)
+                    {
+                        //not next to hole, move to it
+                        mob.MoveToPosition(holeMemory.Position);
+                    }
+                    else
+                    {
+                        // we are next to our hole, get a reference to it
+                        StructureObjectScript holeObject = considerObjects
+                            .Find(o => o.GetComponent<SubjectObjectScript>().Subject.SubjectID == Subject.Nest.SubjectID)
+                            .GetComponent<StructureObjectScript>();
+
+                        //do we have all items in hole for building nest?
+                        List<InventoryItem> nestNeeds = new List<InventoryItem>();
+                        foreach (InventoryItem ingredient in Subject.Nest.Recipe.Ingredients)
+                        {
+                            int qtyNeeded = ingredient.Quantity - holeObject.Inventory.Count(ingredient.SubjectID);
+                            if (qtyNeeded > 0)
+                                nestNeeds.Add(new InventoryItem(ingredient.SubjectID, qtyNeeded));
+                        }
+                        if (nestNeeds.Count == 0)
+                        {
+                            // everything needed to build nest is already in the hole
+                            // TODO:    build nest using items in hole
+                            //          instantiate nest and transfer any hole contents to it
+                            //          remove Nest driver & save nest as SpecialObjectMemory
+                        }
+                        else
+                        {
+                            // do we have any needed ingredients for nest with us?
+                            for (int i = 0; i < nestNeeds.Count; i++)
+                            {
+                                if (mob.Inventory.Count(nestNeeds[i].SubjectID) > 0)
+                                {
+                                    // inventory does have this ingredient, deposit in hole
+                                    InventoryItem taken = mob.Inventory.Take(new InventoryItem(nestNeeds[i]));
+                                    // put back anything that didn't fit
+                                    nestNeeds[i].Quantity -= taken.Quantity;
+                                    InventoryItem leftoverItems = holeObject.Inventory.Add(taken);
+                                    if (leftoverItems.Quantity > 0)
+                                    {
+                                        nestNeeds[i].Quantity += leftoverItems.Quantity;
+                                        mob.Inventory.Add(leftoverItems);
+                                    }
+                                }
+                            }
+                            neededItems.Clear();
+                            foreach (InventoryItem ingredient in nestNeeds)
+                            {
+                                if (ingredient.Quantity > 0)
+                                    neededItems.Add(new InventoryItem(ingredient));
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    // neededIngredients has ingredients, go collect them.
+                    ExploreForItem(DbIds.Bush, neededItems[0].SubjectID);
+                }
             }
             else
             {
-                // go to the nearest safe location
-                mob.MoveToNewLocation(safeLocation);
+                // no hole made yet, dig hole if we are at Nest location
+                if (mob.Location.SubjectID == definition.Nest.SubjectID)
+                {
+                    SpecialObjectMemory newHoleMemory =
+                        new SpecialObjectMemory()
+                        {
+                            Position = mob.DigHole().transform.position,
+                            Quantity = 1,
+                            SubjectID = DbIds.Hole10
+                        };
+                    definition.Nest.ObjectMemories.Add(newHoleMemory);
+                }
             }
         }
         else
         {
-            // do not know of any safe locations, explore.
-            AiExplore();
+            // find nearest safe location
+            LocationSubject safeLocation = GetSafeLocation(mob);
+            if (safeLocation != null)
+            {
+                // a safe location is in memory, are we already there?
+                if (safeLocation == mob.Location)
+                {
+                    // If not already saved, save this location as Nest location
+                    if (definition.Nest == null)
+                    {
+                        definition.Nest = new LocationMemory(definition.Memories.Find(o => o.SubjectID == safeLocation.SubjectID) as LocationMemory);
+                    }
+                }
+                else
+                {
+                    // go to the nearest safe location
+                    mob.MoveToLocation(safeLocation);
+                }
+            }
+            else
+            {
+                // do not know of any safe locations, explore.
+                AiExplore();
+            }
         }
 
+    }
+
+    private void ExploreForItem(int sourceSubjectId, int itemSubjectId)
+    {
+        // TODO:    search memories for sourceSubjectId
+        //          travel to source subject locations
+        //          harvest itemSubjectId from all seen sources while travelling
+
+        // TODO: make sure found items are removed from neededIngredients list
     }
 
     private void AiSafety()
@@ -699,16 +799,16 @@ public partial class NpcCore
             // if not at nest move there first
             if (mob.Location.SubjectID != definition.Nest.LocationSubjectID)
             {
-                mob.MoveToNewLocation(MasterSubjectList.GetSubject(definition.Nest.SubjectID) as LocationSubject);
+                mob.MoveToLocation(MasterSubjectList.GetSubject(definition.Nest.SubjectID) as LocationSubject);
                 return;
             }
         }
 
         // don't have nest or we're at nest and it isn't safe. move to safe location
-        LocationSubject safeLocation = FindSafeLocation(mob);
+        LocationSubject safeLocation = GetSafeLocation(mob);
         if (safeLocation != null)
         {
-            mob.MoveToNewLocation(safeLocation);
+            mob.MoveToLocation(safeLocation);
         }
         else
         {

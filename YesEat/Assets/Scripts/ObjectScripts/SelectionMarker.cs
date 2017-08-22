@@ -6,7 +6,6 @@ public class SelectionMarker : MonoBehaviour
 {
 
     private GameObject targetGameObject;
-    private PlacementControllerScript _placementControllerScript;
 
     // Use this for initialization
     void Start()
@@ -20,11 +19,9 @@ public class SelectionMarker : MonoBehaviour
 
     }
 
-    public void SetTarget(GameObject newTarget, PlacementControllerScript placementControllerScript)
+    public void SetTarget(GameObject newTarget)
     {
         if (newTarget == null) return;
-
-        _placementControllerScript = placementControllerScript;
 
         targetGameObject = newTarget;
         transform.SetParent(targetGameObject.transform);

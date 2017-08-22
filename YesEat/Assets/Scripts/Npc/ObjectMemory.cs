@@ -8,7 +8,7 @@ public class ObjectMemory
 {
     #region Private members
     private int subjectID;
-    private int count;
+    private int quantity;
     #endregion
 
     /// <summary>
@@ -25,8 +25,20 @@ public class ObjectMemory
     /// </summary>
     public int Quantity
     {
-        get { return count; }
-        set { count = value; }
+        get { return quantity; }
+        set { quantity = value; }
+    }
+
+    public ObjectMemory()
+    {
+        subjectID = 0;
+        quantity = 0;
+    }
+
+    public ObjectMemory(ObjectMemory copyObjectMemory)
+    {
+        subjectID = copyObjectMemory.subjectID;
+        quantity = copyObjectMemory.quantity;
     }
 }
 

@@ -9,6 +9,7 @@ public static class DbIds
     public static int Bush;
     public static int Gobber;
     public static int GobberNest;
+    public static int Hole10;
     public static int Leaves;
     public static int Location;
     public static int Meat;
@@ -138,11 +139,12 @@ public class MasterSubjectList
             RelatedSubjects = new int[0],
 
             Recipe = new BuildRecipe(
-                new Ingredient[]
+                new List<InventoryItem>()
                 {
-                    new Ingredient(DbIds.Branch, 3),
-                    new Ingredient(DbIds.Leaves, 5)
+                    new InventoryItem(DbIds.Branch, 3),
+                    new InventoryItem(DbIds.Leaves, 5)
                 }),
+            InventorySize = 10,
             Prefab = null
         };
         masterSubjectList.Add(PlinkettNest);
@@ -163,14 +165,42 @@ public class MasterSubjectList
             RelatedSubjects = new int[0],
 
             Recipe = new BuildRecipe(
-                new Ingredient[]
+                new List<InventoryItem>()
                 {
-                    new Ingredient(DbIds.Branch, 3),
-                    new Ingredient(DbIds.Leaves, 5)
+                    new InventoryItem(DbIds.Branch, 3),
+                    new InventoryItem(DbIds.Leaves, 5)
                 }),
+            InventorySize = 10,
             Prefab = null
         };
         masterSubjectList.Add(GobberNest);
+
+        DbIds.Hole10 = GetNextID();
+        StructureSubject Hole10 = new StructureSubject()
+        {
+            Attributes =
+                new SubjectAttributes()
+                {
+                    Attributes =
+                    SubjectAttributesEnum.LooksDark
+                    | SubjectAttributesEnum.SoundsQuiet
+                    | SubjectAttributesEnum.FeelsHard
+                },
+            SubjectID = DbIds.Hole10,
+            Name = "Hole",
+            Description = "It looks large enough to contain several things.",
+            Icon = new UnityEngine.Sprite(),
+            RelatedSubjects = new int[0],
+
+            Recipe = new BuildRecipe(
+                new List<InventoryItem>()
+                {
+                    new InventoryItem(DbIds.Branch, 3),
+                }),
+            InventorySize = 10,
+            Prefab = null
+        };
+        masterSubjectList.Add(Hole10);
 
         DbIds.Location = GetNextID();
         LocationSubject NewLocationOne = new LocationSubject()
@@ -271,7 +301,7 @@ public class MasterSubjectList
             MatureTime = 200,
             MaxGrowth = 400,
             Name = "Plinkett",
-            NestRecipe = new BuildRecipe((GetSubject(DbIds.PlinkettNest) as StructureSubject).Recipe),
+            Nest = new StructureSubject(GetSubject(DbIds.PlinkettNest) as StructureSubject),
             RelatedSubjects = new int[0],
             SubjectID = DbIds.Plinkett,
             Prefab = Resources.Load("GameObjects/Plinkett") as GameObject
@@ -329,7 +359,7 @@ public class MasterSubjectList
             MatureTime = 200,
             MaxGrowth = 400,
             Name = "Gobber",
-            NestRecipe = new BuildRecipe((GetSubject(DbIds.GobberNest) as StructureSubject).Recipe),
+            Nest = new StructureSubject(GetSubject(DbIds.GobberNest) as StructureSubject),
             RelatedSubjects = new int[0],
             SubjectID = DbIds.Gobber,
             Prefab = Resources.Load("GameObjects/Gobber") as GameObject

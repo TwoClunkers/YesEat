@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 
 
-class Inventory
+public class Inventory
 {
     #region Private members
-    private int size;
+    private int slotCount;
     private InventoryItem[] inventorySlots;
     #endregion
 
@@ -13,11 +13,11 @@ class Inventory
     /// Constructor for an Inventory object. Must set the initial size in constructor.
     /// </summary>
     /// <param name="newSize"></param>
-    public Inventory(int newSize) 
+    public Inventory(int newSize)
     {
-        size = newSize;
-        inventorySlots = new InventoryItem[size];
-        for (int i = 0; i < size; i++)
+        slotCount = newSize;
+        inventorySlots = new InventoryItem[slotCount];
+        for (int i = 0; i < slotCount; i++)
         {
             inventorySlots[i] = new InventoryItem();
         }
@@ -31,7 +31,7 @@ class Inventory
     public void Resize(int newSize)
     {
         //create a new array of Inventory Slots that is the correct size
-        size = newSize;
+        slotCount = newSize;
         InventoryItem[] newInventorySlots = new InventoryItem[newSize];
         for (int i = 0; i < newInventorySlots.Length; i++)
         {
@@ -52,7 +52,7 @@ class Inventory
     /// </summary>
     /// <param name="newInventoryItems"></param>
     /// <returns></returns>
-    public InventoryItem[] AddGroup(InventoryItem[] newInventoryItems)
+    public InventoryItem[] Add(InventoryItem[] newInventoryItems)
     {
 
         for (int i = 0; i < newInventoryItems.Length; i++)
@@ -77,20 +77,20 @@ class Inventory
         for (int i = 0; i < inventorySlots.Length; i++)
         {
             //If this slot matches, we can stack on top of it
-            if(inventorySlots[i].SubjectID == newInventoryItem.SubjectID)
+            if (inventorySlots[i].SubjectID == newInventoryItem.SubjectID)
             {
                 int remainder = inventorySlots[i].Add(newInventoryItem);
-                newInventoryItem.StackSize = remainder;
+                newInventoryItem.Quantity = remainder;
             }
             //If we still have some, and have an empty slot, we can make a new stack.
-            if(inventorySlots[i].StackSize < 1)
+            if (inventorySlots[i].Quantity < 1)
             {
                 inventorySlots[i].SubjectID = newInventoryItem.SubjectID;
                 int remainder = inventorySlots[i].Add(newInventoryItem);
-                newInventoryItem.StackSize = remainder;
+                newInventoryItem.Quantity = remainder;
             }
             //If the passed InventoryItem is empty, we can reset the subject id and break
-            if(newInventoryItem.StackSize < 1)
+            if (newInventoryItem.Quantity < 1)
             {
                 newInventoryItem.SubjectID = -1;
                 break;
@@ -102,28 +102,44 @@ class Inventory
     }
 
     /// <summary>
-    /// CheckItem returns true if the quantaty of the neededItem can be found anywhere in this Inventory
+    /// Returns true if the quantity of the neededItem can be found anywhere in this Inventory
     /// </summary>
     /// <param name="neededItem"></param>
     /// <returns></returns>
-    public bool CheckItem(InventoryItem neededItem)
+    public bool Contains(InventoryItem neededItem)
     {
         //to track how much we found so far
         int count = 0;
 
         for (int i = 0; i < inventorySlots.Length; i++)
         {
-            if(inventorySlots[i].SubjectID == neededItem.SubjectID)
+            if (inventorySlots[i].SubjectID == neededItem.SubjectID)
             {
-                count += inventorySlots[i].StackSize;
+                count += inventorySlots[i].Quantity;
             }
             //If our needed stack is still more than count than keep going
-            if (neededItem.StackSize > count)
+            if (neededItem.Quantity > count)
                 continue;
             else return true;
         }
         //if we are here, we never found the needed amount
         return false;
+    }
+
+    /// <summary>
+    /// Count how many of items of subjectId are contained in this inventory.
+    /// </summary>
+    /// <param name="subjectId">The SubjectID to count.</param>
+    /// <returns>Quantity of subjectId found.</returns>
+    public int Count(int subjectId)
+    {
+        int foundItems = 0;
+        for (int i = 0; i < inventorySlots.Length; i++)
+        {
+            if (inventorySlots[i].SubjectID == subjectId)
+                foundItems++;
+        }
+        return foundItems;
     }
 
     /// <summary>
@@ -141,12 +157,12 @@ class Inventory
             count += inventorySlots[i].Take(neededItem);
 
             //If we got everything we need return the full neededItem
-            if (neededItem.StackSize == count)
+            if (neededItem.Quantity == count)
                 return neededItem;
             else continue;
         }
         //if we are here, we did not get all we wanted, so return the amount we were able to take
-        neededItem.StackSize = count;
+        neededItem.Quantity = count;
         return neededItem;
     }
 
@@ -169,12 +185,12 @@ class Inventory
             Subject newSubject = MasterSubjectList.GetSubject(inventorySlots[i].SubjectID, limitType) as Subject;
 
             //if we have a non-null subject, than we found a matching type
-            if(newSubject != null)
+            if (newSubject != null)
             {
                 //this creates an InventoryItem to hold our specific request and pass results into our reservedItems list
                 InventoryItem neededItem = new InventoryItem();
                 neededItem.SubjectID = newSubject.SubjectID;
-                neededItem.StackSize = limitStack;
+                neededItem.Quantity = limitStack;
                 //this reduces our inventory and places it into the reserved list
                 reservedItems[position] = Take(neededItem);
                 position += 1;
@@ -187,7 +203,7 @@ class Inventory
         {
             reservedItems[i] = null;
         }
-        
+
         return reservedItems;
     }
 
@@ -200,13 +216,13 @@ class Inventory
         float filled = 0.0f;
         for (int i = 0; i < inventorySlots.Length; i++)
         {
-            if (inventorySlots[i].StackSize > 0)
+            if (inventorySlots[i].Quantity > 0)
             {
                 filled += 1.0f;
             }
-                
+
         }
-        return filled / (float)size;
+        return filled / (float)slotCount;
     }
 
 }
