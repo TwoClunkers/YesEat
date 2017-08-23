@@ -22,7 +22,7 @@ public class LocationMemory : SubjectMemory
     public LocationMemory(int SubjectID, sbyte SafetyValue, sbyte FoodValue) : base(SubjectID, SafetyValue, FoodValue) { }
 
     /// <summary>
-    /// MasterSubjectList.SubjectID for this location.
+    /// KnowledgeBase.SubjectID for this location.
     /// </summary>
     public int LocationSubjectID
     {

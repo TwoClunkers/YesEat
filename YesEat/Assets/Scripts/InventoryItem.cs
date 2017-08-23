@@ -42,7 +42,7 @@ public class InventoryItem
     }
 
     /// <summary>
-    /// The Subject ID in this slot. Used to get info from MasterSubjectList.
+    /// The Subject ID in this slot. Used to get info from KnowledgeBase.
     /// </summary>
     public int SubjectID
     {
@@ -67,7 +67,7 @@ public class InventoryItem
     /// <returns></returns>
     public bool Redefine(int subjectID, int quantity)
     {
-        ItemSubject newSubject = MasterSubjectList.GetSubject(subjectID, typeof(ItemSubject)) as ItemSubject;
+        ItemSubject newSubject = KnowledgeBase.GetSubject(subjectID, typeof(ItemSubject)) as ItemSubject;
 
         if (newSubject != null)
         {
@@ -88,7 +88,7 @@ public class InventoryItem
     {
         if (subjectID != this.subjectID) return quantity; //reject entire amount
 
-        ItemSubject newSubject = MasterSubjectList.GetSubject(subjectID) as ItemSubject;
+        ItemSubject newSubject = KnowledgeBase.GetSubject(subjectID) as ItemSubject;
 
         if (newSubject != null)
         {
@@ -109,7 +109,7 @@ public class InventoryItem
     {
         if (inventoryItem.subjectID != subjectID) return inventoryItem.quantity; //reject entire amount
 
-        ItemSubject newSubject = MasterSubjectList.GetSubject(inventoryItem.subjectID) as ItemSubject;
+        ItemSubject newSubject = KnowledgeBase.GetSubject(inventoryItem.subjectID) as ItemSubject;
 
         if (newSubject != null)
         {

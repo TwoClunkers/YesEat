@@ -38,7 +38,6 @@ public abstract class SubjectObjectScript : MonoBehaviour
     /// <summary>
     /// Will be used by derived classes
     /// </summary>
-    /// <param name="_masterSubjectList"></param>
     /// <param name="newSubject"></param>
     public abstract void InitializeFromSubject(Subject newSubject);
 

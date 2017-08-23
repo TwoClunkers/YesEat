@@ -79,10 +79,7 @@ public class LocationSubject : Subject
     /// <param name="npcCharacter">The NPC to add memories to.</param>
     public override void TeachNpc(NpcCore npcCharacter)
     {
-        if (!npcCharacter.Definition.Memories.Exists(o => o.SubjectID == this.subjectID))
-        {
-            npcCharacter.Definition.Memories.Add(new LocationMemory(subjectID, 0, 0));
-        }
+        npcCharacter.UpdateMemory(NpcMemoryChangeEvent.LocationFound, this);
     }
 
     /// <summary>

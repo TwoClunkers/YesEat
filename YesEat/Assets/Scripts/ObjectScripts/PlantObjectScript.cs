@@ -104,7 +104,6 @@ public class PlantObjectScript : SubjectObjectScript
     /// <summary>
     /// Set this Plant Object's variables from the subject card
     /// </summary>
-    /// <param name="_masterSubjectList"></param>
     /// <param name="newSubject"></param>
     public override void InitializeFromSubject(Subject newSubject)
     {

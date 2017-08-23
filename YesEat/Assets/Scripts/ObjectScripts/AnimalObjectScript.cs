@@ -49,6 +49,8 @@ public class AnimalObjectScript : SubjectObjectScript
         isCurrentLocationExplored = false;
         decaytime = 20.0f;
         targetPosition = default(Vector3);
+
+        subject.TeachNpc(npcCharacter);
     }
 
     public int GetHealth()
@@ -121,8 +123,8 @@ public class AnimalObjectScript : SubjectObjectScript
         for (int i = 0; i < destinationWayPoints.Length; i++)
         {
             Color waypointColor = Color.red;
-            if (subject.SubjectID == DbIds.Plinkett) { waypointColor = Color.blue; }
-            if (subject.SubjectID == DbIds.Gobber) { waypointColor = Color.yellow; }
+            if (subject.SubjectID == KbIds.Plinkett) { waypointColor = Color.blue; }
+            if (subject.SubjectID == KbIds.Gobber) { waypointColor = Color.yellow; }
             Vector3 wayPtTop =
                 new Vector3(destinationWayPoints[i].x,
                 0.25f + ((float)i / destinationWayPoints.Length) * 0.5f,
@@ -352,7 +354,7 @@ public class AnimalObjectScript : SubjectObjectScript
     {
         if (IsDead)
         {
-            return Inventory.Take(new InventoryItem(DbIds.Meat, 1));
+            return Inventory.Take(new InventoryItem(KbIds.Meat, 1));
         }
         else return null;
     }
@@ -379,7 +381,7 @@ public class AnimalObjectScript : SubjectObjectScript
         // Debug: draw line to current targetPosition
         if (destinationWayPoints.Length > 0)
         {
-            Debug.DrawLine(new Vector3(transform.position.x, 0.5f, transform.position.z), targetPosition, (subject.SubjectID == DbIds.Plinkett) ? Color.blue : Color.yellow);
+            Debug.DrawLine(new Vector3(transform.position.x, 0.5f, transform.position.z), targetPosition, (subject.SubjectID == KbIds.Plinkett) ? Color.blue : Color.yellow);
         }
     }
 
@@ -460,9 +462,13 @@ public class AnimalObjectScript : SubjectObjectScript
         else return false;
     }
 
+    /// <summary>
+    /// Dig a hole at the current position.
+    /// </summary>
+    /// <returns>A reference to the hole that was dug.</returns>
     public StructureObjectScript DigHole()
     {
-        StructureSubject holeSubject = MasterSubjectList.GetSubject(DbIds.Hole10) as StructureSubject;
+        StructureSubject holeSubject = KnowledgeBase.GetSubject(KbIds.Hole10) as StructureSubject;
         StructureObjectScript hole =
             Instantiate(holeSubject.Prefab, transform.position, transform.rotation).GetComponent<StructureObjectScript>();
         hole.InitializeFromSubject(holeSubject);
@@ -470,4 +476,47 @@ public class AnimalObjectScript : SubjectObjectScript
         return hole;
     }
 
+    /// <summary>
+    /// Build a nest using the items contained in holeObjectScript's Inventory.
+    /// </summary>
+    /// <param name="holeObjectScript">The hole to search for ingredients to build the nest.</param>
+    /// <returns>A reference to the nest that was built.</returns>
+    internal StructureObjectScript BuildNest(StructureObjectScript holeObjectScript)
+    {
+        BuildRecipe nestRecipe = npcCharacter.Subject.Nest.Recipe;
+        List<InventoryItem> takenItems = new List<InventoryItem>();
+        foreach (InventoryItem ingredient in nestRecipe.Ingredients)
+        {
+            // take out each ingredient
+            InventoryItem tempItem = holeObjectScript.Inventory.Take(new InventoryItem(ingredient));
+            if (tempItem.Quantity == ingredient.Quantity)
+            {
+                takenItems.Add(tempItem);
+            }
+            else
+            {
+                // not enough of this ingredient, put all ingredients back and cancel the nest build
+                foreach (InventoryItem takenIngredient in takenItems)
+                {
+                    holeObjectScript.Inventory.Add(takenIngredient);
+                }
+                return null;
+            }
+        }
+        // we have all needed ingredient quantities, build nest
+        StructureObjectScript nestObjectScript =
+            Instantiate(npcCharacter.Subject.Nest.Prefab, holeObjectScript.transform.position, holeObjectScript.transform.rotation)
+            .GetComponent<StructureObjectScript>();
+
+        nestObjectScript.InitializeFromSubject(npcCharacter.Subject.Nest.Copy());
+
+        takenItems.Clear();
+        takenItems = holeObjectScript.Inventory.TakeAllItems();
+        if (takenItems.Count > 0)
+        {
+            nestObjectScript.Inventory.Add(takenItems.ToArray());
+        }
+
+        return nestObjectScript;
+    }
 }

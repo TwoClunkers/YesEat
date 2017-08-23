@@ -182,7 +182,7 @@ public class Inventory
         {
             if (inventorySlots[i].IsOnList(reservedItems)) continue;
 
-            Subject newSubject = MasterSubjectList.GetSubject(inventorySlots[i].SubjectID, limitType) as Subject;
+            Subject newSubject = KnowledgeBase.GetSubject(inventorySlots[i].SubjectID, limitType) as Subject;
 
             //if we have a non-null subject, than we found a matching type
             if (newSubject != null)
@@ -225,4 +225,10 @@ public class Inventory
         return filled / (float)slotCount;
     }
 
+    internal List<InventoryItem> TakeAllItems()
+    {
+        List<InventoryItem> returnList = new List<InventoryItem>(inventorySlots);
+        inventorySlots = new InventoryItem[slotCount];
+        return returnList;
+    }
 }

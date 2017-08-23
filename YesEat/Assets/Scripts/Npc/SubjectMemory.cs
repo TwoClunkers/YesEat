@@ -12,7 +12,7 @@ public class SubjectMemory
     #endregion
 
     /// <summary>
-    /// The SubjectID used to reference the Subject in the MasterSubjectList.
+    /// The SubjectID used to reference the Subject in the KnowledgeBase.
     /// </summary>
     public int SubjectID
     {

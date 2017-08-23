@@ -39,7 +39,6 @@ public partial class NpcCore
     /// Create a generic NpcCharacter.
     /// </summary>
     /// <param name="ParentObjectScript">The in-game object that represents this NPC.</param>
-    /// <param name="MasterSubjectListRef">A reference to the main MasterSubjectList.</param>
     public NpcCore(AnimalObjectScript ParentObjectScript)
     {
         mob = ParentObjectScript;
@@ -63,7 +62,6 @@ public partial class NpcCore
     /// Initialize a new NpcCharacter. 
     /// </summary>
     /// <param name="ParentObject">The in-game object that represents this NPC.</param>
-    /// <param name="MasterSubjectListRef">A reference to the main MasterSubjectList.</param>
     /// <param name="BasedOnSubject">Subject's NpcDefinition will define the character's initial resource pools, thresholds for fulfilling basic needs, and memories.</param>
     public NpcCore(AnimalObjectScript ParentObjectScript, Subject BasedOnSubject)
     {
@@ -98,13 +96,13 @@ public partial class NpcCore
     {
         if (definition.Traits.HasTrait(NpcTraits.Herbivore))
         {
-            foodID = DbIds.Berry;
-            foodSourceID = DbIds.Bush;
+            foodID = KbIds.Berry;
+            foodSourceID = KbIds.Bush;
         }
         else if (definition.Traits.HasTrait(NpcTraits.Carnivore))
         {
-            foodID = DbIds.Meat;
-            foodSourceID = DbIds.Plinkett;
+            foodID = KbIds.Meat;
+            foodSourceID = KbIds.Plinkett;
         }
     }
 
@@ -115,10 +113,10 @@ public partial class NpcCore
     internal List<LocationSubject> GetAllKnownLocations(Vector3 sortByNearestTo = default(Vector3))
     {
         List<SubjectMemory> locationMemories = definition.Memories
-                .FindAll(o => MasterSubjectList.GetSubject(o.SubjectID).GetType() == typeof(LocationSubject))
+                .FindAll(o => KnowledgeBase.GetSubject(o.SubjectID).GetType() == typeof(LocationSubject))
                 .OrderBy(o => (o as LocationMemory).LastTimeSeen).ToList();
         List<LocationSubject> knownLocations = locationMemories
-                .Select(o => (MasterSubjectList.GetSubject(o.SubjectID) as LocationSubject)).ToList();
+                .Select(o => (KnowledgeBase.GetSubject(o.SubjectID) as LocationSubject)).ToList();
 
         if (sortByNearestTo != default(Vector3))
         {
@@ -136,7 +134,7 @@ public partial class NpcCore
     /// <returns>The found locations or null if no locations were found.</returns>
     internal List<LocationSubject> GetObjectLocations(Subject SubjectToFind, Vector3 CurrentPosition, List<int> ExcludeLocationIDs = null)
     {
-        List<LocationSubject> foundObjects = new List<LocationSubject>();
+        List<LocationSubject> foundObjectLocations = new List<LocationSubject>();
         foreach (SubjectMemory subMem in definition.Memories)
         {
             if (subMem.GetType() == typeof(LocationMemory))
@@ -152,16 +150,16 @@ public partial class NpcCore
                             {
                                 if (ExcludeLocationIDs.Contains(subMem.SubjectID)) continue;
                             }
-                            foundObjects.Add(MasterSubjectList.GetSubject(locMem.SubjectID) as LocationSubject);
+                            foundObjectLocations.Add(KnowledgeBase.GetSubject(locMem.SubjectID) as LocationSubject);
                         }
                     }
                 }
             }
         }
         // sort by distance
-        foundObjects = foundObjects.OrderBy(o => Vector3.Distance(o.Coordinates, CurrentPosition)).ToList();
+        foundObjectLocations = foundObjectLocations.OrderBy(o => Vector3.Distance(o.Coordinates, CurrentPosition)).ToList();
 
-        return foundObjects;
+        return foundObjectLocations;
     }
 
     /// <summary>
@@ -170,7 +168,7 @@ public partial class NpcCore
     /// <returns>Quantity found.</returns>
     private int GetKnownLocationCount()
     {
-        return definition.Memories.Count(o => MasterSubjectList.GetSubject(o.SubjectID).GetType() == typeof(LocationSubject));
+        return definition.Memories.Count(o => KnowledgeBase.GetSubject(o.SubjectID).GetType() == typeof(LocationSubject));
     }
 
     /// <summary>
@@ -240,25 +238,29 @@ public partial class NpcCore
                 break;
             case NpcMemoryChangeEvent.LocationFound:
                 // look at everything in this location and decide how to effect attitude for this location.
-                if (IsSubjectKnown(subject))
+                LocationMemory locationMemory;
+                if (!IsSubjectKnown(subject))
                 {
-                    // known location
-                    LocationMemory locationMemory = definition.Memories.Find(o => o.SubjectID == subject.SubjectID) as LocationMemory;
+                    locationMemory = new LocationMemory(subject.SubjectID, 0, 0);
+                    definition.Memories.Add(locationMemory);
+                }
+                else
+                {
+                    locationMemory = definition.Memories.Find(o => o.SubjectID == subject.SubjectID) as LocationMemory;
+
                     int foodValue = 0;
                     int safetyValue = 0;
                     foreach (ObjectMemory objMem in locationMemory.ObjectMemories)
                     {
-                        if (definition.Memories.Find(o => o.SubjectID == objMem.SubjectID).Food > 0)
+                        SubjectMemory subjectMemory = definition.Memories.Find(o => o.SubjectID == objMem.SubjectID);
+                        if (subjectMemory.Food > 0)
                             foodValue += objMem.Quantity;
-                        if (definition.Memories.Find(o => o.SubjectID == objMem.SubjectID).Safety > 0)
+                        if (subjectMemory.Safety > 0)
                             safetyValue += objMem.Quantity;
+                        else if (subjectMemory.Safety < 0)
+                            safetyValue -= objMem.Quantity;
                     }
                     locationMemory.SetValues((sbyte)foodValue, (sbyte)safetyValue);
-                }
-                else
-                {
-                    //unknown location
-                    definition.Memories.Add(new SubjectMemory(subject.SubjectID, 0, 0));
                 }
                 break;
             default:
@@ -308,21 +310,33 @@ public partial class NpcCore
     /// <summary>
     /// Find a the nearest safe location.
     /// </summary>
-    /// <param name="masterSubjectList">Reference to the MasterSubjectList</param>
     /// <param name="definition">The NPC to check</param>
     /// <param name="objectScript">The GameObject's script.</param>
     /// <returns>The nearest safe location. Returns NULL if no safe locations are found.</returns>
     internal LocationSubject GetSafeLocation(AnimalObjectScript objectScript)
     {
-        // get a list of all safe locations we remember
-        List<SubjectMemory> foundLocations = definition.Memories
-                                            .FindAll(o => (o.Safety > 0))
-                                            .OrderBy(o => Vector3.Distance((MasterSubjectList.GetSubject(o.SubjectID) as LocationSubject).Coordinates,
-                                                objectScript.gameObject.transform.position)).ToList();
-        if (foundLocations.Count > 0)
-            return MasterSubjectList.GetSubject(foundLocations[0].SubjectID) as LocationSubject;
+        List<LocationSubject> foundSafeLocations = new List<LocationSubject>();
+        foreach (SubjectMemory subMem in definition.Memories)
+        {
+            if (subMem.GetType() == typeof(LocationMemory))
+            {
+                LocationMemory locMem = subMem as LocationMemory;
+                if (locMem.Safety > 0)
+                {
+                    foundSafeLocations.Add(KnowledgeBase.GetSubject(locMem.SubjectID) as LocationSubject);
+                }
+            }
+        }
+        if (foundSafeLocations.Count > 0)
+        {
+            // sort by distance
+            foundSafeLocations = foundSafeLocations.OrderBy(o => Vector3.Distance(o.Coordinates, objectScript.transform.position)).ToList();
+            return foundSafeLocations[0];
+        }
         else
+        {
             return null;
+        }
     }
 
     /// <summary>
@@ -434,7 +448,7 @@ public partial class NpcCore
     /// <summary>
     /// This NPC's subject.
     /// </summary>
-    public AnimalSubject Subject { get { return MasterSubjectList.GetSubject(subjectID, typeof(AnimalSubject)) as AnimalSubject; } }
+    public AnimalSubject Subject { get { return KnowledgeBase.GetSubject(subjectID, typeof(AnimalSubject)) as AnimalSubject; } }
 
     public void Update()
     {
@@ -563,7 +577,14 @@ public partial class NpcCore
             {
                 reExploreLocations = GetAllKnownLocations();
             }
-            mob.MoveToLocation(reExploreLocations[0]);
+            if (reExploreLocations.Count > 0)
+            {
+                mob.MoveToLocation(reExploreLocations[0]);
+            }
+            else
+            {
+                Debug.Log("No locations to explore.");
+            }
         }
     }
 
@@ -644,7 +665,7 @@ public partial class NpcCore
                 // there are no food sources in close range
                 // find a location with foodSourceID
                 List<LocationSubject> foodLocations =
-                    GetObjectLocations(MasterSubjectList.GetSubject(foodSourceID), mob.transform.position, searchedLocations);
+                    GetObjectLocations(KnowledgeBase.GetSubject(foodSourceID), mob.transform.position, searchedLocations);
 
                 if (foodLocations.Count > 0)
                 {
@@ -663,7 +684,7 @@ public partial class NpcCore
     {
         if (definition.Nest != null)
         {
-            SpecialObjectMemory holeMemory = definition.Nest.ObjectMemories.Find(o => o.SubjectID == DbIds.Hole10) as SpecialObjectMemory;
+            SpecialObjectMemory holeMemory = definition.Nest.ObjectMemories.Find(o => o.SubjectID == KbIds.Hole10) as SpecialObjectMemory;
 
             // we are currently in the nearest safe location and it is saved
             if (holeMemory != null)
@@ -679,58 +700,87 @@ public partial class NpcCore
                     }
                     else
                     {
+                        StructureObjectScript holeObject = null;
                         // we are next to our hole, get a reference to it
-                        StructureObjectScript holeObject = considerObjects
-                            .Find(o => o.GetComponent<SubjectObjectScript>().Subject.SubjectID == Subject.Nest.SubjectID)
-                            .GetComponent<StructureObjectScript>();
-
-                        //do we have all items in hole for building nest?
-                        List<InventoryItem> nestNeeds = new List<InventoryItem>();
-                        foreach (InventoryItem ingredient in Subject.Nest.Recipe.Ingredients)
+                        foreach (GameObject gObj in considerObjects)
                         {
-                            int qtyNeeded = ingredient.Quantity - holeObject.Inventory.Count(ingredient.SubjectID);
-                            if (qtyNeeded > 0)
-                                nestNeeds.Add(new InventoryItem(ingredient.SubjectID, qtyNeeded));
+                            SubjectObjectScript subObj = gObj.GetComponent<SubjectObjectScript>();
+                            if (subObj.GetType() == typeof(StructureObjectScript))
+                            {
+                                if (subObj.Subject.SubjectID == KbIds.Hole10)
+                                {
+                                    holeObject = subObj as StructureObjectScript;
+                                    break;
+                                }
+                            }
                         }
-                        if (nestNeeds.Count == 0)
+
+                        if (holeObject != null)
                         {
-                            // everything needed to build nest is already in the hole
-                            // TODO:    build nest using items in hole
-                            //          instantiate nest and transfer any hole contents to it
-                            //          remove Nest driver & save nest as SpecialObjectMemory
+                            //do we have all items in hole for building nest?
+                            List<InventoryItem> nestNeeds = new List<InventoryItem>();
+                            foreach (InventoryItem ingredient in Subject.Nest.Recipe.Ingredients)
+                            {
+                                int qtyNeeded = ingredient.Quantity - holeObject.Inventory.Count(ingredient.SubjectID);
+                                if (qtyNeeded > 0)
+                                    nestNeeds.Add(new InventoryItem(ingredient.SubjectID, qtyNeeded));
+                            }
+                            if (nestNeeds.Count == 0)
+                            {
+                                // everything needed to build nest is already in the hole
+                                // build nest using items in hole
+                                StructureObjectScript nestObjectScript = mob.BuildNest(holeObject);
+
+                                definition.Nest.ObjectMemories.Remove(holeMemory);
+                                SpecialObjectMemory nestMemory =
+                                    new SpecialObjectMemory()
+                                    {
+                                        Position = nestObjectScript.transform.position,
+                                        Quantity = 1,
+                                        SubjectID = nestObjectScript.Subject.SubjectID
+                                    };
+                                // save nest to our special Nest memory
+                                definition.Nest.ObjectMemories.Add(nestMemory);
+                                // we just built our nest, remove from drivers.
+                                drivers.Remove(NpcDrivers.Nest);
+                            }
+                            else
+                            {
+                                // do we have any needed ingredients for nest with us?
+                                for (int i = 0; i < nestNeeds.Count; i++)
+                                {
+                                    if (mob.Inventory.Count(nestNeeds[i].SubjectID) > 0)
+                                    {
+                                        // inventory does have this ingredient, deposit in hole
+                                        InventoryItem taken = mob.Inventory.Take(new InventoryItem(nestNeeds[i]));
+                                        // put back anything that didn't fit
+                                        nestNeeds[i].Quantity -= taken.Quantity;
+                                        InventoryItem leftoverItems = holeObject.Inventory.Add(taken);
+                                        if (leftoverItems.Quantity > 0)
+                                        {
+                                            nestNeeds[i].Quantity += leftoverItems.Quantity;
+                                            mob.Inventory.Add(leftoverItems);
+                                        }
+                                    }
+                                }
+                                neededItems.Clear();
+                                foreach (InventoryItem ingredient in nestNeeds)
+                                {
+                                    if (ingredient.Quantity > 0)
+                                        neededItems.Add(new InventoryItem(ingredient));
+                                }
+                            }
                         }
                         else
                         {
-                            // do we have any needed ingredients for nest with us?
-                            for (int i = 0; i < nestNeeds.Count; i++)
-                            {
-                                if (mob.Inventory.Count(nestNeeds[i].SubjectID) > 0)
-                                {
-                                    // inventory does have this ingredient, deposit in hole
-                                    InventoryItem taken = mob.Inventory.Take(new InventoryItem(nestNeeds[i]));
-                                    // put back anything that didn't fit
-                                    nestNeeds[i].Quantity -= taken.Quantity;
-                                    InventoryItem leftoverItems = holeObject.Inventory.Add(taken);
-                                    if (leftoverItems.Quantity > 0)
-                                    {
-                                        nestNeeds[i].Quantity += leftoverItems.Quantity;
-                                        mob.Inventory.Add(leftoverItems);
-                                    }
-                                }
-                            }
-                            neededItems.Clear();
-                            foreach (InventoryItem ingredient in nestNeeds)
-                            {
-                                if (ingredient.Quantity > 0)
-                                    neededItems.Add(new InventoryItem(ingredient));
-                            }
+                            Debug.Log("Error: Hole object not found!");
                         }
                     }
                 }
                 else
                 {
                     // neededIngredients has ingredients, go collect them.
-                    ExploreForItem(DbIds.Bush, neededItems[0].SubjectID);
+                    ExploreForItem(neededItems[0].SubjectID);
                 }
             }
             else
@@ -743,7 +793,7 @@ public partial class NpcCore
                         {
                             Position = mob.DigHole().transform.position,
                             Quantity = 1,
-                            SubjectID = DbIds.Hole10
+                            SubjectID = KbIds.Hole10
                         };
                     definition.Nest.ObjectMemories.Add(newHoleMemory);
                 }
@@ -756,7 +806,7 @@ public partial class NpcCore
             if (safeLocation != null)
             {
                 // a safe location is in memory, are we already there?
-                if (safeLocation == mob.Location)
+                if (safeLocation.SubjectID == mob.Location.SubjectID)
                 {
                     // If not already saved, save this location as Nest location
                     if (definition.Nest == null)
@@ -779,7 +829,14 @@ public partial class NpcCore
 
     }
 
-    private void ExploreForItem(int sourceSubjectId, int itemSubjectId)
+    /// <summary>
+    /// Search memories for a location where one of sourceSubjectIds was found. <para />
+    /// Travel to the location, search for the sourceSubject, attempt to harvest from it. <para />
+    /// Remove found items from the neededIngredients list.
+    /// </summary>
+    /// <param name="sourceSubjectIds">The SubjectID's that the itemSubjectId can be harvested from.</param>
+    /// <param name="itemSubjectId">The </param>
+    private void ExploreForItem(int itemSubjectId)
     {
         // TODO:    search memories for sourceSubjectId
         //          travel to source subject locations
@@ -799,7 +856,7 @@ public partial class NpcCore
             // if not at nest move there first
             if (mob.Location.SubjectID != definition.Nest.LocationSubjectID)
             {
-                mob.MoveToLocation(MasterSubjectList.GetSubject(definition.Nest.SubjectID) as LocationSubject);
+                mob.MoveToLocation(KnowledgeBase.GetSubject(definition.Nest.SubjectID) as LocationSubject);
                 return;
             }
         }
@@ -830,6 +887,7 @@ public partial class NpcCore
             //only add location to memory if all waypoints are explored
             if (mob.IsCurrentLocationExplored)
             {
+                UpdateMemory(NpcMemoryChangeEvent.LocationFound, inspectObjectScript.Subject);
                 // if it's in the unexploredLocations list, remove it.
                 unexploredLocations.Remove(locObjScript.Subject as LocationSubject);
                 // if it's in the reExploreLocations list, remove it.
@@ -839,6 +897,8 @@ public partial class NpcCore
         else
         {
             inspectObjectScript.Subject.TeachNpc(this);
+            if (inspectObjectScript.Subject.SubjectID == foodSourceID)
+                definition.Memories.Find(o => o.SubjectID == foodSourceID).Safety = 1;
         }
     }
 
@@ -857,15 +917,13 @@ public partial class NpcCore
             if (food < definition.FoodMax)
             {
                 status.SetState(NpcStates.Eating); //set eating flag
-                FoodSubject foodSubject = MasterSubjectList.GetSubject(FoodItem.SubjectID, typeof(FoodSubject)) as FoodSubject;
+                FoodSubject foodSubject = KnowledgeBase.GetSubject(FoodItem.SubjectID, typeof(FoodSubject)) as FoodSubject;
                 if (foodSubject != null)
                 {
                     food += foodSubject.FoodValue;
                     food = System.Math.Min(food, definition.FoodMax);
 
-                    // heal a little when we eat.
-                    health += definition.HealthRegen * 2;
-                    health = Mathf.Min(health, definition.HealthMax);
+                    UpdateMemory(NpcMemoryChangeEvent.FoodEaten, foodSubject);
 
                     wasConsumed = true;
                 }

@@ -49,7 +49,7 @@ public partial class PlacementControllerScript : MonoBehaviour
         lastDistance = 0;
         cameraDestination = Camera.main.transform.position;
         cameraFollowTarget = false;
-        MasterSubjectList.Init();
+        KnowledgeBase.Init();
     }
 
     // Update is called once per frame
@@ -111,7 +111,7 @@ public partial class PlacementControllerScript : MonoBehaviour
                     //We will let everything start with a radius of 0.5
                     if (CheckPlacementPosition(centerPosition, 0.5f, null))
                     {
-                        if (placeID == DbIds.Location) //this is a location, which requires 2 steps
+                        if (placeID == KbIds.Location) //this is a location, which requires 2 steps
                         {
                             placedObject = Instantiate(locationStart, centerPosition, Quaternion.identity);
                             //calculate our edge and manipulate the scale until finalized
@@ -126,7 +126,7 @@ public partial class PlacementControllerScript : MonoBehaviour
                         else
                         {
                             //Use the id to pull the Subject card
-                            Subject newSubject = MasterSubjectList.GetSubject(placeID);
+                            Subject newSubject = KnowledgeBase.GetSubject(placeID);
                             if (newSubject != null)
                             {
                                 placedObject = Instantiate(newSubject.Prefab, centerPosition, Quaternion.identity);
@@ -144,7 +144,7 @@ public partial class PlacementControllerScript : MonoBehaviour
             else
             {
                 //We have started to place - is it a location?
-                if (placeID == DbIds.Location)
+                if (placeID == KbIds.Location)
                 {
                     //calculate our edge and manipulate the scale until finalized
                     edgePosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y));
@@ -191,7 +191,7 @@ public partial class PlacementControllerScript : MonoBehaviour
         if (plantSub != null)
         {
             PlantObjectScript plantScript = script as PlantObjectScript;
-            Subject produceSubject = MasterSubjectList.GetSubject(plantSub.ProduceID);
+            Subject produceSubject = KnowledgeBase.GetSubject(plantSub.ProduceID);
             float maturePercent = Mathf.Min(plantScript.CurrentGrowth / plantSub.MatureGrowth, 1.0f);
             plantPanel.SetActive(true);
             animalPanel.SetActive(false);
@@ -306,7 +306,7 @@ public partial class PlacementControllerScript : MonoBehaviour
             if (hitColliders[i].gameObject == excludeObject) continue;
             //Are any Colliders a LocationObject?
             //If we have one location, (not two) we are fine to place
-            if ((hitColliders[i].tag == "Location") ^ (placeID == DbIds.Location))
+            if ((hitColliders[i].tag == "Location") ^ (placeID == KbIds.Location))
             {
                 continue;
             }
@@ -429,8 +429,8 @@ public partial class PlacementControllerScript : MonoBehaviour
     /// <param name="radius"></param>
     public GameObject CreateLocation(Vector3 center, float radius)
     {
-        //first, pull the genaric LocationSubject from the MasterSubjectList and create prefab
-        LocationSubject locFromMaster = MasterSubjectList.GetSubject(DbIds.Location) as LocationSubject;
+        //first, pull the genaric LocationSubject from the KnowledgeBase and create prefab
+        LocationSubject locFromMaster = KnowledgeBase.GetSubject(KbIds.Location) as LocationSubject;
         GameObject newLocationObject = Instantiate(locFromMaster.Prefab, center, Quaternion.identity);
         newLocationObject.transform.localScale = new Vector3(radius * 2, 0.1f, radius * 2);
 
@@ -446,12 +446,12 @@ public partial class PlacementControllerScript : MonoBehaviour
             Layer = 1,
 
             //add the next id available
-            SubjectID = MasterSubjectList.GetNextID()
+            SubjectID = KnowledgeBase.GetNextID()
         };
         script.InitializeFromSubject(newLocSubject);
 
         //now add our card to the master list
-        if (!MasterSubjectList.AddSubject(newLocSubject)) Debug.Log("FAIL ADD");
+        if (!KnowledgeBase.AddSubject(newLocSubject)) Debug.Log("FAIL ADD");
         //store to the script attached to our new object
         return newLocationObject;
     }
@@ -464,7 +464,7 @@ public partial class PlacementControllerScript : MonoBehaviour
     public GameObject SpawnObject(int newSubjectId, Vector3 spawnPoint)
     {
         //Use the id to pull the Subject card
-        Subject newSubject = MasterSubjectList.GetSubject(newSubjectId);
+        Subject newSubject = KnowledgeBase.GetSubject(newSubjectId);
         if (newSubject != null)
         {
             GameObject newObject = Instantiate(newSubject.Prefab, spawnPoint, Quaternion.identity);
@@ -481,25 +481,25 @@ public partial class PlacementControllerScript : MonoBehaviour
     //Button attachments
     public void OnSelectLocation(bool isClicked)
     {
-        placeID = DbIds.Location;
+        placeID = KbIds.Location;
         placementStarted = false;
     }
 
     public void OnSelectBush(bool isClicked)
     {
-        placeID = DbIds.Bush;
+        placeID = KbIds.Bush;
         placementStarted = false;
     }
 
     public void OnSelectPlinket()
     {
-        placeID = DbIds.Plinkett;
+        placeID = KbIds.Plinkett;
         placementStarted = false;
     }
 
     public void OnSelectGobber()
     {
-        placeID = DbIds.Gobber;
+        placeID = KbIds.Gobber;
         placementStarted = false;
     }
 
