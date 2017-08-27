@@ -4,47 +4,59 @@ using System.Collections;
 public class PlantObjectScript : SubjectObjectScript
 {
     #region Private members
-    private float currentGrowth;
+    protected float currentGrowth;
     private Inventory inventory;
-    private bool mature;
-    private float age;
-    private float lastProduce;
-    private int branchLevel;
-    private MeshFilter filter;
-    private MeshCollider coll;
-    PlantSubject plantSubject;
+    protected bool mature;
+    protected float age;
+    protected float lastProduce;
+    protected int branchLevel;
+    protected MeshFilter filter;
+    protected MeshCollider coll;
+    public PlantSubject plantSubject;
     public Vector3 apex;
-
+    public MeshData meshData;
+    public GameObject[] nodes;
+    public Node baseNode;
+    public bool meshChanged;
     #endregion
    
     // Use this for initialization
     void Awake()
     {
-        plantSubject = subject as PlantSubject;
+        plantSubject = new PlantSubject();
+        filter = gameObject.GetComponent<MeshFilter>();
+        coll = gameObject.GetComponent<MeshCollider>();
+        branchLevel = 0;
 
         mature = false;
         age = 0.0f;
         currentGrowth = 0.01f;
         lastProduce = Time.time;
+        baseNode = new Node();
+        baseNode.Radius = 1.0f;
+
+        meshChanged = true;
     }
 
     // Update is called once per frame
     void Update()
     {
-        age += Time.deltaTime;
+        age += (Time.deltaTime*1.0f);
         //we grow
         if (currentGrowth < plantSubject.MaxGrowth)
         {
             if (age > (currentGrowth * plantSubject.GrowthRate))
+            {
                 GrowthStep();
+            }
         }
+
         //we produce
         if (mature)
         {
             if ((Time.time - lastProduce) > plantSubject.ProduceTime)
             {
                 ProduceStep();
-                UpdateFullnessColor();
             }
         }
         else
@@ -55,25 +67,43 @@ public class PlantObjectScript : SubjectObjectScript
                 lastProduce = Time.time;
             }
         }
-        
+
+        if (meshChanged) UpdateMesh();
     }
 
-    public float CurrentGrowth
+    public virtual void UpdateMesh()
     {
-        get { return currentGrowth; }
-        set { currentGrowth = value; }
+        MeshData meshData = new MeshData();
+        if(branchLevel>0)
+        {
+            meshData.AddSplitTube(baseNode.GetScaledNode(), plantSubject.NodeList[0].GetScaledNode(), plantSubject.NodeList[1].GetScaledNode(), 20);
+            meshData.AddDisk(plantSubject.NodeList[0].ScaledPosition(), plantSubject.NodeList[0].ScaledRadius(), 20, plantSubject.NodeList[0].Rotation);
+            meshData.AddDisk(plantSubject.NodeList[1].ScaledPosition(), plantSubject.NodeList[1].ScaledRadius(), 20, plantSubject.NodeList[1].Rotation);
+        }
+        else
+        {
+            meshData.AddTaperTube(baseNode.GetScaledNode(), plantSubject.NodeList[0].GetScaledNode(), 20);
+            meshData.AddDisk(plantSubject.NodeList[0].ScaledPosition(), plantSubject.NodeList[0].ScaledRadius(), 20, plantSubject.NodeList[0].Rotation);
+        }
+        RenderMesh(meshData);
     }
 
-    public float InventoryPercent()
+    // Sends the calculated mesh information
+    // to the mesh and collision components
+    public void RenderMesh(MeshData meshData)
     {
-        return inventory.FillRatio();
+        filter.mesh.Clear();
+        filter.mesh.vertices = meshData.verts.ToArray();
+        filter.mesh.triangles = meshData.tris.ToArray();
+        filter.mesh.uv = meshData.uvs.ToArray();
+        filter.mesh.RecalculateNormals();
+
+        coll.sharedMesh = filter.mesh;
+
+        meshChanged = false;
     }
 
-    public int BranchLevel
-    {
-        get { return branchLevel; }
-        set { branchLevel = value; }
-    }
+
     /// <summary>
     /// Harvest to take from inventory
     /// </summary>
@@ -89,9 +119,13 @@ public class PlantObjectScript : SubjectObjectScript
     /// </summary>
     void ProduceStep()
     {
-        InventoryItem producedItem = new InventoryItem(plantSubject.ProduceID, 1);
-        producedItem = inventory.Add(producedItem);
-        lastProduce = Time.time;
+        if(plantSubject.ProduceID > 0)
+        {
+            InventoryItem producedItem = new InventoryItem(plantSubject.ProduceID, 1);
+            producedItem = inventory.Add(producedItem);
+            lastProduce = Time.time;
+        }
+        
     }
 
     /// <summary>
@@ -99,13 +133,83 @@ public class PlantObjectScript : SubjectObjectScript
     /// </summary>
     void GrowthStep()
     {
-        currentGrowth += 1;
-        gameObject.transform.localScale = new Vector3(currentGrowth * 0.04f + 0.5f, currentGrowth * 0.03f + 0.5f, currentGrowth * 0.04f + 0.5f);
-    }
+        currentGrowth += plantSubject.GrowthRate;
+        meshChanged = true;
 
-    void UpdateFullnessColor()
-    {
-        transform.GetComponent<Renderer>().material.color = Color.Lerp(new Color(0.2F, 0.9F, 0.3F, 0.8F), new Color(0.8F, 0.2F, 0.8F, 0.8F), inventory.FillRatio());
+        baseNode.Scale = new Vector3(currentGrowth, currentGrowth * plantSubject.HeightRatio, currentGrowth);
+        if(plantSubject.NodeList[0] != null)
+        {
+            plantSubject.NodeList[0].Scale = new Vector3(currentGrowth*plantSubject.TaperRatio, currentGrowth*plantSubject.HeightRatio, currentGrowth);
+        }
+        if (plantSubject.NodeList[1] != null)
+        {
+            plantSubject.NodeList[1].Scale = new Vector3(currentGrowth * plantSubject.TaperRatio, currentGrowth * plantSubject.HeightRatio, currentGrowth);
+        }
+
+
+        if (nodes.Length < 1) return;
+        if (nodes.Length > 1)
+        {
+            if(branchLevel < 1)
+            {
+                nodes = new GameObject[1];
+            }
+        }
+        if (plantSubject.NodeAttachment == null) return;
+        
+        //If this is a tree, the top node is reserved for a tree segment
+        if (plantSubject.PlantType == PlantTypes.Tree)
+        {
+            for (int i = 0; i < nodes.Length; i++)
+            {
+                if (nodes[i] == null)
+                {
+                    if (branchLevel < 10 && mature)
+                    {
+                        nodes[i] = Instantiate(plantSubject.Prefab, this.transform);
+                        nodes[i].transform.localPosition = plantSubject.NodeList[i].Rotation * plantSubject.NodeList[i].ScaledPosition();
+                        nodes[i].transform.localRotation = plantSubject.NodeList[i].Rotation * Quaternion.Euler(0, 137.5f, 0);
+                        PlantObjectScript script = nodes[i].GetComponent<PlantObjectScript>() as PlantObjectScript;
+                        script.InitializeFromSubject(masterSubjectList, plantSubject);
+                        script.branchLevel = branchLevel + 1;
+                        Node newBase = plantSubject.NodeList[i].GetNode();
+                        newBase.Position = new Vector3(0, 0, 0);
+                        newBase.Rotation = Quaternion.identity;
+                        newBase.Radius = 1.0f;
+                        script.baseNode = newBase;
+                    }
+                    else
+                    {
+                        nodes[i] = Instantiate(plantSubject.NodeAttachment, this.transform);
+                        nodes[i].transform.localPosition = plantSubject.NodeList[i].Rotation * plantSubject.NodeList[i].ScaledPosition();
+                        nodes[i].transform.localRotation = plantSubject.NodeList[i].Rotation * Quaternion.Euler(0, 10.5f, 0); 
+                    }
+                }
+                else
+                {
+                    nodes[i].transform.localPosition = plantSubject.NodeList[i].Rotation * plantSubject.NodeList[i].ScaledPosition();
+
+                    LeafObjectScript leafScript = nodes[i].GetComponent<LeafObjectScript>() as LeafObjectScript;
+                    if(leafScript != null)
+                    {
+                        leafScript.CurrentGrowth += Time.deltaTime * 0.5f;
+                        leafScript.MeshChanged = true;
+                        if(leafScript.CurrentGrowth > leafScript.MaxGrowth)
+                        {
+                            Destroy(nodes[i].gameObject);
+                            nodes[i] = null;
+                        }
+                    }
+                    else
+                    {
+                        PlantObjectScript plantScript = nodes[i].GetComponent<PlantObjectScript>() as PlantObjectScript;
+                        plantScript.plantSubject.MaxGrowth = plantSubject.NodeList[i].ScaledRadius();
+                    }
+                }
+            }
+
+        }
+
     }
 
     /// <summary>
@@ -119,13 +223,16 @@ public class PlantObjectScript : SubjectObjectScript
         subject = newSubject;
         if (newSubject is PlantSubject)
         {
-            PlantSubject plantSubject = newSubject.Copy() as PlantSubject;
+            plantSubject = newSubject.Copy() as PlantSubject;
 
             inventory = new Inventory(plantSubject.InventorySize, _masterSubjectList);
             mature = false;
             age = 0.1f;
             currentGrowth = 0.01f;
             lastProduce = Time.time;
+
+            nodes = new GameObject[plantSubject.NodeList.Length];
+
 
         }
         else
@@ -144,7 +251,23 @@ public class PlantObjectScript : SubjectObjectScript
             currentGrowth = 5.0f;
             lastProduce = Time.time;
         }
-        gameObject.transform.localScale = new Vector3(currentGrowth * 0.01f + 0.5f, currentGrowth * 0.02f + 0.5f, currentGrowth * 0.01f + 0.5f);
+        //gameObject.transform.localScale = new Vector3(currentGrowth * 0.01f + 0.5f, currentGrowth * 0.02f + 0.5f, currentGrowth * 0.01f + 0.5f);
     }
 
+    public float CurrentGrowth
+    {
+        get { return currentGrowth; }
+        set { currentGrowth = value; }
+    }
+
+    public float InventoryPercent()
+    {
+        return inventory.FillRatio();
+    }
+
+    public int BranchLevel
+    {
+        get { return branchLevel; }
+        set { branchLevel = value; }
+    }
 }

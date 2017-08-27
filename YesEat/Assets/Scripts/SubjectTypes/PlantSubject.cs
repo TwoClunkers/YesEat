@@ -1,6 +1,14 @@
 ﻿using System;
 using UnityEngine;
 
+public enum PlantTypes
+{
+    GroundCover = 0,
+    Grass = 1,
+    Bush = 2,
+    Tree = 3,
+    Branch = 4
+}
 /// <summary>
 /// Plant Subject extends the Subject Class to describe plants for AI
 /// </summary>
@@ -10,13 +18,15 @@ public class PlantSubject : Subject
     #region Private members
     private int produceID;
     private int produceTime;
-    private int maxGrowth;
-    private int growthRate;
-    private int matureGrowth;
+    private float maxGrowth;
+    private float growthRate;
+    private float matureGrowth;
     private int inventorySize;
-    private Vector3[] nodeList;
+    private Node[] nodeList;
     private GameObject nodeAttachment;
     private float heightRatio;
+    private float taperRatio;
+    private PlantTypes plantType;
     #endregion
 
     public PlantSubject() : base()
@@ -28,12 +38,14 @@ public class PlantSubject : Subject
         produceID = 0;
         produceTime = 0;
         maxGrowth = 3;
-        growthRate = 0;
+        growthRate = 0.01f;
         matureGrowth = 1;
         inventorySize = 3;
         nodeList = null;
         nodeAttachment = null;
-        heightRatio = 1.0f;
+        heightRatio = 5.0f;
+        taperRatio = 0.8f;
+        plantType = PlantTypes.Bush;
     }
 
     public PlantSubject(PlantSubject copyPlantSubject) : base(copyPlantSubject)
@@ -41,7 +53,7 @@ public class PlantSubject : Subject
         produceID = copyPlantSubject.produceID;
         produceTime = copyPlantSubject.produceTime;
         maxGrowth = copyPlantSubject.maxGrowth;
-        growthTime = copyPlantSubject.growthTime;
+        growthRate = copyPlantSubject.growthRate;
         matureGrowth = copyPlantSubject.matureGrowth;
         inventorySize = copyPlantSubject.inventorySize;
     }
@@ -65,8 +77,15 @@ public class PlantSubject : Subject
         newPlantSubject.growthRate = growthRate;
         newPlantSubject.matureGrowth = matureGrowth;
         newPlantSubject.inventorySize = inventorySize;
-        newPlantSubject.nodeList = nodeList;
+        newPlantSubject.nodeList = new Node[nodeList.Length];
+        for (int i = 0; i < nodeList.Length; i++)
+        {
+            newPlantSubject.nodeList[i] = nodeList[i].GetNode();
+        }
         newPlantSubject.nodeAttachment = nodeAttachment;
+        newPlantSubject.heightRatio = heightRatio;
+        newPlantSubject.taperRatio = taperRatio;
+        newPlantSubject.plantType = plantType;
         return newPlantSubject;
     }
 
@@ -91,7 +110,7 @@ public class PlantSubject : Subject
     /// <summary>
     /// Max Growth tells us at which step you stop growing
     /// </summary>
-    public int MaxGrowth
+    public float MaxGrowth
     {
         get { return maxGrowth; }
         set { maxGrowth = value; }
@@ -100,7 +119,7 @@ public class PlantSubject : Subject
     /// <summary>
     /// GrowthTime tells us when you can take a "step" in growth process
     /// </summary>
-    public int GrowthRate
+    public float GrowthRate
     {
         get { return growthRate; }
         set { growthRate = value; }
@@ -109,7 +128,7 @@ public class PlantSubject : Subject
     /// <summary>
     /// MatureTime tells us at which step we can start producing
     /// </summary>
-    public int MatureGrowth
+    public float MatureGrowth
     {
         get { return matureGrowth; }
         set { matureGrowth = value; }
@@ -127,7 +146,7 @@ public class PlantSubject : Subject
     /// <summary>
     /// Position of branches
     /// </summary>
-    public Vector3[] NodeList
+    public Node[] NodeList
     {
         get { return nodeList; }
         set { nodeList = value; }
@@ -143,7 +162,7 @@ public class PlantSubject : Subject
     }
 
     /// <summary>
-    /// NodeAttachment is the gameObject used for new branches
+    /// HeightRatio is a multiplier for height
     /// </summary>
     public float HeightRatio
     {
@@ -151,6 +170,17 @@ public class PlantSubject : Subject
         set { heightRatio = value; }
     }
 
+    public float TaperRatio
+    {
+        get { return taperRatio; }
+        set { taperRatio = value; }
+    }
+
+    public PlantTypes PlantType
+    {
+        get { return plantType; }
+        set { plantType = value; }
+    }
     public override void TeachNpc(NpcCore npcCharacter)
     {
         npcCharacter.Definition.Memories.Add(new SubjectMemory(subjectID, 0, 0));

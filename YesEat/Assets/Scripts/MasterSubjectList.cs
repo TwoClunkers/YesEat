@@ -15,8 +15,9 @@ public static class DbIds
     public static int Leaves = 8;            //   \/
     public static int PlinkettNest = 9;      //   \/
     public static int GobberNest = 10;       //   \/
+    public static int Tree = 11;             //   \/
     // ---- UPDATE LAST INDEX --- \/         //   \/
-    public static int LastIndex = 10; // <<  <<   <<
+    public static int LastIndex = 11; // <<  <<   <<
     // -------------------------  /\
 }
 
@@ -135,9 +136,9 @@ public class MasterSubjectList
             GrowthRate = 1,
             MatureGrowth = 2,
             InventorySize = 3,
-            NodeList = new Vector3[2],
+            NodeList = null,
             NodeAttachment = null,
-            HeightRatio = 2.5f
+            HeightRatio = 1.5f
         };
         masterSubjectList.Add(Bush);
 
@@ -325,6 +326,41 @@ public class MasterSubjectList
             Prefab = null
         };
         masterSubjectList.Add(GobberNest);
+
+        PlantSubject Tree = new PlantSubject()
+        {
+            Attributes = new SubjectAttributes()
+            {
+                Attributes =
+    SubjectAttributesEnum.SmellsPungent
+    | SubjectAttributesEnum.LooksDark
+    | SubjectAttributesEnum.FeelsHard
+            },
+            SubjectID = DbIds.Tree,
+            Name = "Tree",
+            Description = "A Tall Tree",
+            Icon = new UnityEngine.Sprite(),
+            RelatedSubjects = new int[0],
+            Prefab = Resources.Load("GameObjects/Tree") as GameObject,
+
+            ProduceID = -1,
+            ProduceTime = 2,
+            MaxGrowth = 1.5f,
+            GrowthRate = 0.002f,
+            MatureGrowth = 0.08f,
+            InventorySize = 3,
+            NodeList =
+    new Node[2]
+    {
+                new Node(Quaternion.Euler(0,0,0), 0.8f, new Vector3(0.0f, 1.0f, -0.3f), new Vector3(1,1,1)),
+                new Node(Quaternion.Euler(0,0,50), 0.5f, new Vector3(-0.0f, 0.4f, 0.3f), new Vector3(1,1,1))
+    },
+            NodeAttachment = Resources.Load("GameObjects/Leaf") as GameObject,
+            HeightRatio = 2.0f,
+            TaperRatio = 0.95f,
+            PlantType = PlantTypes.Tree
+        };
+        masterSubjectList.Add(Tree);
 
         // \/ \/ DO NOT CHANGE \/ \/
         maxID = DbIds.LastIndex;

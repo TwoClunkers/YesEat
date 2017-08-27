@@ -225,6 +225,7 @@ public partial class PlacementControllerScript : MonoBehaviour
                                 placedObject = Instantiate(newSubject.Prefab, centerPosition, Quaternion.identity);
                                 if (placedObject != null)
                                 {
+                                    placedObject.transform.Rotate(Vector3.up, Random.value * 360);
                                     SubjectObjectScript script = placedObject.GetComponent<SubjectObjectScript>() as SubjectObjectScript;
                                     script.InitializeFromSubject(masterSubjectList, newSubject);
                                     placementStarted = true;
@@ -467,7 +468,7 @@ public partial class PlacementControllerScript : MonoBehaviour
 
     public void OnSelectBush(bool isClicked)
     {
-        placeID = DbIds.Bush;
+        placeID = DbIds.Tree;
         placementStarted = false;
     }
 
