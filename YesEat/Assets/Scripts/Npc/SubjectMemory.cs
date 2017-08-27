@@ -1,5 +1,6 @@
-﻿
-using System;
+﻿using System;
+using System.Linq;
+
 /// <summary>
 /// A Character's attitude about a specific subject.
 /// </summary>
@@ -9,6 +10,7 @@ public class SubjectMemory
     private int subjectID = 0;
     private sbyte safety = 0;
     private sbyte food = 0;
+    private int[] sources = null;
     #endregion
 
     /// <summary>
@@ -32,18 +34,59 @@ public class SubjectMemory
         set { food = value; }
     }
 
+    public int[] Sources { get { return sources; } set { sources = value; } }
+
     public SubjectMemory(SubjectMemory copySubjectMemory)
     {
         subjectID = copySubjectMemory.subjectID;
         safety = copySubjectMemory.safety;
         food = copySubjectMemory.food;
+        if (copySubjectMemory.sources != null)
+        {
+            Sources = new int[copySubjectMemory.sources.Length];
+            for (int i = 0; i < copySubjectMemory.Sources.Length; i++)
+            {
+                Sources[i] = copySubjectMemory.Sources[i];
+            }
+        }
+        else
+        {
+            sources = new int[0];
+        }
     }
 
-    public SubjectMemory(int SubjectID, sbyte SafetyValue, sbyte FoodValue)
+    public SubjectMemory(int subjectID, sbyte safety, sbyte food, int[] sources = null)
     {
-        this.subjectID = SubjectID;
-        this.safety = SafetyValue;
-        this.food = FoodValue;
+        this.subjectID = subjectID;
+        this.safety = safety;
+        this.food = food;
+        sources = sources ?? (new int[0]);
+    }
+
+    /// <summary>
+    /// Add a source for this subject.
+    /// </summary>
+    /// <param name="SourceSubjectId">The SubjectID to add.</param>
+    public void AddSource(int SourceSubjectId)
+    {
+        if (sources == null)
+        {
+            sources = new int[1];
+            sources[0] = SourceSubjectId;
+        }
+        else
+        {
+            if (!sources.Contains(SourceSubjectId))
+            {
+                int[] newSources = new int[sources.Length + 1];
+                for (int i = 0; i < sources.Length; i++)
+                {
+                    newSources[i] = sources[i];
+                }
+                newSources[sources.Length] = SourceSubjectId;
+                sources = newSources;
+            }
+        }
     }
 
     /// <summary>

@@ -128,8 +128,9 @@ public class LocationObjectScript : SubjectObjectScript
     /// No harvest for a location!
     /// </summary>
     /// <returns></returns>
-    public override InventoryItem Harvest()
+    public override InventoryItem Harvest(int itemIdToHarvest)
     {
+        Debug.Log("Cannot Harvest() from LocationObjectScript");
         return null;
     }
 

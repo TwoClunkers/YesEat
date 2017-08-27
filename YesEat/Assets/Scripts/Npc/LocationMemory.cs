@@ -19,7 +19,12 @@ public class LocationMemory : SubjectMemory
     }
     #endregion
 
-    public LocationMemory(int SubjectID, sbyte SafetyValue, sbyte FoodValue) : base(SubjectID, SafetyValue, FoodValue) { }
+    public LocationMemory(int SubjectID, sbyte SafetyValue, sbyte FoodValue) : base(SubjectID, SafetyValue, FoodValue)
+    {
+        objectMemories = new List<ObjectMemory>();
+        locationSubjectID = 0;
+        lastTimeSeen = default(DateTime);
+    }
 
     /// <summary>
     /// KnowledgeBase.SubjectID for this location.

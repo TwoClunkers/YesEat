@@ -4,16 +4,12 @@ using System.Collections;
 public class PlantObjectScript : SubjectObjectScript
 {
     #region Private members
-    private int produceID;
-    private int produceTime;
-    private int maxGrowth;
-    private int growthTime;
-    private int matureGrowth;
     private float currentGrowth;
     private Inventory inventory;
     private bool mature;
     private float age;
     private float lastProduce;
+    private PlantSubject plantSubject;
     #endregion
 
     // Use this for initialization
@@ -30,15 +26,15 @@ public class PlantObjectScript : SubjectObjectScript
     {
         age += Time.deltaTime;
         //we grow
-        if (currentGrowth < maxGrowth)
+        if (currentGrowth < plantSubject.MaxGrowth)
         {
-            if (Mathf.FloorToInt(age) > (currentGrowth * growthTime))
+            if (Mathf.FloorToInt(age) > (currentGrowth * plantSubject.GrowthTime))
                 GrowthStep();
         }
         //we produce
         if (mature)
         {
-            if ((Time.time - lastProduce) > produceTime)
+            if ((Time.time - lastProduce) > plantSubject.ProduceTime)
             {
                 ProduceStep();
                 UpdateFullnessColor();
@@ -46,7 +42,7 @@ public class PlantObjectScript : SubjectObjectScript
         }
         else
         {
-            if (currentGrowth >= matureGrowth)
+            if (currentGrowth >= plantSubject.MatureGrowth)
             {
                 mature = true;
                 lastProduce = Time.time;
@@ -55,35 +51,29 @@ public class PlantObjectScript : SubjectObjectScript
 
     }
 
-    public float CurrentGrowth
-    {
-        get { return currentGrowth; }
-        set { currentGrowth = value; }
-    }
+    public float CurrentGrowth { get { return currentGrowth; } set { currentGrowth = value; } }
 
-    public float InventoryPercent()
-    {
-        return Mathf.Round(inventory.FillRatio() * 100);
-    }
-
+    public float InventoryPercent() { return Mathf.Round(inventory.FillRatio() * 100); }
 
     /// <summary>
     /// Harvest to take from inventory
     /// </summary>
     /// <returns></returns>
-    public override InventoryItem Harvest()
+    public override InventoryItem Harvest(int itemIdToHarvest)
     {
-        return inventory.Take(new InventoryItem(produceID, 1));
+        return inventory.Take(new InventoryItem(itemIdToHarvest, 1));
     }
 
-
     /// <summary>
-    /// Add our producable item to inventory
+    /// Add our producable items to inventory
     /// </summary>
     void ProduceStep()
     {
-        InventoryItem producedItem = new InventoryItem(produceID, 1);
-        producedItem = inventory.Add(producedItem);
+        inventory.Add(new InventoryItem(plantSubject.ProduceID, 1));
+        foreach (int lootId in plantSubject.LootIDs)
+        {
+            inventory.Add(new InventoryItem(lootId, 1));
+        }
         lastProduce = Time.time;
     }
 
@@ -107,15 +97,10 @@ public class PlantObjectScript : SubjectObjectScript
     /// <param name="newSubject"></param>
     public override void InitializeFromSubject(Subject newSubject)
     {
-        subject = newSubject;
+        subject = newSubject as PlantSubject;
+        plantSubject = subject as PlantSubject;
         if (newSubject is PlantSubject)
         {
-            PlantSubject plantSubject = newSubject as PlantSubject;
-            produceID = plantSubject.ProduceID;
-            produceTime = plantSubject.ProduceTime;
-            maxGrowth = plantSubject.MaxGrowth;
-            growthTime = plantSubject.GrowthTime;
-            matureGrowth = plantSubject.MatureGrowth;
             inventory = new Inventory(plantSubject.InventorySize);
 
             mature = false;
@@ -126,11 +111,6 @@ public class PlantObjectScript : SubjectObjectScript
         else
         {
             //default values used if no valid subject for initialization
-            produceID = 1;
-            produceTime = 20;
-            maxGrowth = 1;
-            growthTime = 20;
-            matureGrowth = 15;
             inventory = new Inventory(3);
 
             mature = false;

@@ -58,6 +58,11 @@ public class FoodSubject : ItemSubject
         set { foodValue = value; }
     }
 
+    public override void TeachNpc(NpcCore npcCharacter)
+    {
+        npcCharacter.Definition.Memories.Add(new SubjectMemory(subjectID, 0, 1));
+    }
+
 }
 
 

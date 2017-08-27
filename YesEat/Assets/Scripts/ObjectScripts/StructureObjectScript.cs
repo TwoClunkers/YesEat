@@ -32,7 +32,17 @@ public class StructureObjectScript : SubjectObjectScript
     /// Currently no harvesting allowed from structures.
     /// </summary>
     /// <returns></returns>
-    public override InventoryItem Harvest() { return null; }
+    public override InventoryItem Harvest(int itemIdToHarvest)
+    {
+        if (inventory != null)
+        {
+            return inventory.Take(new InventoryItem(itemIdToHarvest, 1));
+        }
+        else
+        {
+            return new InventoryItem(itemIdToHarvest, 0);
+        }
+    }
 
     /// <summary>
     /// Set this Plant Object's variables from the subject card

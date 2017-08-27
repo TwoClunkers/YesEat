@@ -41,5 +41,5 @@ public abstract class SubjectObjectScript : MonoBehaviour
     /// <param name="newSubject"></param>
     public abstract void InitializeFromSubject(Subject newSubject);
 
-    public abstract InventoryItem Harvest();
+    public abstract InventoryItem Harvest(int itemIdToHarvest);
 }

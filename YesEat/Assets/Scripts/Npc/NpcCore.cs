@@ -15,7 +15,6 @@ public partial class NpcCore
 
     private int subjectID;
 
-    private int foodSourceID;
     private int foodID;
 
     private NpcStatus status;
@@ -53,9 +52,10 @@ public partial class NpcCore
         searchedObjects = new List<int>();
         searchedLocations = new List<int>();
         reExploreLocations = new List<LocationSubject>();
-        SetFoodPreference();
         AiTickRate = 0.5f;
         neededItems = new List<InventoryItem>();
+
+        InitializeMemories();
     }
 
     /// <summary>
@@ -80,9 +80,10 @@ public partial class NpcCore
             searchedObjects = new List<int>();
             searchedLocations = new List<int>();
             reExploreLocations = new List<LocationSubject>();
-            SetFoodPreference();
             AiTickRate = 0.5f;
             neededItems = new List<InventoryItem>();
+
+            InitializeMemories();
         }
     }
     #endregion
@@ -92,17 +93,26 @@ public partial class NpcCore
     /// <summary>
     /// Set this NPC's food source and food based on NpcTraits.
     /// </summary>
-    internal void SetFoodPreference()
+    internal void InitializeMemories()
     {
+        // remember the food we like
         if (definition.Traits.HasTrait(NpcTraits.Herbivore))
         {
             foodID = KbIds.Berry;
-            foodSourceID = KbIds.Bush;
         }
         else if (definition.Traits.HasTrait(NpcTraits.Carnivore))
         {
             foodID = KbIds.Meat;
-            foodSourceID = KbIds.Plinkett;
+        }
+        KnowledgeBase.GetSubject(foodID).TeachNpc(this);
+
+        // remember how to build our nest
+        if (Subject.Nest != null && Subject.Nest.Recipe != null && Subject.Nest.Recipe.Ingredients.Count > 0)
+        {
+            foreach (int ingredientId in Subject.Nest.Recipe.Ingredients.Select(o => o.SubjectID))
+            {
+                KnowledgeBase.GetSubject(ingredientId).TeachNpc(this);
+            }
         }
     }
 
@@ -113,7 +123,7 @@ public partial class NpcCore
     internal List<LocationSubject> GetAllKnownLocations(Vector3 sortByNearestTo = default(Vector3))
     {
         List<SubjectMemory> locationMemories = definition.Memories
-                .FindAll(o => KnowledgeBase.GetSubject(o.SubjectID).GetType() == typeof(LocationSubject))
+                .FindAll(o => KnowledgeBase.GetSubject(o.SubjectID) is LocationSubject)
                 .OrderBy(o => (o as LocationMemory).LastTimeSeen).ToList();
         List<LocationSubject> knownLocations = locationMemories
                 .Select(o => (KnowledgeBase.GetSubject(o.SubjectID) as LocationSubject)).ToList();
@@ -128,23 +138,23 @@ public partial class NpcCore
     /// <summary>
     /// Find the nearest location where subjectToFind can be found.
     /// </summary>
-    /// <param name="SubjectToFind">The subject to search for.</param>
+    /// <param name="SubjectToFindId">The subject to search for.</param>
     /// <param name="CurrentPosition">The current position of this game object.</param>
     /// <param name="ExcludeLocationIDs">The locations to exclude from the results.</param>
     /// <returns>The found locations or null if no locations were found.</returns>
-    internal List<LocationSubject> GetObjectLocations(Subject SubjectToFind, Vector3 CurrentPosition, List<int> ExcludeLocationIDs = null)
+    internal List<LocationSubject> GetObjectLocations(int SubjectToFindId, Vector3 CurrentPosition, List<int> ExcludeLocationIDs = null)
     {
         List<LocationSubject> foundObjectLocations = new List<LocationSubject>();
         foreach (SubjectMemory subMem in definition.Memories)
         {
-            if (subMem.GetType() == typeof(LocationMemory))
+            if (subMem is LocationMemory)
             {
                 LocationMemory locMem = subMem as LocationMemory;
                 if (locMem.ObjectMemories.Count > 0)
                 {
                     foreach (ObjectMemory objMem in locMem.ObjectMemories)
                     {
-                        if (objMem.SubjectID == SubjectToFind.SubjectID)
+                        if (objMem.SubjectID == SubjectToFindId)
                         {
                             if (ExcludeLocationIDs != null)
                             {
@@ -168,19 +178,19 @@ public partial class NpcCore
     /// <returns>Quantity found.</returns>
     private int GetKnownLocationCount()
     {
-        return definition.Memories.Count(o => KnowledgeBase.GetSubject(o.SubjectID).GetType() == typeof(LocationSubject));
+        return definition.Memories.Count(o => KnowledgeBase.GetSubject(o.SubjectID) is LocationSubject);
     }
 
     /// <summary>
     /// Checks the attitude of the NPC towards conSubject. IsSubjectKnown() must be used to verify the Subject is known before IsSubjectDangerous().
     /// </summary>
-    /// <param name="conSubject">The Subject to be considered.</param>
+    /// <param name="checkSubjectID">The Subject to be considered.</param>
     /// <returns>True = dangerous; False = not dangerous. If conSubject does not exist and Exception will be thrown.</returns>
-    internal bool IsSubjectDangerous(Subject conSubject)
+    internal bool IsSubjectDangerous(int checkSubjectID)
     {
-        if (IsSubjectKnown(conSubject))
+        if (IsSubjectKnown(checkSubjectID))
         {
-            SubjectMemory subjectAttitude = definition.Memories.Find(o => o.SubjectID == conSubject.SubjectID);
+            SubjectMemory subjectAttitude = definition.Memories.Find(o => o.SubjectID == checkSubjectID);
             return (subjectAttitude.Safety < 0);
         }
         else
@@ -192,12 +202,12 @@ public partial class NpcCore
     /// <summary>
     /// Checks if conSubject exists in the npcDefinition.
     /// </summary>
-    /// <param name="conSubject">The Subject to be considered.</param>
+    /// <param name="checkSubjectId">The Subject to be considered.</param>
     /// <returns>True: known. False: not known.</returns>
-    internal bool IsSubjectKnown(Subject conSubject)
+    internal bool IsSubjectKnown(int checkSubjectId)
     {
-        if (conSubject != null)
-            return definition.Memories.Exists(o => o.SubjectID == conSubject.SubjectID);
+        if (checkSubjectId > 0)
+            return definition.Memories.Exists(o => o.SubjectID == checkSubjectId);
         else
             return false;
     }
@@ -207,61 +217,85 @@ public partial class NpcCore
     /// </summary>
     /// <param name="memoryChangeEvent">The event that has occured.</param>
     /// <param name="definition">The NPC to effect.</param>
-    /// <param name="subject">The subject to adjust attitude towards.</param>
-    internal void UpdateMemory(NpcMemoryChangeEvent memoryChangeEvent, Subject subject)
+    /// <param name="subjectID">The subject to adjust attitude towards.</param>
+    internal void UpdateMemory(NpcMemoryChangeEvent memoryChangeEvent, int subjectID, object[] args = null)
     {
         switch (memoryChangeEvent)
         {
             case NpcMemoryChangeEvent.HealthDamage:
-                if (IsSubjectKnown(subject))
+                if (IsSubjectKnown(subjectID))
                 {
                     //known hurts, bad.
-                    definition.Memories.Find(o => o.SubjectID == subject.SubjectID).AddSafety(-1);
+                    definition.Memories.Find(o => o.SubjectID == subjectID).AddSafety(-1);
                 }
                 else
                 {
                     //new thing hurts me, bad.
-                    definition.Memories.Add(new SubjectMemory(subject.SubjectID, -1, 0));
+                    definition.Memories.Add(new SubjectMemory(subjectID, -1, 0));
                 }
                 break;
             case NpcMemoryChangeEvent.FoodEaten:
-                if (IsSubjectKnown(subject))
+                if (IsSubjectKnown(subjectID))
                 {
                     //known food, good.
-                    definition.Memories.Find(o => o.SubjectID == subject.SubjectID).AddFood(1);
+                    definition.Memories.Find(o => o.SubjectID == subjectID).AddFood(1);
                 }
                 else
                 {
                     //new food, good.
-                    definition.Memories.Add(new SubjectMemory(subject.SubjectID, 1, 1));
+                    definition.Memories.Add(new SubjectMemory(subjectID, 1, 1));
                 }
                 break;
             case NpcMemoryChangeEvent.LocationFound:
                 // look at everything in this location and decide how to effect attitude for this location.
                 LocationMemory locationMemory;
-                if (!IsSubjectKnown(subject))
+                if (!IsSubjectKnown(subjectID))
                 {
-                    locationMemory = new LocationMemory(subject.SubjectID, 0, 0);
+                    locationMemory = new LocationMemory(subjectID, 0, 0);
                     definition.Memories.Add(locationMemory);
                 }
-                else
-                {
-                    locationMemory = definition.Memories.Find(o => o.SubjectID == subject.SubjectID) as LocationMemory;
 
+                locationMemory = definition.Memories.Find(o => o.SubjectID == subjectID) as LocationMemory;
+                if (locationMemory != null)
+                {
                     int foodValue = 0;
                     int safetyValue = 0;
-                    foreach (ObjectMemory objMem in locationMemory.ObjectMemories)
+                    if (locationMemory.ObjectMemories != null)
                     {
-                        SubjectMemory subjectMemory = definition.Memories.Find(o => o.SubjectID == objMem.SubjectID);
-                        if (subjectMemory.Food > 0)
-                            foodValue += objMem.Quantity;
-                        if (subjectMemory.Safety > 0)
-                            safetyValue += objMem.Quantity;
-                        else if (subjectMemory.Safety < 0)
-                            safetyValue -= objMem.Quantity;
+                        foreach (ObjectMemory objMem in locationMemory.ObjectMemories)
+                        {
+                            SubjectMemory subjectMemory = definition.Memories.Find(o => o.SubjectID == objMem.SubjectID);
+                            if (subjectMemory.Food > 0)
+                                foodValue += objMem.Quantity;
+                            if (subjectMemory.Safety > 0)
+                                safetyValue += objMem.Quantity;
+                            else if (subjectMemory.Safety < 0)
+                                safetyValue -= objMem.Quantity;
+                        }
                     }
                     locationMemory.SetValues((sbyte)foodValue, (sbyte)safetyValue);
                 }
+
+                break;
+            case NpcMemoryChangeEvent.ItemHarvested:
+                if (!IsSubjectKnown(subjectID))
+                {
+                    definition.Memories.Add(new SubjectMemory(subjectID, 0, 0));
+                }
+                // if there is no argument it was a bad function call
+                if (args == null)
+                    throw new Exception(" UpdateMemory(ItemHarvested): args[] must contian the harvested item's source.");
+
+                // remember what we got this item from
+                SubjectMemory memory = definition.Memories.Find(o => o.SubjectID == subjectID);
+                if (memory != null)
+                {
+                    if (!memory.Sources.Contains(subjectID))
+                    {
+                        memory.AddSource((int)args[0]);
+                    }
+                }
+
                 break;
             default:
                 throw new Exception("Invalid NpcAttitudeChangeEvent");
@@ -318,7 +352,7 @@ public partial class NpcCore
         List<LocationSubject> foundSafeLocations = new List<LocationSubject>();
         foreach (SubjectMemory subMem in definition.Memories)
         {
-            if (subMem.GetType() == typeof(LocationMemory))
+            if (subMem is LocationMemory)
             {
                 LocationMemory locMem = subMem as LocationMemory;
                 if (locMem.Safety > 0)
@@ -349,13 +383,17 @@ public partial class NpcCore
 
         if (definition.Traits.IsNestMaker)
         {
-            // Are we fed, healthy, & safe?
-            if (food > definition.FoodHungry && health > definition.HealthDanger && safety > definition.SafetyDeadly)
+            // only add nesting if it's not already on the list somewhere
+            if (!drivers.Contains(NpcDrivers.Nest))
             {
-                // if we do not have a nest, make one.
-                if (!HaveNest())
+                // Are we fed, healthy, & safe?
+                if (food > definition.FoodHungry && health > definition.HealthDanger && safety > definition.SafetyDeadly)
                 {
-                    drivers.SetTopDriver(NpcDrivers.Nest);
+                    // if we do not have a nest, make one.
+                    if (!HaveNest())
+                    {
+                        drivers.SetTopDriver(NpcDrivers.Nest);
+                    }
                 }
             }
         }
@@ -511,12 +549,12 @@ public partial class NpcCore
         bool dangerFound = false;
         foreach (GameObject conObject in considerObjects)
         {
-            if (IsSubjectKnown(conObject.GetComponent<SubjectObjectScript>().Subject))
+            if (IsSubjectKnown(conObject.GetComponent<SubjectObjectScript>().Subject.SubjectID))
             {
-                if (IsSubjectDangerous(conObject.GetComponent<SubjectObjectScript>().Subject))
+                if (IsSubjectDangerous(conObject.GetComponent<SubjectObjectScript>().Subject.SubjectID))
                 {
                     // don't reduce safety if it's dead
-                    if (conObject.GetComponent<SubjectObjectScript>().GetType() == typeof(AnimalObjectScript))
+                    if (conObject.GetComponent<SubjectObjectScript>() is AnimalObjectScript)
                     {
                         if (conObject.GetComponent<AnimalObjectScript>().IsDead) continue;
                     }
@@ -599,84 +637,8 @@ public partial class NpcCore
         }
         else
         {
-            // get list of all foodSource objects in near range
-            // exclude objects we've already attempted harvesting from
-            List<SubjectObjectScript> foodSource = considerObjects
-                .Select(o => o.GetComponent<SubjectObjectScript>() as SubjectObjectScript)
-                .Where(o => o.Subject.SubjectID == foodSourceID)
-                .Where(o => !searchedObjects.Contains(o.GetInstanceID())).ToList();
+            ExploreAndGatherItem(foodID);
 
-            // go to the first food source and harvest from it
-            if (foodSource.Count > 0)
-            {
-                SubjectObjectScript foodSourceObject = foodSource[0];
-
-                // if it's within harvest range
-                if (Vector3.Distance(foodSourceObject.transform.position, mob.transform.position) <= definition.RangeActionClose)
-                {
-                    // we're within range, stop chasing
-                    //mob.ChaseStop();
-
-                    //  Attempt to harvest from the food source
-                    InventoryItem harvestedItem = foodSourceObject.Harvest();
-                    if (harvestedItem != null)
-                    {
-                        if (harvestedItem.Quantity > 0)
-                        {
-                            mob.Inventory.Add(harvestedItem);
-                        }
-                        else
-                        {
-                            // didn't get anything from this source
-                            searchedObjects.Add(foodSourceObject.GetInstanceID());
-                            mob.ChaseStop();
-                        }
-                    }
-                    else // null means this is an animal that isn't dead, attack it.
-                    {
-                        AnimalObjectScript animal = foodSourceObject as AnimalObjectScript;
-                        animal.Damage(Subject, definition.AttackDamage, this);
-                    }
-                }
-                else //out of harvest range, chase this food source
-                {
-                    // if the current target is still within view don't switch targets
-                    if (mob.GetChaseTarget() == null)
-                    {
-                        mob.ChaseStart(foodSourceObject);
-                    }
-                    else
-                    {
-                        if (Vector3.Distance(mob.GetChaseTarget().transform.position, mob.transform.position) > definition.RangeSightMid)
-                        {
-                            mob.ChaseStart(foodSourceObject);
-                        }
-                    }
-                }
-            }
-            else
-            {
-                // if we've searched all the locations we known of, start over.
-                if (GetKnownLocationCount() == searchedLocations.Count && unexploredLocations.Count == 0)
-                {
-                    searchedLocations.Clear();
-                    searchedObjects.Clear();
-                }
-                // there are no food sources in close range
-                // find a location with foodSourceID
-                List<LocationSubject> foodLocations =
-                    GetObjectLocations(KnowledgeBase.GetSubject(foodSourceID), mob.transform.position, searchedLocations);
-
-                if (foodLocations.Count > 0)
-                {
-                    mob.MoveToLocation(foodLocations[0]);
-                }
-                else
-                {
-                    AiExplore();
-                }
-
-            }
         }
     }
 
@@ -705,7 +667,7 @@ public partial class NpcCore
                         foreach (GameObject gObj in considerObjects)
                         {
                             SubjectObjectScript subObj = gObj.GetComponent<SubjectObjectScript>();
-                            if (subObj.GetType() == typeof(StructureObjectScript))
+                            if (subObj is StructureObjectScript)
                             {
                                 if (subObj.Subject.SubjectID == KbIds.Hole10)
                                 {
@@ -780,7 +742,7 @@ public partial class NpcCore
                 else
                 {
                     // neededIngredients has ingredients, go collect them.
-                    ExploreForItem(neededItems[0].SubjectID);
+                    ExploreAndGatherItem(neededItems[0].SubjectID);
                 }
             }
             else
@@ -801,7 +763,7 @@ public partial class NpcCore
         }
         else
         {
-            // find nearest safe location
+            // find nearest safe location to build nest there
             LocationSubject safeLocation = GetSafeLocation(mob);
             if (safeLocation != null)
             {
@@ -811,7 +773,7 @@ public partial class NpcCore
                     // If not already saved, save this location as Nest location
                     if (definition.Nest == null)
                     {
-                        definition.Nest = new LocationMemory(definition.Memories.Find(o => o.SubjectID == safeLocation.SubjectID) as LocationMemory);
+                        definition.Nest = new LocationMemory(safeLocation.SubjectID, 10, 0);
                     }
                 }
                 else
@@ -830,19 +792,169 @@ public partial class NpcCore
     }
 
     /// <summary>
-    /// Search memories for a location where one of sourceSubjectIds was found. <para />
-    /// Travel to the location, search for the sourceSubject, attempt to harvest from it. <para />
-    /// Remove found items from the neededIngredients list.
+    /// Search memories for a source object of itemSubjectId. 
+    /// Travel to the location, search for the source object, attempt to harvest from it. 
+    /// Removes found items from the neededIngredients list.
     /// </summary>
-    /// <param name="sourceSubjectIds">The SubjectID's that the itemSubjectId can be harvested from.</param>
-    /// <param name="itemSubjectId">The </param>
-    private void ExploreForItem(int itemSubjectId)
+    /// <param name="itemSubjectId">The item to search for.</param>
+    private void ExploreAndGatherItem(int itemSubjectId)
     {
-        // TODO:    search memories for sourceSubjectId
-        //          travel to source subject locations
-        //          harvest itemSubjectId from all seen sources while travelling
+        int[] SourceSubjectIds = GetItemSources(itemSubjectId);
 
-        // TODO: make sure found items are removed from neededIngredients list
+        if (SourceSubjectIds != null)
+        {
+            SubjectObjectScript harvestObject = null;
+            // search immediate surroundings for source objects
+            foreach (GameObject gameObj in considerObjects)
+            {
+                // skip this object if we've already searched it
+                if (searchedObjects.Contains(gameObj.GetInstanceID())) continue;
+
+                // if no SubjectObjectScript is attached this is not an object we can interact with
+                SubjectObjectScript script = gameObj.GetComponent<SubjectObjectScript>();
+                if (script == null) continue;
+
+                for (int i = 0; i < SourceSubjectIds.Length; i++)
+                {
+                    if (SourceSubjectIds[i] == script.Subject.SubjectID)
+                    {
+                        harvestObject = script;
+                    }
+                }
+            }
+
+            if (harvestObject != null)
+            {
+                HarvestFromObject(harvestObject, itemSubjectId);
+            }
+            else
+            {
+                // if we've searched all the locations we known of, start over.
+                if (GetKnownLocationCount() == searchedLocations.Count && unexploredLocations.Count == 0)
+                {
+                    searchedLocations.Clear();
+                    searchedObjects.Clear();
+                }
+
+                // we've harvested from everything we could nearby
+                // travel to known locations for source object
+                List<LocationSubject> objectLocations = GetObjectLocations(itemSubjectId, mob.transform.position, searchedLocations);
+                if (objectLocations.Count > 0)
+                {
+                    mob.MoveToLocation(objectLocations[0]);
+                }
+                else
+                {
+                    AiExplore();
+                }
+            }
+        }
+        else
+        {
+            // we don't know of a source for the item, we should explore to learn about more subjects
+            AiExplore();
+        }
+    }
+
+    /// <summary>
+    /// Gets a list of the SubjectId's of objects we can harvest this item from.
+    /// </summary>
+    /// <param name="itemSubjectId">The SubjectID of the item.</param>
+    /// <returns>null if no sources were found</returns>
+    private int[] GetItemSources(int itemSubjectId)
+    {
+        int[] SourceSubjectIds = null;
+        // check if we know a source for this item
+        foreach (SubjectMemory memory in definition.Memories)
+        {
+            if (memory.SubjectID == itemSubjectId)
+            {
+                if (memory.Sources == null)
+                { continue; }
+                else
+                {
+                    SourceSubjectIds = new int[memory.Sources.Length];
+                    for (int i = 0; i < SourceSubjectIds.Length; i++)
+                    {
+                        SourceSubjectIds[i] = memory.Sources[i];
+                    }
+                }
+            }
+        }
+
+        return SourceSubjectIds;
+    }
+
+    /// <summary>
+    /// Harvest from an object, moves within range of the object before harvesting.
+    /// </summary>
+    /// <param name="harvestObject">The object to harvest from</param>
+    private void HarvestFromObject(SubjectObjectScript harvestObject, int itemIdToHarvest)
+    {
+        // harvestFromObject is a source for the desired item, move closer if we're not close enough
+        if (Vector3.Distance(mob.transform.position, harvestObject.transform.position) > definition.RangeActionClose)
+        {
+            if (mob.GetChaseTarget() == null)
+            {
+                mob.ChaseStart(harvestObject);
+            }
+        }
+        else
+        {
+            // we are close enough to harvest
+            InventoryItem harvestedItem = harvestObject.Harvest(itemIdToHarvest);
+            if (harvestedItem == null)
+            {
+                // harvesting was ineffective, we may need to interact in
+                // in a special way to harvest an item from this object
+                if (harvestObject is AnimalObjectScript)
+                {
+                    // currently we only harvest from dead animals, kill this one to harvest from it.
+                    if (!(harvestObject as AnimalObjectScript).IsDead)
+                    {
+                        // animal is not dead, attack it
+                        (harvestObject as AnimalObjectScript).Damage(this.Subject, definition.AttackDamage, this);
+                    }
+                }
+            }
+            else
+            {
+                // harvest may have been successful, did we get anything?
+                if (harvestedItem.Quantity > 0)
+                {
+                    // something was harvested
+                    for (int j = (neededItems.Count - 1); j >= 0; j--)
+                    {
+                        if (neededItems[j].SubjectID == harvestedItem.SubjectID)
+                        {
+                            UpdateMemory(NpcMemoryChangeEvent.ItemHarvested, harvestedItem.SubjectID,
+                                new object[1]
+                                {
+                                                harvestObject.Subject.SubjectID
+                                });
+                            if (neededItems[j].Quantity <= harvestedItem.Quantity)
+                            {
+                                neededItems.RemoveAt(j);
+                            }
+                            else
+                            {
+                                neededItems[j].Quantity -= harvestedItem.Quantity;
+                            }
+
+                        }
+                    }
+                    // add the harvested item to inventory
+                    mob.Inventory.Add(harvestedItem);
+                }
+                else
+                {
+                    // This assumes we will always harvest at least one item:
+                    // nothing was harvested this means nothing can be harvested from this item for 
+                    // now, remember that we already checked this one
+                    searchedObjects.Add(harvestObject.gameObject.GetInstanceID());
+                }
+            }
+        }
     }
 
     private void AiSafety()
@@ -881,13 +993,14 @@ public partial class NpcCore
     {
         // inspect the object, add to memories.
         SubjectObjectScript inspectObjectScript = objectToInspect.GetComponent<SubjectObjectScript>();
-        if (inspectObjectScript.GetType() == typeof(LocationObjectScript))
+        if (inspectObjectScript == null) return;
+        if (inspectObjectScript is LocationObjectScript)
         {
             LocationObjectScript locObjScript = inspectObjectScript as LocationObjectScript;
             //only add location to memory if all waypoints are explored
             if (mob.IsCurrentLocationExplored)
             {
-                UpdateMemory(NpcMemoryChangeEvent.LocationFound, inspectObjectScript.Subject);
+                UpdateMemory(NpcMemoryChangeEvent.LocationFound, inspectObjectScript.Subject.SubjectID);
                 // if it's in the unexploredLocations list, remove it.
                 unexploredLocations.Remove(locObjScript.Subject as LocationSubject);
                 // if it's in the reExploreLocations list, remove it.
@@ -897,8 +1010,16 @@ public partial class NpcCore
         else
         {
             inspectObjectScript.Subject.TeachNpc(this);
-            if (inspectObjectScript.Subject.SubjectID == foodSourceID)
-                definition.Memories.Find(o => o.SubjectID == foodSourceID).Safety = 1;
+            int[] foodSources = GetItemSources(foodID);
+            if (foodSources != null)
+            {
+                if (foodSources.Length > 0)
+                {
+                    int foodSourceID = foodSources[0];
+                    if (inspectObjectScript.Subject.SubjectID == foodSourceID)
+                        definition.Memories.Find(o => o.SubjectID == foodSourceID).Safety = 1;
+                }
+            }
         }
     }
 
@@ -923,7 +1044,7 @@ public partial class NpcCore
                     food += foodSubject.FoodValue;
                     food = System.Math.Min(food, definition.FoodMax);
 
-                    UpdateMemory(NpcMemoryChangeEvent.FoodEaten, foodSubject);
+                    UpdateMemory(NpcMemoryChangeEvent.FoodEaten, foodSubject.SubjectID);
 
                     wasConsumed = true;
                 }
@@ -960,7 +1081,7 @@ public partial class NpcCore
             safety -= (damageAmount / definition.HealthMax) * 100;
         }
 
-        UpdateMemory(NpcMemoryChangeEvent.HealthDamage, subjectAttacker);
+        UpdateMemory(NpcMemoryChangeEvent.HealthDamage, subjectAttacker.SubjectID);
 
         if (NpcAttacker != null)
         {

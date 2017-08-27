@@ -82,6 +82,8 @@ public class AnimalSubject : Subject
     public override void TeachNpc(NpcCore npcCharacter)
     {
         npcCharacter.Definition.Memories.Add(new SubjectMemory(subjectID, 0, 0));
+        SubjectMemory lootMemory = npcCharacter.Definition.Memories.Find(o => o.SubjectID == lootID);
+        if (lootMemory != null) lootMemory.AddSource(subjectID);
     }
 
     /// <summary>

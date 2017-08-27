@@ -213,10 +213,10 @@ public class AnimalObjectScript : SubjectObjectScript
     /// <param name="target">The object scripte of the game object to chase.</param>
     internal void ChaseStart(SubjectObjectScript target)
     {
-        // remove destination while chasing a target
-        destination = null;
         if (chaseTarget != null)
         {
+            // remove destination while chasing a target
+            destination = null;
             if (chaseTarget.GetInstanceID() != target.GetInstanceID())
                 chaseTarget = target;
         }
@@ -350,11 +350,11 @@ public class AnimalObjectScript : SubjectObjectScript
     /// </summary>
     /// <returns>Returns: One of this animal's loot if it is dead and has loot in its inventory. <para/>
     /// Returns: NULL if this animal is not dead.</returns>
-    public override InventoryItem Harvest()
+    public override InventoryItem Harvest(int itemIdToHarvest)
     {
         if (IsDead)
         {
-            return Inventory.Take(new InventoryItem(KbIds.Meat, 1));
+            return Inventory.Take(new InventoryItem(itemIdToHarvest, 1));
         }
         else return null;
     }

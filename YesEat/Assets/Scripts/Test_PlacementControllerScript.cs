@@ -85,7 +85,7 @@ public partial class PlacementControllerScript : MonoBehaviour
             SubjectObjectScript objScript = lastSelector.GetComponentInParent<SubjectObjectScript>();
             if (objScript != null)
             {
-                if (objScript.GetType() == typeof(AnimalObjectScript))
+                if (objScript is AnimalObjectScript)
                 {
                     AnimalObjectScript animal = objScript as AnimalObjectScript;
                     animal.T_Npc.T_SetValues(newFood: animal.T_Npc.Definition.FoodHungry);

@@ -247,7 +247,8 @@ public class KnowledgeBase
             MaxGrowth = 30,
             GrowthTime = 1,
             MatureGrowth = 2,
-            InventorySize = 3
+            InventorySize = 3,
+            LootIDs = new int[2] { KbIds.Leaves, KbIds.Branch }
         };
         knowledgeBase.Add(Bush);
 
@@ -296,7 +297,7 @@ public class KnowledgeBase
             Description = "A herbivore.",
             GrowthTime = 5,
             Icon = new UnityEngine.Sprite(),
-            InventorySize = 1,
+            InventorySize = 3,
             LootID = KbIds.Meat,
             MatureTime = 200,
             MaxGrowth = 400,
@@ -354,7 +355,7 @@ public class KnowledgeBase
             Description = "A carnivore.",
             GrowthTime = 5,
             Icon = new UnityEngine.Sprite(),
-            InventorySize = 1,
+            InventorySize = 3,
             LootID = KbIds.Meat,
             MatureTime = 200,
             MaxGrowth = 400,

@@ -14,6 +14,7 @@ public class PlantSubject : Subject
     private int growthTime;
     private int matureGrowth;
     private int inventorySize;
+    private int[] lootIDs;
     #endregion
 
     public PlantSubject() : base()
@@ -28,6 +29,7 @@ public class PlantSubject : Subject
         growthTime = 0;
         matureGrowth = 1;
         inventorySize = 3;
+        LootIDs = new int[0];
     }
 
     public PlantSubject(PlantSubject copyPlantSubject) : base(copyPlantSubject)
@@ -38,6 +40,8 @@ public class PlantSubject : Subject
         growthTime = copyPlantSubject.growthTime;
         matureGrowth = copyPlantSubject.matureGrowth;
         inventorySize = copyPlantSubject.inventorySize;
+        LootIDs = new int[copyPlantSubject.LootIDs.Length];
+        Array.Copy(copyPlantSubject.LootIDs, LootIDs, copyPlantSubject.LootIDs.Length);
     }
 
     /// <summary>
@@ -102,9 +106,21 @@ public class PlantSubject : Subject
         set { inventorySize = value; }
     }
 
+    public int[] LootIDs { get { return lootIDs; } set { lootIDs = value; } }
+
     public override void TeachNpc(NpcCore npcCharacter)
     {
         npcCharacter.Definition.Memories.Add(new SubjectMemory(subjectID, 0, 0));
+        SubjectMemory produceMemory = npcCharacter.Definition.Memories.Find(o => o.SubjectID == produceID);
+        if (produceMemory != null) produceMemory.AddSource(subjectID);
+        if (LootIDs.Length > 0)
+        {
+            for (int i = 0; i < LootIDs.Length; i++)
+            {
+                SubjectMemory lootMemory = npcCharacter.Definition.Memories.Find(o => o.SubjectID == LootIDs[i]);
+                if (lootMemory != null) lootMemory.AddSource(subjectID);
+            }
+        }
     }
 }
 
