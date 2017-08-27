@@ -290,10 +290,7 @@ public partial class NpcCore
                 SubjectMemory memory = definition.Memories.Find(o => o.SubjectID == subjectID);
                 if (memory != null)
                 {
-                    if (!memory.Sources.Contains(subjectID))
-                    {
-                        memory.AddSource((int)args[0]);
-                    }
+                    memory.AddSource((int)args[0]);
                 }
 
                 break;
@@ -729,7 +726,11 @@ public partial class NpcCore
                                 foreach (InventoryItem ingredient in nestNeeds)
                                 {
                                     if (ingredient.Quantity > 0)
-                                        neededItems.Add(new InventoryItem(ingredient));
+                                    {
+                                        // compare needs to what is already in the hole, add to neededItems if we still need some
+                                        if (!holeObject.Inventory.Contains(ingredient))
+                                            neededItems.Add(new InventoryItem(ingredient));
+                                    }
                                 }
                             }
                         }

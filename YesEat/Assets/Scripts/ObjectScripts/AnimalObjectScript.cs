@@ -469,8 +469,12 @@ public class AnimalObjectScript : SubjectObjectScript
     public StructureObjectScript DigHole()
     {
         StructureSubject holeSubject = KnowledgeBase.GetSubject(KbIds.Hole10) as StructureSubject;
+        
+        // lift the hole off the playfield
+        Vector3 holePosition = new Vector3(transform.position.x, 0.01f, transform.position.z);
+
         StructureObjectScript hole =
-            Instantiate(holeSubject.Prefab, transform.position, transform.rotation).GetComponent<StructureObjectScript>();
+            Instantiate(holeSubject.Prefab, holePosition, Quaternion.identity).GetComponent<StructureObjectScript>();
         hole.InitializeFromSubject(holeSubject);
 
         return hole;
@@ -516,6 +520,9 @@ public class AnimalObjectScript : SubjectObjectScript
         {
             nestObjectScript.Inventory.Add(takenItems.ToArray());
         }
+
+        // destroy the hole
+        Destroy(holeObjectScript.gameObject);
 
         return nestObjectScript;
     }

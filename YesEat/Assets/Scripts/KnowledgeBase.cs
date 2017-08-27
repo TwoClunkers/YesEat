@@ -51,7 +51,7 @@ public class KnowledgeBase
             RelatedSubjects = new int[0],
             Prefab = null,
             Recipe = null,
-            MaxStack = 1,
+            MaxStack = 10,
         };
         knowledgeBase.Add(Branch);
 
@@ -145,7 +145,7 @@ public class KnowledgeBase
                     new InventoryItem(KbIds.Leaves, 5)
                 }),
             InventorySize = 10,
-            Prefab = null
+            Prefab = Resources.Load("GameObjects/PlinkettNest") as GameObject
         };
         knowledgeBase.Add(PlinkettNest);
 

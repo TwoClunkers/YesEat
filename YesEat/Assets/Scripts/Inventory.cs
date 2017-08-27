@@ -137,7 +137,9 @@ public class Inventory
         for (int i = 0; i < inventorySlots.Length; i++)
         {
             if (inventorySlots[i].SubjectID == subjectId)
-                foundItems++;
+            {
+                foundItems += inventorySlots[i].Quantity;
+            }
         }
         return foundItems;
     }
