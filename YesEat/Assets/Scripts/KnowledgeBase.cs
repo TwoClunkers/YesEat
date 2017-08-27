@@ -251,7 +251,7 @@ public class KnowledgeBase
             InventorySize = 3,
             NodeList = null,
             NodeAttachment = null,
-            HeightRatio = 1.5f
+            HeightRatio = 1.5f,
             LootIDs = new int[2] { KbIds.Leaves, KbIds.Branch }
         };
         knowledgeBase.Add(Bush);
@@ -380,7 +380,7 @@ public class KnowledgeBase
     | SubjectAttributesEnum.LooksDark
     | SubjectAttributesEnum.FeelsHard
             },
-            SubjectID = DbIds.Tree,
+            SubjectID = KbIds.Tree,
             Name = "Tree",
             Description = "A Tall Tree",
             Icon = new UnityEngine.Sprite(),
@@ -404,11 +404,8 @@ public class KnowledgeBase
             TaperRatio = 0.95f,
             PlantType = PlantTypes.Tree
         };
-        masterSubjectList.Add(Tree);
+        knowledgeBase.Add(Tree);
 
-        // \/ \/ DO NOT CHANGE \/ \/
-        maxID = DbIds.LastIndex;
-        // /\ /\ DO NOT CHANGE /\ /\
     }
 
     /// <summary>

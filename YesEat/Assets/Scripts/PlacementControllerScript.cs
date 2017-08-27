@@ -488,7 +488,7 @@ public partial class PlacementControllerScript : MonoBehaviour
 
     public void OnSelectBush(bool isClicked)
     {
-        placeID = DbIds.Tree;
+        placeID = KbIds.Tree;
         placementStarted = false;
     }
 

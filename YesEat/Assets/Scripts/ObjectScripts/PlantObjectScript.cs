@@ -170,7 +170,7 @@ public class PlantObjectScript : SubjectObjectScript
                         nodes[i].transform.localPosition = plantSubject.NodeList[i].Rotation * plantSubject.NodeList[i].ScaledPosition();
                         nodes[i].transform.localRotation = plantSubject.NodeList[i].Rotation * Quaternion.Euler(0, 137.5f, 0);
                         PlantObjectScript script = nodes[i].GetComponent<PlantObjectScript>() as PlantObjectScript;
-                        script.InitializeFromSubject(masterSubjectList, plantSubject);
+                        script.InitializeFromSubject(plantSubject);
                         script.branchLevel = branchLevel + 1;
                         Node newBase = plantSubject.NodeList[i].GetNode();
                         newBase.Position = new Vector3(0, 0, 0);
