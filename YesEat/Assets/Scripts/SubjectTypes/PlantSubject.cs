@@ -27,6 +27,7 @@ public class PlantSubject : Subject
     private float heightRatio;
     private float taperRatio;
     private PlantTypes plantType;
+    private Gene plantGene;
     #endregion
 
     public PlantSubject() : base()
@@ -46,6 +47,8 @@ public class PlantSubject : Subject
         heightRatio = 5.0f;
         taperRatio = 0.8f;
         plantType = PlantTypes.Bush;
+        plantGene = new Gene();
+        plantGene.CreateRandom(15);
     }
 
     public PlantSubject(PlantSubject copyPlantSubject) : base(copyPlantSubject)
@@ -86,6 +89,7 @@ public class PlantSubject : Subject
         newPlantSubject.heightRatio = heightRatio;
         newPlantSubject.taperRatio = taperRatio;
         newPlantSubject.plantType = plantType;
+        newPlantSubject.plantGene = plantGene;
         return newPlantSubject;
     }
 
@@ -181,6 +185,13 @@ public class PlantSubject : Subject
         get { return plantType; }
         set { plantType = value; }
     }
+
+    public Gene PlantGene
+    {
+        get { return plantGene; }
+        set { plantGene = value; }
+    }
+
     public override void TeachNpc(NpcCore npcCharacter)
     {
         npcCharacter.Definition.Memories.Add(new SubjectMemory(subjectID, 0, 0));

@@ -277,9 +277,9 @@ public class MeshData
             rotation = Quaternion.AngleAxis((360 / sides) * i, Vector3.up);
             nextVert = rotation * Vector3.forward;
             verts.Add( apexNode.Rotation * (lastVert * apexNode.Radius + apexNode.Position));
-            verts.Add( (lastVert * baseNode.Radius + baseNode.Position));
-            verts.Add( (nextVert * baseNode.Radius + baseNode.Position));
-            verts.Add(apexNode.Rotation * (nextVert * apexNode.Radius + apexNode.Position));
+            verts.Add( (lastVert * baseNode.Radius));
+            verts.Add( (nextVert * baseNode.Radius));
+            verts.Add( apexNode.Rotation * (nextVert * apexNode.Radius + apexNode.Position));
             uvs.Add(new Vector2(texStep * i, 1.0f));
             uvs.Add(new Vector2(texStep * i, 0.0f));
             uvs.Add(new Vector2(texStep * i + texStep, 0.0f));

@@ -18,6 +18,8 @@ public class PlantObjectScript : SubjectObjectScript
     public GameObject[] nodes;
     public Node baseNode;
     public bool meshChanged;
+    private float activityThrottle;
+    private bool growthActive;
     #endregion
    
     // Use this for initialization
@@ -33,21 +35,40 @@ public class PlantObjectScript : SubjectObjectScript
         currentGrowth = 0.01f;
         lastProduce = Time.time;
         baseNode = new Node();
-        baseNode.Radius = 1.0f;
+        baseNode.Radius = 0.8f;
 
         meshChanged = true;
+
+        growthActive = true;
+        activityThrottle = 10;
     }
 
     // Update is called once per frame
     void Update()
     {
         age += (Time.deltaTime*1.0f);
-        //we grow
-        if (currentGrowth < plantSubject.MaxGrowth)
+
+        if(growthActive)
         {
-            if (age > (currentGrowth * plantSubject.GrowthRate))
+            if (age > activityThrottle)
+            {
+                growthActive = false;
+                activityThrottle = age + 10;
+            }
+
+            if (currentGrowth < plantSubject.MaxGrowth)
             {
                 GrowthStep();
+            }
+
+            NodeCycle();
+        }
+        else
+        {
+            if (age > activityThrottle)
+            {
+                growthActive = true;
+                activityThrottle = age + 3;
             }
         }
 
@@ -70,6 +91,8 @@ public class PlantObjectScript : SubjectObjectScript
 
         if (meshChanged) UpdateMesh();
     }
+
+    
 
     public virtual void UpdateMesh()
     {
@@ -128,43 +151,87 @@ public class PlantObjectScript : SubjectObjectScript
         
     }
 
+    void NodeCycle()
+    {
+        baseNode.Scale = new Vector3(currentGrowth, currentGrowth * plantSubject.HeightRatio, currentGrowth);
+        for (int i = 0; i < plantSubject.NodeList.Length; i++)
+        {
+            if (plantSubject.NodeList[i] != null)
+            {
+                plantSubject.NodeList[i].Scale = baseNode.Scale;
+            }
+        }
+        for (int i = 0; i < nodes.Length; i++)
+        {
+            if (nodes[i] != null) //reposition stuff on filled nodes
+            {
+                nodes[i].transform.localPosition = plantSubject.NodeList[i].Rotation * plantSubject.NodeList[i].ScaledPosition();
+
+                LeafObjectScript leafScript = nodes[i].GetComponent<LeafObjectScript>() as LeafObjectScript;
+                if (leafScript != null)
+                {
+                    if (leafScript.CurrentGrowth < leafScript.MaxGrowth)
+                    {
+                        leafScript.CurrentGrowth += Time.deltaTime * 0.1f;
+                        leafScript.MeshChanged = true;
+                    }
+                }
+                else
+                {
+                    PlantObjectScript plantScript = nodes[i].GetComponent<PlantObjectScript>() as PlantObjectScript;
+                    plantScript.plantSubject.MaxGrowth = plantSubject.NodeList[i].ScaledRadius();
+                }
+            }
+            else //grow leaves on open nodes
+            {
+                nodes[i] = Instantiate(plantSubject.NodeAttachment, this.transform);
+                nodes[i].transform.localPosition = plantSubject.NodeList[i].Rotation * plantSubject.NodeList[i].ScaledPosition();
+                nodes[i].transform.localRotation = plantSubject.NodeList[i].Rotation * Quaternion.Euler(0, 10.5f, 0);
+            }
+        }
+    }
+
     /// <summary>
     /// Grow a single step
     /// </summary>
     void GrowthStep()
     {
-        currentGrowth += plantSubject.GrowthRate;
+        currentGrowth += (plantSubject.GrowthRate * Time.deltaTime);
         meshChanged = true;
 
-        baseNode.Scale = new Vector3(currentGrowth, currentGrowth * plantSubject.HeightRatio, currentGrowth);
-        if(plantSubject.NodeList[0] != null)
-        {
-            plantSubject.NodeList[0].Scale = new Vector3(currentGrowth*plantSubject.TaperRatio, currentGrowth*plantSubject.HeightRatio, currentGrowth);
-        }
-        if (plantSubject.NodeList[1] != null)
-        {
-            plantSubject.NodeList[1].Scale = new Vector3(currentGrowth * plantSubject.TaperRatio, currentGrowth * plantSubject.HeightRatio, currentGrowth);
-        }
-
-
-        if (nodes.Length < 1) return;
         if (nodes.Length > 1)
         {
             if(branchLevel < 1)
             {
+                //if we are the base branch, we only will have the above node.
                 nodes = new GameObject[1];
             }
         }
-        if (plantSubject.NodeAttachment == null) return;
-        
-        //If this is a tree, the top node is reserved for a tree segment
+
+        //tree segments on all
         if (plantSubject.PlantType == PlantTypes.Tree)
         {
             for (int i = 0; i < nodes.Length; i++)
             {
-                if (nodes[i] == null)
+                if (branchLevel < 10 && mature)
                 {
-                    if (branchLevel < 10 && mature)
+                    if (nodes[i] != null) //destroy leaves off of mature nodes
+                    {
+                        nodes[i].transform.localPosition = plantSubject.NodeList[i].Rotation * plantSubject.NodeList[i].ScaledPosition();
+
+                        LeafObjectScript leafScript = nodes[i].GetComponent<LeafObjectScript>() as LeafObjectScript;
+                        if (leafScript != null)
+                        {
+                            Destroy(nodes[i].gameObject);
+                            nodes[i] = null;
+                        }
+                        else
+                        {
+                            PlantObjectScript plantScript = nodes[i].GetComponent<PlantObjectScript>() as PlantObjectScript;
+                            plantScript.plantSubject.MaxGrowth = plantSubject.NodeList[i].ScaledRadius();
+                        }
+                    }
+                    if (nodes[i] == null) //start branches off of open nodes
                     {
                         nodes[i] = Instantiate(plantSubject.Prefab, this.transform);
                         nodes[i].transform.localPosition = plantSubject.NodeList[i].Rotation * plantSubject.NodeList[i].ScaledPosition();
@@ -172,44 +239,20 @@ public class PlantObjectScript : SubjectObjectScript
                         PlantObjectScript script = nodes[i].GetComponent<PlantObjectScript>() as PlantObjectScript;
                         script.InitializeFromSubject(masterSubjectList, plantSubject);
                         script.branchLevel = branchLevel + 1;
+                        script.plantSubject.MaxGrowth = plantSubject.NodeList[i].ScaledRadius();
+                        script.CurrentGrowth = currentGrowth;
                         Node newBase = plantSubject.NodeList[i].GetNode();
                         newBase.Position = new Vector3(0, 0, 0);
                         newBase.Rotation = Quaternion.identity;
                         newBase.Radius = 1.0f;
-                        script.baseNode = newBase;
-                    }
-                    else
-                    {
-                        nodes[i] = Instantiate(plantSubject.NodeAttachment, this.transform);
-                        nodes[i].transform.localPosition = plantSubject.NodeList[i].Rotation * plantSubject.NodeList[i].ScaledPosition();
-                        nodes[i].transform.localRotation = plantSubject.NodeList[i].Rotation * Quaternion.Euler(0, 10.5f, 0); 
-                    }
-                }
-                else
-                {
-                    nodes[i].transform.localPosition = plantSubject.NodeList[i].Rotation * plantSubject.NodeList[i].ScaledPosition();
+                        newBase.Scale = new Vector3(0.1f, 0.1f * plantSubject.HeightRatio, 0.1f);
 
-                    LeafObjectScript leafScript = nodes[i].GetComponent<LeafObjectScript>() as LeafObjectScript;
-                    if(leafScript != null)
-                    {
-                        leafScript.CurrentGrowth += Time.deltaTime * 0.5f;
-                        leafScript.MeshChanged = true;
-                        if(leafScript.CurrentGrowth > leafScript.MaxGrowth)
-                        {
-                            Destroy(nodes[i].gameObject);
-                            nodes[i] = null;
-                        }
-                    }
-                    else
-                    {
-                        PlantObjectScript plantScript = nodes[i].GetComponent<PlantObjectScript>() as PlantObjectScript;
-                        plantScript.plantSubject.MaxGrowth = plantSubject.NodeList[i].ScaledRadius();
+                        script.baseNode = newBase;
+
                     }
                 }
             }
-
         }
-
     }
 
     /// <summary>
@@ -224,6 +267,29 @@ public class PlantObjectScript : SubjectObjectScript
         if (newSubject is PlantSubject)
         {
             plantSubject = newSubject.Copy() as PlantSubject;
+
+            plantSubject.GrowthRate = plantSubject.PlantGene.Value(0.2f);
+            plantSubject.MaxGrowth = plantSubject.PlantGene.Value(3.0f) + 0.2f;
+            plantSubject.MatureGrowth = 0.01f;
+            plantSubject.HeightRatio = plantSubject.PlantGene.Value(4.0f) + 0.3f;
+            plantSubject.TaperRatio = 1.0f;
+            plantSubject.InventorySize = plantSubject.PlantGene.Value(5);
+            plantSubject.ProduceTime = plantSubject.PlantGene.Value(10);
+
+            
+            Node newNode = new Node();
+            
+            newNode.Radius = plantSubject.PlantGene.Value(0.8f) + 0.2f;
+            float dist = plantSubject.PlantGene.Value(0.6f);
+            newNode.Rotation = Quaternion.Euler(0, 0, plantSubject.PlantGene.Value(-60));
+            newNode.Position = new Vector3(dist, 1.0f, 0);
+            plantSubject.NodeList[0] = newNode.GetNode();
+
+            newNode.Radius = plantSubject.PlantGene.Value(0.5f) + 0.1f;
+            dist = plantSubject.PlantGene.Value(0.8f);
+            newNode.Rotation = Quaternion.Euler(0, 0, plantSubject.PlantGene.Value(90));
+            newNode.Position = new Vector3(-dist, dist/2, 0);
+            plantSubject.NodeList[1] = newNode.GetNode();
 
             inventory = new Inventory(plantSubject.InventorySize, _masterSubjectList);
             mature = false;
