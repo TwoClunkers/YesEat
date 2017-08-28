@@ -42,7 +42,7 @@ public class PlantSubject : Subject
         growthRate = 0.01f;
         matureGrowth = 1;
         inventorySize = 3;
-        nodeList = null;
+        nodeList = new Node[0];
         nodeAttachment = null;
         heightRatio = 5.0f;
         taperRatio = 0.8f;
@@ -58,6 +58,20 @@ public class PlantSubject : Subject
         growthRate = copyPlantSubject.growthRate;
         matureGrowth = copyPlantSubject.matureGrowth;
         inventorySize = copyPlantSubject.inventorySize;
+
+
+        nodeList = new Node[copyPlantSubject.nodeList.Length];
+        if (nodeList.Length > 0)
+        {
+            for (int i = 0; i < copyPlantSubject.nodeList.Length; i++)
+            {
+                nodeList[i] = copyPlantSubject.nodeList[i].GetNode();
+            }
+        }
+        nodeAttachment = copyPlantSubject.nodeAttachment;
+        heightRatio = copyPlantSubject.heightRatio;
+        taperRatio = copyPlantSubject.taperRatio;
+        plantType = copyPlantSubject.plantType;
         LootIDs = new int[copyPlantSubject.LootIDs.Length];
         Array.Copy(copyPlantSubject.LootIDs, LootIDs, copyPlantSubject.LootIDs.Length);
     }
@@ -65,33 +79,7 @@ public class PlantSubject : Subject
     /// <summary>
     /// Copy an existing PlantSubject.
     /// </summary>
-    public override Subject Copy()
-    {
-        PlantSubject newPlantSubject = new PlantSubject();
-        newPlantSubject.subjectID = subjectID;
-        newPlantSubject.name = name;
-        newPlantSubject.description = description;
-        newPlantSubject.icon = icon;
-        newPlantSubject.prefab = prefab;
-        newPlantSubject.relatedSubjects = relatedSubjects;
-
-        newPlantSubject.produceID = produceID;
-        newPlantSubject.produceTime = produceTime;
-        newPlantSubject.maxGrowth = maxGrowth;
-        newPlantSubject.growthRate = growthRate;
-        newPlantSubject.matureGrowth = matureGrowth;
-        newPlantSubject.inventorySize = inventorySize;
-        newPlantSubject.nodeList = new Node[nodeList.Length];
-        for (int i = 0; i < nodeList.Length; i++)
-        {
-            newPlantSubject.nodeList[i] = nodeList[i].GetNode();
-        }
-        newPlantSubject.nodeAttachment = nodeAttachment;
-        newPlantSubject.heightRatio = heightRatio;
-        newPlantSubject.taperRatio = taperRatio;
-        newPlantSubject.plantType = plantType;
-        return newPlantSubject;
-    }
+    public override Subject Copy() { return new PlantSubject(this); }
 
     /// <summary>
     /// What does this plant produce?

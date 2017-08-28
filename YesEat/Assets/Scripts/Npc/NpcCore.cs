@@ -546,23 +546,30 @@ public partial class NpcCore
         bool dangerFound = false;
         foreach (GameObject conObject in considerObjects)
         {
-            if (IsSubjectKnown(conObject.GetComponent<SubjectObjectScript>().Subject.SubjectID))
+            SubjectObjectScript conScript = conObject.GetComponent<SubjectObjectScript>();
+            if (conScript != null)
             {
-                if (IsSubjectDangerous(conObject.GetComponent<SubjectObjectScript>().Subject.SubjectID))
+                if (conScript.Subject != null)
                 {
-                    // don't reduce safety if it's dead
-                    if (conObject.GetComponent<SubjectObjectScript>() is AnimalObjectScript)
+                    if (IsSubjectKnown(conObject.GetComponent<SubjectObjectScript>().Subject.SubjectID))
                     {
-                        if (conObject.GetComponent<AnimalObjectScript>().IsDead) continue;
+                        if (IsSubjectDangerous(conObject.GetComponent<SubjectObjectScript>().Subject.SubjectID))
+                        {
+                            // don't reduce safety if it's dead
+                            if (conObject.GetComponent<SubjectObjectScript>() is AnimalObjectScript)
+                            {
+                                if (conObject.GetComponent<AnimalObjectScript>().IsDead) continue;
+                            }
+                            // danger! decrease safety
+                            dangerFound = true;
+                            safety--;
+                        }
                     }
-                    // danger! decrease safety
-                    dangerFound = true;
-                    safety--;
+                    else
+                    {
+                        Inspect(conObject);
+                    }
                 }
-            }
-            else
-            {
-                Inspect(conObject);
             }
         }
         // increase safety if no danger was found near us
@@ -817,9 +824,11 @@ public partial class NpcCore
 
                 for (int i = 0; i < SourceSubjectIds.Length; i++)
                 {
+                    if (script.Subject == null) continue;
                     if (SourceSubjectIds[i] == script.Subject.SubjectID)
                     {
                         harvestObject = script;
+                        break;
                     }
                 }
             }

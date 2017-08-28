@@ -64,7 +64,7 @@ public partial class PlacementControllerScript : MonoBehaviour
         CreateLocation(new Vector3(3.0f, 0, -4.0f), 1.6f);
         CreateLocation(new Vector3(-3.0f, 0, 3.0f), 4.0f);
 
-        SpawnObject(KbIds.Bush, new Vector3(-4.0f, 0, -4.0f));
+        SpawnObject(KbIds.Tree, new Vector3(-4.0f, 0, -4.0f));
     }
 
     public void TestSet4()

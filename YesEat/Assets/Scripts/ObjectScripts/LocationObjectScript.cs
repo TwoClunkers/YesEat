@@ -84,6 +84,7 @@ public class LocationObjectScript : SubjectObjectScript
             script.Location = subject as LocationSubject;
 
             //record each subjectID found if not already recorded
+            if (script.Subject == null) continue;
             int foundID = script.Subject.SubjectID;
             if (!foundSubjectIDs.Contains(foundID))
             {
