@@ -8,7 +8,7 @@ public class InventoryItem
 {
     #region Private members
     private int subjectID;
-    private int stackSize;
+    private int quantity;
     #endregion
 
     /// <summary>
@@ -17,23 +17,32 @@ public class InventoryItem
     public InventoryItem()
     {
         subjectID = 0;
-        stackSize = 0;
+        quantity = 0;
     }
 
+    /// <summary>
+    /// Copy an InventoryItem.
+    /// </summary>
+    /// <param name="copyInventoryItem">The InventoryItem to copy.</param>
+    public InventoryItem(InventoryItem copyInventoryItem)
+    {
+        subjectID = copyInventoryItem.subjectID;
+        quantity = copyInventoryItem.quantity;
+    }
 
     /// <summary>
     /// InventoryItem constructor setting ID and size
     /// </summary>
-    /// <param name="_subjectID"></param>
-    /// <param name="_stackSize"></param>
-    public InventoryItem(int _subjectID, int _stackSize)
+    /// <param name="subjectID"></param>
+    /// <param name="quantity"></param>
+    public InventoryItem(int subjectID, int quantity)
     {
-        subjectID = _subjectID;
-        stackSize = _stackSize;
+        this.subjectID = subjectID;
+        this.quantity = quantity;
     }
 
     /// <summary>
-    /// The Subject ID in this slot. Used to get info from MasterSubjectList.
+    /// The Subject ID in this slot. Used to get info from KnowledgeBase.
     /// </summary>
     public int SubjectID
     {
@@ -44,27 +53,26 @@ public class InventoryItem
     /// <summary>
     /// This describes how large the stack is.
     /// </summary>
-    public int StackSize
+    public int Quantity
     {
-        get { return stackSize; }
-        set { stackSize = value; }
+        get { return quantity; }
+        set { quantity = value; }
     }
 
     /// <summary>
-    /// Sets the stack, but limits based on subject MaxStack
+    /// Redefines the item, limits quantity based on subject MaxStack.
     /// </summary>
-    /// <param name="newSubjectID"></param>
-    /// <param name="newStackSize"></param>
-    /// <param name="masterSubjectList"></param>
+    /// <param name="subjectID"></param>
+    /// <param name="quantity"></param>
     /// <returns></returns>
-    public bool SetStack (int newSubjectID, int newStackSize, MasterSubjectList masterSubjectList)
+    public bool Redefine(int subjectID, int quantity)
     {
-        ItemSubject newSubject = masterSubjectList.GetSubject(newSubjectID, typeof(ItemSubject)) as ItemSubject;
+        ItemSubject newSubject = KnowledgeBase.GetSubject(subjectID, typeof(ItemSubject)) as ItemSubject;
 
         if (newSubject != null)
         {
-            subjectID = newSubjectID;
-            stackSize = Math.Min(newStackSize, newSubject.MaxStack);
+            this.subjectID = subjectID;
+            this.quantity = Math.Min(quantity, newSubject.MaxStack);
             return true;
         }
         else return false;
@@ -73,61 +81,59 @@ public class InventoryItem
     /// <summary>
     /// Adds to the stack, limits based on the subject MaxStack
     /// </summary>
-    /// <param name="newSubjectID"></param>
-    /// <param name="newStackSize"></param>
-    /// <param name="masterSubjectList"></param>
+    /// <param name="subjectID"></param>
+    /// <param name="quantity"></param>
     /// <returns></returns>
-    public int Add(int newSubjectID, int newStackSize, MasterSubjectList masterSubjectList)
+    public int Add(int subjectID, int quantity)
     {
-        if (newSubjectID != subjectID) return newStackSize; //reject entire amount
+        if (subjectID != this.subjectID) return quantity; //reject entire amount
 
-        ItemSubject newSubject = masterSubjectList.GetSubject(newSubjectID) as ItemSubject;
+        ItemSubject newSubject = KnowledgeBase.GetSubject(subjectID) as ItemSubject;
 
         if (newSubject != null)
         {
-            int tempStack = stackSize + newStackSize;
-            stackSize = Math.Min(tempStack, newSubject.MaxStack);
-            newStackSize = Math.Max(0, tempStack - newSubject.MaxStack);
+            int tempStack = this.quantity + quantity;
+            this.quantity = Math.Min(tempStack, newSubject.MaxStack);
+            quantity = Math.Max(0, tempStack - newSubject.MaxStack);
         }
-        return newStackSize;
+        return quantity;
 
     }
 
     /// <summary>
     /// Adds to the stack, limits based on the subject MaxStack
     /// </summary>
-    /// <param name="addedInvItem"></param>
-    /// <param name="masterSubjectList"></param>
+    /// <param name="inventoryItem"></param>
     /// <returns></returns>
-    public int Add(InventoryItem addedInvItem, MasterSubjectList masterSubjectList)
+    public int Add(InventoryItem inventoryItem)
     {
-        if (addedInvItem.subjectID != subjectID) return addedInvItem.stackSize; //reject entire amount
+        if (inventoryItem.subjectID != subjectID) return inventoryItem.quantity; //reject entire amount
 
-        ItemSubject newSubject = masterSubjectList.GetSubject(addedInvItem.subjectID) as ItemSubject;
+        ItemSubject newSubject = KnowledgeBase.GetSubject(inventoryItem.subjectID) as ItemSubject;
 
         if (newSubject != null)
         {
-            int tempStack = stackSize + addedInvItem.stackSize;
-            stackSize = Math.Min(tempStack, newSubject.MaxStack);
-            addedInvItem.stackSize = Math.Max(0, tempStack - newSubject.MaxStack);
+            int tempStack = quantity + inventoryItem.quantity;
+            quantity = Math.Min(tempStack, newSubject.MaxStack);
+            inventoryItem.quantity = Math.Max(0, tempStack - newSubject.MaxStack);
         }
-        return addedInvItem.stackSize;
+        return inventoryItem.quantity;
 
     }
 
     /// <summary>
     /// Take subtracts the number of needed Items from this stack and returns the amount successfuly grabbed
     /// </summary>
-    /// <param name="neededInvItem"></param>
+    /// <param name="inventoryItem"></param>
     /// <returns></returns>
-    public int Take(InventoryItem neededInvItem)
+    public int Take(InventoryItem inventoryItem)
     {
-        if (neededInvItem.subjectID != subjectID) return 0; //no amount pulled
+        if (inventoryItem.subjectID != subjectID) return 0; //no amount pulled
 
-        int amountTaken = Math.Min(neededInvItem.stackSize, stackSize);
+        int amountTaken = Math.Min(inventoryItem.quantity, quantity);
 
-        stackSize -= amountTaken;
-        if (stackSize < 1) subjectID = -1;
+        quantity -= amountTaken;
+        if (quantity < 1) subjectID = -1;
 
         return amountTaken;
     }

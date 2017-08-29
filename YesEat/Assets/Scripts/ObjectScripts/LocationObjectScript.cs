@@ -84,6 +84,7 @@ public class LocationObjectScript : SubjectObjectScript
             script.Location = subject as LocationSubject;
 
             //record each subjectID found if not already recorded
+            if (script.Subject == null) continue;
             int foundID = script.Subject.SubjectID;
             if (!foundSubjectIDs.Contains(foundID))
             {
@@ -128,12 +129,13 @@ public class LocationObjectScript : SubjectObjectScript
     /// No harvest for a location!
     /// </summary>
     /// <returns></returns>
-    public override InventoryItem Harvest()
+    public override InventoryItem Harvest(int itemIdToHarvest)
     {
+        Debug.Log("Cannot Harvest() from LocationObjectScript");
         return null;
     }
 
-    public override void InitializeFromSubject(MasterSubjectList _masterSubjectList, Subject newSubject)
+    public override void InitializeFromSubject(Subject newSubject)
     {
         subject = newSubject as LocationSubject;
         count = 0;

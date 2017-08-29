@@ -10,18 +10,15 @@ using System;
 public class AnimalObjectScript : SubjectObjectScript
 {
     #region Private members
-    private float AiCoreTickCounter;
-    private float AiTickRate;
-    private float MetabolizeTickCounter;
     private GameObject[] seenLocationObjects;
     private LocationSubject destination;
     private Vector3[] destinationWayPoints;
     private int currentWaypointIndex;
     private NpcCore npcCharacter;
-    private bool isDead;
     private float decaytime;
     private Inventory inventory;
     private SubjectObjectScript chaseTarget;
+    private Vector3 targetPosition;
     private bool isCurrentLocationExplored;
     #endregion
 
@@ -33,7 +30,7 @@ public class AnimalObjectScript : SubjectObjectScript
         set { inventory = value; }
     }
 
-    public bool IsDead { get { return isDead; } }
+    public bool IsDead { get { return npcCharacter.IsDead; } }
 
     public bool IsCurrentLocationExplored { get { return isCurrentLocationExplored; } }
 
@@ -43,16 +40,17 @@ public class AnimalObjectScript : SubjectObjectScript
 
     }
 
-    public override void InitializeFromSubject(MasterSubjectList _masterSubjectList, Subject newSubject)
+    public override void InitializeFromSubject(Subject newSubject)
     {
-        AiTickRate = 0.5f;
-        isDead = false;
         subject = newSubject as AnimalSubject;
-        masterSubjectList = _masterSubjectList;
-        npcCharacter = new NpcCore(this, masterSubjectList, subject);
-        Inventory = new Inventory((subject as AnimalSubject).InventorySize, masterSubjectList);
+        npcCharacter = new NpcCore(this, subject);
+        Inventory = new Inventory((subject as AnimalSubject).InventorySize);
         destinationWayPoints = new Vector3[0];
         isCurrentLocationExplored = false;
+        decaytime = 20.0f;
+        targetPosition = default(Vector3);
+
+        subject.TeachNpc(npcCharacter);
     }
 
     public int GetHealth()
@@ -68,13 +66,23 @@ public class AnimalObjectScript : SubjectObjectScript
         return npcCharacter.Food;
     }
 
-    public LocationSubject CurrentDestination { get { return destination; } }
+    /// <summary>
+    /// Move to target coordinates.
+    /// </summary>
+    /// <param name="newPosition"></param>
+    internal void MoveToPosition(Vector3 newPosition)
+    {
+        if (targetPosition == newPosition) return;
+        chaseTarget = null;
+        destination = null;
+        targetPosition = newPosition;
+    }
 
     /// <summary>
     /// Begin path finding to a new location.
     /// </summary>
     /// <param name="newLocation">The location to move to.</param>
-    internal void MoveToNewLocation(LocationSubject newLocation)
+    internal void MoveToLocation(LocationSubject newLocation)
     {
         if (newLocation == null)
         {
@@ -95,7 +103,7 @@ public class AnimalObjectScript : SubjectObjectScript
         // flip a coin on which method of area waypoints to use
         if (UnityEngine.Random.Range(0.0f, 1.0f) > 0.5f)
         {
-            destinationWayPoints = newLocation.GetAreaWaypoints(npcCharacter.SightRangeNear);
+            destinationWayPoints = newLocation.GetAreaWaypoints(npcCharacter.RangeSightMid);
             if (destinationWayPoints.Length > 1)
             {
                 destinationWayPoints = ShiftToNearestFirst(destinationWayPoints);
@@ -103,7 +111,7 @@ public class AnimalObjectScript : SubjectObjectScript
         }
         else
         {
-            destinationWayPoints = newLocation.GetAreaWaypoints(npcCharacter.SightRangeNear, 1);
+            destinationWayPoints = newLocation.GetAreaWaypoints(npcCharacter.RangeSightMid, 1);
             if (destinationWayPoints.Length > 1)
             {
                 destinationWayPoints = destinationWayPoints
@@ -115,8 +123,8 @@ public class AnimalObjectScript : SubjectObjectScript
         for (int i = 0; i < destinationWayPoints.Length; i++)
         {
             Color waypointColor = Color.red;
-            if (subject.SubjectID == DbIds.Plinkett) { waypointColor = Color.blue; }
-            if (subject.SubjectID == DbIds.Gobber) { waypointColor = Color.yellow; }
+            if (subject.SubjectID == KbIds.Plinkett) { waypointColor = Color.blue; }
+            if (subject.SubjectID == KbIds.Gobber) { waypointColor = Color.yellow; }
             Vector3 wayPtTop =
                 new Vector3(destinationWayPoints[i].x,
                 0.25f + ((float)i / destinationWayPoints.Length) * 0.5f,
@@ -194,16 +202,21 @@ public class AnimalObjectScript : SubjectObjectScript
         }
     }
 
+    public SubjectObjectScript GetChaseTarget()
+    {
+        return chaseTarget;
+    }
+
     /// <summary>
     /// Chase the target until ChaseStop() is called.
     /// </summary>
     /// <param name="target">The object scripte of the game object to chase.</param>
     internal void ChaseStart(SubjectObjectScript target)
     {
-        // remove destination while chasing a target
-        destination = null;
         if (chaseTarget != null)
         {
+            // remove destination while chasing a target
+            destination = null;
             if (chaseTarget.GetInstanceID() != target.GetInstanceID())
                 chaseTarget = target;
         }
@@ -221,59 +234,43 @@ public class AnimalObjectScript : SubjectObjectScript
     // Update is called once per frame
     void Update()
     {
-        if (!npcCharacter.IsDead)
+        npcCharacter.Update();
+        if (npcCharacter.IsDead)
         {
-            MetabolizeTickCounter += Time.deltaTime;
-            if (MetabolizeTickCounter >= npcCharacter.Definition.MetabolizeInterval)
-            {
-                int healthChange = npcCharacter.Metabolize();
-                MetabolizeTickCounter -= npcCharacter.Definition.MetabolizeInterval;
-                if (healthChange > 0) GameObject.FindGameObjectWithTag("GameController").GetComponent<PlacementControllerScript>().PopMessage(healthChange.ToString(), gameObject.transform.position, 2);
-                else if (healthChange < 0) GameObject.FindGameObjectWithTag("GameController").GetComponent<PlacementControllerScript>().PopMessage(healthChange.ToString(), gameObject.transform.position, 0);
-            }
-
-            AiCoreTickCounter += Time.deltaTime;
-            if (AiCoreTickCounter > AiTickRate)
-            {
-                npcCharacter.AiCoreProcess();
-                AiCoreTickCounter -= AiTickRate;
-            }
-
-            // ===  Movement ===
-            DoMovement();
-
-        }
-        else // this animal is dead
-        {
-            if (!isDead) //newly dead
-            {
-                Inventory.Add(new InventoryItem(DbIds.Meat, 5));
-                isDead = true;
-                decaytime = 20.0f;
-            }
             decaytime -= Time.deltaTime;
             UpdateDeadnessColor();
             if (decaytime < 0) Destroy(this.gameObject);
         }
 
         // Debug: near vision range
-        DrawDebugCircle(transform.position, npcCharacter.SightRangeNear, 20, new Color(0, 0, 1, 0.5f));
+        //DrawDebugCircle(transform.position, npcCharacter.RangeSightNear, 20, new Color(0, 0, 1, 0.5f));
+        // Debug: mid vision range
+        DrawDebugCircle(transform.position, npcCharacter.RangeSightMid, 20, new Color(0, 1, 0, 0.5f));
         // Debug: far vision range
-        DrawDebugCircle(transform.position, npcCharacter.SightRangeFar, 20, new Color(0, 0, 0, 0.3f));
+        DrawDebugCircle(transform.position, npcCharacter.RangeSightFar, 20, new Color(0, 0, 0, 0.3f));
+    }
+
+    /// <summary>
+    /// Add dropped item to mob inventory.
+    /// </summary>
+    public void SetDeathDecay(float duration)
+    {
+        Inventory.Add(new InventoryItem(npcCharacter.Subject.LootID, 5));
+        decaytime = duration;
     }
 
     /// <summary>
     /// Move the GameObject based on destination or chaseTarget.
     /// </summary>
-    private void DoMovement()
+    public void DoMovement()
     {
         if (destination != null) // traveling to a new location
         {
             if (destinationWayPoints.Length != 0)
             {
                 float distance = Vector3.Distance(destinationWayPoints[currentWaypointIndex], transform.position);
-                if (distance > (npcCharacter.SightRangeNear)) MoveTowardsPoint(destinationWayPoints[currentWaypointIndex], npcCharacter.MoveSpeed);
-                else if (distance > 0.25) MoveTowardsPoint(destinationWayPoints[currentWaypointIndex], npcCharacter.MoveSpeed * 0.85f);
+                if (distance > (npcCharacter.RangeSightNear)) MoveTowardsPoint(destinationWayPoints[currentWaypointIndex], npcCharacter.MoveSpeed);
+                else if (distance > npcCharacter.RangeSightNear * 0.25f) MoveTowardsPoint(destinationWayPoints[currentWaypointIndex], npcCharacter.MoveSpeed * 0.85f);
                 else
                 {
                     if (currentWaypointIndex == destinationWayPoints.GetUpperBound(0))
@@ -300,15 +297,32 @@ public class AnimalObjectScript : SubjectObjectScript
         else if (chaseTarget != null) // chase the target
         {
             float distance = Vector3.Distance(chaseTarget.transform.position, transform.position);
-            if (distance > 0.75) MoveTowardsPoint(chaseTarget.transform.position, npcCharacter.MoveSpeed);
+            if (distance > npcCharacter.RangeActionClose * 0.75) MoveTowardsPoint(chaseTarget.transform.position, npcCharacter.MoveSpeed);
             else
             {
                 Vector3 targetDir = chaseTarget.transform.position - transform.position;
                 transform.rotation = Quaternion.LookRotation(targetDir);
-                chaseTarget = null;
+                //chaseTarget = null;
+            }
+        }
+        else if (targetPosition != default(Vector3)) // move to targetPosition
+        {
+            float distance = Vector3.Distance(targetPosition, transform.position);
+            if (distance > npcCharacter.RangeActionClose) MoveTowardsPoint(targetPosition, npcCharacter.MoveSpeed);
+            else
+            {
+                Vector3 targetDir = targetPosition - transform.position;
+                transform.rotation = Quaternion.LookRotation(targetDir);
+                targetPosition = default(Vector3);
             }
         }
     }
+
+    /// <summary>
+    /// Get the current driver for this mob.
+    /// </summary>
+    /// <returns>The current top driver.</returns>
+    internal NpcDrivers GetDriver() { return npcCharacter.GetDriver(); }
 
     private void DrawDebugCircle(Vector3 debugCircleCenter, float debugCircleRadius, int debugCircleVertices, Color debugCircleColor)
     {
@@ -336,11 +350,11 @@ public class AnimalObjectScript : SubjectObjectScript
     /// </summary>
     /// <returns>Returns: One of this animal's loot if it is dead and has loot in its inventory. <para/>
     /// Returns: NULL if this animal is not dead.</returns>
-    public override InventoryItem Harvest()
+    public override InventoryItem Harvest(int itemIdToHarvest)
     {
         if (IsDead)
         {
-            return Inventory.Take(new InventoryItem(5, 1));
+            return Inventory.Take(new InventoryItem(itemIdToHarvest, 1));
         }
         else return null;
     }
@@ -367,7 +381,7 @@ public class AnimalObjectScript : SubjectObjectScript
         // Debug: draw line to current targetPosition
         if (destinationWayPoints.Length > 0)
         {
-            Debug.DrawLine(new Vector3(transform.position.x, 0.5f, transform.position.z), targetPosition, (subject.SubjectID == DbIds.Plinkett) ? Color.blue : Color.yellow);
+            Debug.DrawLine(new Vector3(transform.position.x, 0.5f, transform.position.z), targetPosition, (subject.SubjectID == KbIds.Plinkett) ? Color.blue : Color.yellow);
         }
     }
 
@@ -379,29 +393,29 @@ public class AnimalObjectScript : SubjectObjectScript
     /// <returns></returns>
     public List<GameObject> Observe()
     {
-        List<GameObject> nearList = new List<GameObject>();
+        List<GameObject> midRangeList = new List<GameObject>();
         List<GameObject> seenLocationList = new List<GameObject>();
 
         // only locations
         int layerMask = (1 << 9);
         // scan far sight area for locations to explore later
-        seenLocationList = Physics.OverlapSphere(gameObject.transform.position, npcCharacter.SightRangeFar, layerMask).Select(o => o.gameObject).ToList();
+        seenLocationList = Physics.OverlapSphere(gameObject.transform.position, npcCharacter.RangeSightFar, layerMask).Select(o => o.gameObject).ToList();
 
         // filter out terrain and locations
         layerMask = ~((1 << 8) | (1 << 9));
         // now let's grab collides in the near area
-        nearList = Physics.OverlapSphere(gameObject.transform.position, npcCharacter.SightRangeNear, layerMask).Select(o => o.gameObject).ToList();
+        midRangeList = Physics.OverlapSphere(gameObject.transform.position, npcCharacter.RangeSightMid, layerMask).Select(o => o.gameObject).ToList();
 
         // remove this object from the lists
-        nearList.Remove(this.gameObject);
+        midRangeList.Remove(this.gameObject);
         seenLocationList.Remove(this.gameObject);
 
         // store the observations locally
         seenLocationObjects = seenLocationList.ToArray();
 
         // return a list of observed objects
-        nearList.OrderBy(o => Vector3.Distance(transform.position, o.transform.position));
-        return nearList;
+        midRangeList.OrderBy(o => Vector3.Distance(transform.position, o.transform.position));
+        return midRangeList;
     }
 
     /// <summary>
@@ -446,5 +460,70 @@ public class AnimalObjectScript : SubjectObjectScript
             return true; //it was killed
         }
         else return false;
+    }
+
+    /// <summary>
+    /// Dig a hole at the current position.
+    /// </summary>
+    /// <returns>A reference to the hole that was dug.</returns>
+    public StructureObjectScript DigHole()
+    {
+        StructureSubject holeSubject = KnowledgeBase.GetSubject(KbIds.Hole10) as StructureSubject;
+        
+        // lift the hole off the playfield
+        Vector3 holePosition = new Vector3(transform.position.x, 0.01f, transform.position.z);
+
+        StructureObjectScript hole =
+            Instantiate(holeSubject.Prefab, holePosition, Quaternion.identity).GetComponent<StructureObjectScript>();
+        hole.InitializeFromSubject(holeSubject);
+
+        return hole;
+    }
+
+    /// <summary>
+    /// Build a nest using the items contained in holeObjectScript's Inventory.
+    /// </summary>
+    /// <param name="holeObjectScript">The hole to search for ingredients to build the nest.</param>
+    /// <returns>A reference to the nest that was built.</returns>
+    internal StructureObjectScript BuildNest(StructureObjectScript holeObjectScript)
+    {
+        BuildRecipe nestRecipe = npcCharacter.Subject.Nest.Recipe;
+        List<InventoryItem> takenItems = new List<InventoryItem>();
+        foreach (InventoryItem ingredient in nestRecipe.Ingredients)
+        {
+            // take out each ingredient
+            InventoryItem tempItem = holeObjectScript.Inventory.Take(new InventoryItem(ingredient));
+            if (tempItem.Quantity == ingredient.Quantity)
+            {
+                takenItems.Add(tempItem);
+            }
+            else
+            {
+                // not enough of this ingredient, put all ingredients back and cancel the nest build
+                foreach (InventoryItem takenIngredient in takenItems)
+                {
+                    holeObjectScript.Inventory.Add(takenIngredient);
+                }
+                return null;
+            }
+        }
+        // we have all needed ingredient quantities, build nest
+        StructureObjectScript nestObjectScript =
+            Instantiate(npcCharacter.Subject.Nest.Prefab, holeObjectScript.transform.position, holeObjectScript.transform.rotation)
+            .GetComponent<StructureObjectScript>();
+
+        nestObjectScript.InitializeFromSubject(npcCharacter.Subject.Nest.Copy());
+
+        takenItems.Clear();
+        takenItems = holeObjectScript.Inventory.TakeAllItems();
+        if (takenItems.Count > 0)
+        {
+            nestObjectScript.Inventory.Add(takenItems.ToArray());
+        }
+
+        // destroy the hole
+        Destroy(holeObjectScript.gameObject);
+
+        return nestObjectScript;
     }
 }

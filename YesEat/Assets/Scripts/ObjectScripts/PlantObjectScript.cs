@@ -126,29 +126,29 @@ public class PlantObjectScript : SubjectObjectScript
         meshChanged = false;
     }
 
-
     /// <summary>
     /// Harvest to take from inventory
     /// </summary>
     /// <returns></returns>
-    public override InventoryItem Harvest()
+    public override InventoryItem Harvest(int itemIdToHarvest)
     {
-        return inventory.Take(new InventoryItem(plantSubject.ProduceID, 1));
+        return inventory.Take(new InventoryItem(itemIdToHarvest, 1));
     }
 
-
     /// <summary>
-    /// Add our producable item to inventory
+    /// Add our producable items to inventory
     /// </summary>
     void ProduceStep()
     {
-        if(plantSubject.ProduceID > 0)
+        if (plantSubject.ProduceID > 0)
         {
-            InventoryItem producedItem = new InventoryItem(plantSubject.ProduceID, 1);
-            producedItem = inventory.Add(producedItem);
+            inventory.Add(new InventoryItem(plantSubject.ProduceID, 1));
+            foreach (int lootId in plantSubject.LootIDs)
+            {
+                inventory.Add(new InventoryItem(lootId, 1));
+            }
             lastProduce = Time.time;
         }
-        
     }
 
     void NodeCycle()
@@ -237,7 +237,7 @@ public class PlantObjectScript : SubjectObjectScript
                         nodes[i].transform.localPosition = plantSubject.NodeList[i].Rotation * plantSubject.NodeList[i].ScaledPosition();
                         nodes[i].transform.localRotation = plantSubject.NodeList[i].Rotation * Quaternion.Euler(0, 137.5f, 0);
                         PlantObjectScript script = nodes[i].GetComponent<PlantObjectScript>() as PlantObjectScript;
-                        script.InitializeFromSubject(masterSubjectList, plantSubject);
+                        script.InitializeFromSubject(plantSubject);
                         script.branchLevel = branchLevel + 1;
                         script.plantSubject.MaxGrowth = plantSubject.NodeList[i].ScaledRadius();
                         script.CurrentGrowth = currentGrowth;
@@ -258,12 +258,11 @@ public class PlantObjectScript : SubjectObjectScript
     /// <summary>
     /// Set this Plant Object's variables from the subject card
     /// </summary>
-    /// <param name="_masterSubjectList"></param>
     /// <param name="newSubject"></param>
-    public override void InitializeFromSubject(MasterSubjectList _masterSubjectList, Subject newSubject)
+    public override void InitializeFromSubject(Subject newSubject)
     {
-        masterSubjectList = _masterSubjectList;
-        subject = newSubject;
+        subject = newSubject as PlantSubject;
+        plantSubject = subject as PlantSubject;
         if (newSubject is PlantSubject)
         {
             plantSubject = newSubject.Copy() as PlantSubject;
@@ -291,7 +290,7 @@ public class PlantObjectScript : SubjectObjectScript
             newNode.Position = new Vector3(-dist, dist/2, 0);
             plantSubject.NodeList[1] = newNode.GetNode();
 
-            inventory = new Inventory(plantSubject.InventorySize, _masterSubjectList);
+            inventory = new Inventory(plantSubject.InventorySize);
             mature = false;
             age = 0.1f;
             currentGrowth = 0.01f;
@@ -311,7 +310,7 @@ public class PlantObjectScript : SubjectObjectScript
             plantSubject.GrowthRate = 20;
             plantSubject.MatureGrowth = 15;
 
-            inventory = new Inventory(3, _masterSubjectList);
+            inventory = new Inventory(3);
             mature = false;
             age = 0.1f;
             currentGrowth = 5.0f;

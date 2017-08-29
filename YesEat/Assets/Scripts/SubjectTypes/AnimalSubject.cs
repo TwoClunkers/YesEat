@@ -14,6 +14,7 @@ public class AnimalSubject : Subject
     private int lootID;
     private int matureTime;
     private int maxGrowth;
+    private StructureSubject nest;
     #endregion
 
     public AnimalSubject() : base()
@@ -39,6 +40,7 @@ public class AnimalSubject : Subject
         lootID = copyAnimalSubject.lootID;
         matureTime = copyAnimalSubject.matureTime;
         maxGrowth = copyAnimalSubject.maxGrowth;
+        nest = new StructureSubject(copyAnimalSubject.nest);
     }
 
     /// <summary>
@@ -80,6 +82,8 @@ public class AnimalSubject : Subject
     public override void TeachNpc(NpcCore npcCharacter)
     {
         npcCharacter.Definition.Memories.Add(new SubjectMemory(subjectID, 0, 0));
+        SubjectMemory lootMemory = npcCharacter.Definition.Memories.Find(o => o.SubjectID == lootID);
+        if (lootMemory != null) lootMemory.AddSource(subjectID);
     }
 
     /// <summary>
@@ -108,4 +112,9 @@ public class AnimalSubject : Subject
         get { return lootID; }
         set { lootID = value; }
     }
+
+    /// <summary>
+    /// The BuildRecipe for this NPC's nest.
+    /// </summary>
+    public StructureSubject Nest { get { return nest; } set { nest = value; } }
 }

@@ -59,9 +59,8 @@ public class LeafObjectScript : SubjectObjectScript
         meshChanged = false;
     }
 
-    public override void InitializeFromSubject(MasterSubjectList _masterSubjectList, Subject newSubject)
+    public override void InitializeFromSubject(Subject newSubject)
     {
-        masterSubjectList = _masterSubjectList;
         subject = newSubject;
         if (newSubject is ItemSubject)
         {
@@ -78,11 +77,11 @@ public class LeafObjectScript : SubjectObjectScript
     /// Harvest this leaf
     /// </summary>
     /// <returns></returns>
-    public override InventoryItem Harvest()
+    public override InventoryItem Harvest(int itemIdToHarvest)
     {
         if (leafSubject != null)
         {
-            return new InventoryItem(leafSubject.SubjectID, 1);
+            return new InventoryItem(itemIdToHarvest, 1);
             //Destroy this leaf object
         }
         else return null;

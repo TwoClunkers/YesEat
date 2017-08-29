@@ -1,24 +1,6 @@
 ﻿using System;
 using UnityEngine;
-
-/// <summary>
-/// An ingredient for a BuildRecipe.
-/// </summary>
-public class Ingredient
-{
-    private int subjectId;
-    private int quantity;
-
-    public int SubjectId { get { return subjectId; } set { subjectId = value; } }
-    public int Quantity { get { return quantity; } set { quantity = value; } }
-
-    public Ingredient(int subjectId, int quantity)
-    {
-        this.subjectId = subjectId;
-        this.quantity = quantity;
-    }
-
-}
+using System.Collections.Generic;
 
 /// <summary>
 /// The Build Recipe lists the required items needed for Item or Structure as well as required tools or knowledge
@@ -26,15 +8,17 @@ public class Ingredient
 public class BuildRecipe
 {
     #region Private members
-    private Ingredient[] _ingredients;
+    private List<InventoryItem> _ingredients;
     #endregion
+
+    public List<InventoryItem> Ingredients { get { return _ingredients; } set { _ingredients = value; } }
 
     public BuildRecipe()
     {
-        _ingredients = new Ingredient[0];
+        _ingredients = new List<InventoryItem>();
     }
 
-    public BuildRecipe(Ingredient[] ingredients)
+    public BuildRecipe(List<InventoryItem> ingredients)
     {
         _ingredients = ingredients;
     }
@@ -45,8 +29,14 @@ public class BuildRecipe
     /// <param name="copyBuildRecipe">The recipe to copy.</param>
     public BuildRecipe(BuildRecipe copyBuildRecipe)
     {
-        // assign private fields
-        _ingredients = copyBuildRecipe._ingredients;
+        if (copyBuildRecipe != null)
+        {
+            _ingredients = new List<InventoryItem>(copyBuildRecipe._ingredients);
+            for (int i = 0; i < copyBuildRecipe._ingredients.Count; i++)
+            {
+                _ingredients[i] = copyBuildRecipe._ingredients[i];
+            }
+        }
     }
 
 }

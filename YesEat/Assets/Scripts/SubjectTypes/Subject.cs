@@ -5,11 +5,10 @@ using UnityEngine;
 /// <summary>
 /// Base Class for all subject types. 
 /// </summary>
-
 public abstract class Subject
 {
     #region Private members
-    private SubjectAttributes attributes;
+    protected SubjectAttributes attributes;
     protected string description;
     protected Sprite icon;
     protected string name;
@@ -58,58 +57,34 @@ public abstract class Subject
     /// <summary>
     /// The subject ID is used to find the right subject
     /// </summary>
-    public int SubjectID
-    {
-        get { return subjectID; }
-        set { subjectID = value; }
-    }
+    public int SubjectID { get { return subjectID; } set { subjectID = value; } }
 
     /// <summary>
     /// This subject's name.
     /// </summary>
-	public string Name
-    {
-        get { return name; }
-        set { name = value; }
-    }
+	public string Name { get { return name; } set { name = value; } }
 
     /// <summary>
     /// This subject's description.
     /// </summary>
-	public string Description
-    {
-        get { return description; }
-        set { description = value ?? String.Empty; }
-    }
+	public string Description { get { return description; } set { description = value ?? String.Empty; } }
 
     /// <summary>
     /// GUI Icon for this subject.
     /// </summary>
-    public Sprite Icon
-    {
-        get { return icon; }
-        set { icon = value; }
-    }
+    public Sprite Icon { get { return icon; } set { icon = value; } }
 
     /// <summary>
     /// Subjects related to this one.
     /// </summary>
-    public int[] RelatedSubjects
-    {
-        get { return relatedSubjects; }
-        set { relatedSubjects = value; }
-    }
+    public int[] RelatedSubjects { get { return relatedSubjects; } set { relatedSubjects = value; } }
 
     public abstract void TeachNpc(NpcCore npcCharacter);
 
     /// <summary>
     /// Prefab used by this subject
     /// </summary>
-    public GameObject Prefab
-    {
-        get { return prefab; }
-        set { prefab = value; }
-    }
+    public GameObject Prefab { get { return prefab; } set { prefab = value; } }
 
     public SubjectAttributes Attributes { get { return attributes; } set { attributes = value; } }
 
@@ -127,10 +102,6 @@ public abstract class Subject
         }
     }
 
-    public override int GetHashCode()
-    {
-        return base.GetHashCode();
-    }
+    public override int GetHashCode() { return base.GetHashCode(); }
+
 }
-
-

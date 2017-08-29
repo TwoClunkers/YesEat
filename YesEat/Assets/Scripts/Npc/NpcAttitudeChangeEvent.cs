@@ -16,6 +16,10 @@ public enum NpcMemoryChangeEvent
     /// Surveyed a location. <para />
     /// Happens every time a location is encountered whether it is new or already known.
     /// </summary>
-    LocationFound
+    LocationFound,
+    /// <summary>
+    /// Harvested and item from an object.
+    /// </summary>
+    ItemHarvested
 }
 

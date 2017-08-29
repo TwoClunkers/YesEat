@@ -2,20 +2,22 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class SelectionMarker : MonoBehaviour {
+public class SelectionMarker : MonoBehaviour
+{
 
     private GameObject targetGameObject;
-    private PlacementControllerScript cs;
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+    // Use this for initialization
+    void Start()
+    {
+
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+
+    }
 
     public void SetTarget(GameObject newTarget)
     {

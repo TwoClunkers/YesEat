@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 public partial class PlacementControllerScript : MonoBehaviour
 {
-    public MasterSubjectList masterSubjectList;
+    #region Public Field declarations
     public GameObject thoughtBubble;
     public GameObject selectionMarker;
     public GameObject lastSelector;
@@ -24,8 +24,10 @@ public partial class PlacementControllerScript : MonoBehaviour
     public Text _Health;
     public Text _Safety;
     public Text _Food;
+    public Text _Driver;
     public Text _Center;
     public Text _Radius;
+    #endregion
 
     public int masterCount;
     public int placeID;
@@ -35,124 +37,29 @@ public partial class PlacementControllerScript : MonoBehaviour
     private float lastDistance;
     private GameObject placedObject;
     private Vector3 cameraDestination;
+    bool cameraFollowTarget;
 
     // Use this for initialization
     void Start()
     {
-        masterSubjectList = new MasterSubjectList();
         centerPosition = new Vector3();
         edgePosition = new Vector3();
         placeID = -2;
         testPanel.SetActive(true);
         lastDistance = 0;
         cameraDestination = Camera.main.transform.position;
+        cameraFollowTarget = false;
+        KnowledgeBase.Init();
     }
 
     // Update is called once per frame
     void Update()
     {
-        // ------------------------------------------------------------------------
-        // ------------------------ START CAMERA MOVEMENT -------------------------
-        // ------------------------------------------------------------------------
-        if (lastSelector != null)
-        {
-            cameraDestination = new Vector3(lastSelector.transform.position.x,
-                cameraDestination.y,
-                lastSelector.transform.position.z);
-        }
-        else if (Input.GetMouseButton(2))
-        {
-            // panning camera
-            float mouseY = Input.GetAxis("Mouse Y");
-            if (mouseY != 0)
-            {
-                cameraDestination = new Vector3(cameraDestination.x,
-                    cameraDestination.y,
-                    Camera.main.transform.position.z + mouseY * (cameraDestination.y / 25));
-            }
-            float mouseX = Input.GetAxis("Mouse X");
-            if (mouseX != 0)
-            {
-                cameraDestination = new Vector3(Camera.main.transform.position.x + mouseX * (cameraDestination.y / 25),
-                    cameraDestination.y,
-                    cameraDestination.z);
-            }
-        }
-        float mouseWheelDelta = Input.GetAxis("Mouse ScrollWheel");
-        if (mouseWheelDelta != 0)
-        {
-            Vector3 camPosition = Camera.main.transform.position;
-            cameraDestination = new Vector3(camPosition.x,
-                camPosition.y - mouseWheelDelta * (camPosition.y),
-            Camera.main.transform.position.z);
-
-        }
-        if (Vector3.Distance(Camera.main.transform.position, cameraDestination) > 0.1f)
-        {
-            Camera.main.transform.position = Vector3.Slerp(Camera.main.transform.position, cameraDestination, Time.deltaTime * 20.0f);
-        }
-        // ------------------------------------------------------------------------
-        // ------------------------ END CAMERA MOVEMENT ---------------------------
-        // ------------------------------------------------------------------------
+        DoCameraMovement();
 
         if ((lastSelector != null) && (lastSelector.transform.parent != null))
         {
-            SubjectObjectScript script = lastSelector.transform.parent.GetComponent<SubjectObjectScript>() as SubjectObjectScript;
-            _ID.text = "ID: <b>" + script.Subject.SubjectID.ToString() + "</b>";
-            _Name.text = "Name: <b>" + script.Subject.Name.ToString() + "</b>";
-            _Description.text = "Desc: <b>" + script.Subject.Description.ToString() + "</b>";
-
-            testPanel.SetActive(true);
-            PlantSubject plantSub = script.Subject as PlantSubject;
-            if (plantSub != null)
-            {
-                PlantObjectScript plantScript = script as PlantObjectScript;
-                Subject produceSubject = masterSubjectList.GetSubject(plantSub.ProduceID);
-                float maturePercent = Mathf.Min(plantScript.CurrentGrowth / plantSub.MatureGrowth, 1.0f);
-                plantPanel.SetActive(true);
-                animalPanel.SetActive(false);
-                locationPanel.SetActive(false);
-                _Produce.text = "Produce: <b>" + plantSub.ProduceID.ToString() + " - " + produceSubject.Name.ToString() + "</b>";
-                _Growth.text = "Growth: <b>" + plantScript.CurrentGrowth.ToString() + " / " + plantSub.MaxGrowth.ToString() + "</b>";
-                _Maturity.text = "Maturity: <b>" + maturePercent.ToString() + "</b>";
-                _Inventory.text = "Inventory: <b>" + plantScript.InventoryPercent().ToString() + "</b>";
-            }
-            else
-            {
-                AnimalSubject animalSub = script.Subject as AnimalSubject;
-                if (animalSub != null)
-                {
-                    animalPanel.SetActive(true);
-                    plantPanel.SetActive(false);
-                    locationPanel.SetActive(false);
-                    AnimalObjectScript animalScript = script as AnimalObjectScript;
-                    _Health.text = "Health: <b>" + animalScript.GetHealth().ToString() + "</b>";
-                    _Safety.text = "Safety: <b>" + animalScript.GetSafety().ToString() + "</b>";
-                    _Food.text = "Food: <b>" + animalScript.GetFood().ToString() + "</b>";
-                }
-                else
-                {
-                    LocationSubject locationSub = script.Subject as LocationSubject;
-                    if (locationSub != null)
-                    {
-                        locationPanel.SetActive(true);
-                        plantPanel.SetActive(false);
-                        animalPanel.SetActive(false);
-                        _Center.text = "Center: <b>" + locationSub.Coordinates.ToString() + "</b>";
-                        _Radius.text = "Radius: <b>" + locationSub.Radius.ToString() + "</b>";
-                    }
-                    else
-                    {
-                        locationPanel.SetActive(false);
-                        plantPanel.SetActive(false);
-                        animalPanel.SetActive(false);
-                    }
-                }
-            }
-        }
-        else
-        {
-            //testPanel.SetActive(false);
+            ShowSelectionPanel();
         }
 
         //Place or use tool
@@ -204,7 +111,7 @@ public partial class PlacementControllerScript : MonoBehaviour
                     //We will let everything start with a radius of 0.5
                     if (CheckPlacementPosition(centerPosition, 0.5f, null))
                     {
-                        if (placeID == 2) //this is a location, which requires 2 steps
+                        if (placeID == KbIds.Location) //this is a location, which requires 2 steps
                         {
                             placedObject = Instantiate(locationStart, centerPosition, Quaternion.identity);
                             //calculate our edge and manipulate the scale until finalized
@@ -219,7 +126,7 @@ public partial class PlacementControllerScript : MonoBehaviour
                         else
                         {
                             //Use the id to pull the Subject card
-                            Subject newSubject = masterSubjectList.GetSubject(placeID);
+                            Subject newSubject = KnowledgeBase.GetSubject(placeID);
                             if (newSubject != null)
                             {
                                 placedObject = Instantiate(newSubject.Prefab, centerPosition, Quaternion.identity);
@@ -233,7 +140,7 @@ public partial class PlacementControllerScript : MonoBehaviour
                                     }
                                     placedObject.transform.Rotate(Vector3.up, Random.value * 360);
                                     SubjectObjectScript script = placedObject.GetComponent<SubjectObjectScript>() as SubjectObjectScript;
-                                    script.InitializeFromSubject(masterSubjectList, newSubject);
+                                    script.InitializeFromSubject(newSubject);
                                     placementStarted = true;
                                 }
                             }
@@ -244,7 +151,7 @@ public partial class PlacementControllerScript : MonoBehaviour
             else
             {
                 //We have started to place - is it a location?
-                if (placeID == 2)
+                if (placeID == KbIds.Location)
                 {
                     //calculate our edge and manipulate the scale until finalized
                     edgePosition = Camera.main.ScreenToWorldPoint(new Vector3(Input.mousePosition.x, Input.mousePosition.y, Camera.main.transform.position.y));
@@ -277,6 +184,117 @@ public partial class PlacementControllerScript : MonoBehaviour
     }
 
     /// <summary>
+    /// Display data based on the selected object.
+    /// </summary>
+    private void ShowSelectionPanel()
+    {
+        SubjectObjectScript script = lastSelector.transform.parent.GetComponent<SubjectObjectScript>() as SubjectObjectScript;
+        _ID.text = "ID: <b>" + script.Subject.SubjectID.ToString() + "</b>";
+        _Name.text = "Name: <b>" + script.Subject.Name.ToString() + "</b>";
+        _Description.text = "Desc: <b>" + script.Subject.Description.ToString() + "</b>";
+
+        testPanel.SetActive(true);
+        PlantSubject plantSub = script.Subject as PlantSubject;
+        if (plantSub != null)
+        {
+            PlantObjectScript plantScript = script as PlantObjectScript;
+            Subject produceSubject = KnowledgeBase.GetSubject(plantSub.ProduceID);
+            float maturePercent = Mathf.Min(plantScript.CurrentGrowth / plantSub.MatureGrowth, 1.0f);
+            plantPanel.SetActive(true);
+            animalPanel.SetActive(false);
+            locationPanel.SetActive(false);
+            _Produce.text = "Produce: <b>" + plantSub.ProduceID.ToString() + " - " + produceSubject.Name.ToString() + "</b>";
+            _Growth.text = "Growth: <b>" + plantScript.CurrentGrowth.ToString() + " / " + plantSub.MaxGrowth.ToString() + "</b>";
+            _Maturity.text = "Maturity: <b>" + maturePercent.ToString() + "</b>";
+            _Inventory.text = "Inventory: <b>" + plantScript.InventoryPercent().ToString() + "</b>";
+        }
+        else
+        {
+            AnimalSubject animalSub = script.Subject as AnimalSubject;
+            if (animalSub != null)
+            {
+                animalPanel.SetActive(true);
+                plantPanel.SetActive(false);
+                locationPanel.SetActive(false);
+                AnimalObjectScript animalScript = script as AnimalObjectScript;
+                _Health.text = "Health: <b>" + animalScript.GetHealth().ToString() + "</b>";
+                _Safety.text = "Safety: <b>" + animalScript.GetSafety().ToString() + "</b>";
+                _Food.text = "Food: <b>" + animalScript.GetFood().ToString() + "</b>";
+                _Driver.text = "Driver: <b>" + animalScript.GetDriver().ToString() + "</b>";
+            }
+            else
+            {
+                LocationSubject locationSub = script.Subject as LocationSubject;
+                if (locationSub != null)
+                {
+                    locationPanel.SetActive(true);
+                    plantPanel.SetActive(false);
+                    animalPanel.SetActive(false);
+                    _Center.text = "Center: <b>" + locationSub.Coordinates.ToString() + "</b>";
+                    _Radius.text = "Radius: <b>" + locationSub.Radius.ToString() + "</b>";
+                }
+                else
+                {
+                    locationPanel.SetActive(false);
+                    plantPanel.SetActive(false);
+                    animalPanel.SetActive(false);
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// Move the camera based on user inputs
+    /// </summary>
+    private void DoCameraMovement()
+    {
+        if (Input.GetKeyUp(KeyCode.F))
+            cameraFollowTarget = !cameraFollowTarget;
+
+        if (lastSelector != null)
+        {
+            if (cameraFollowTarget)
+            {
+                cameraDestination = new Vector3(lastSelector.transform.position.x,
+                    cameraDestination.y,
+                    lastSelector.transform.position.z);
+            }
+        }
+        if (Input.GetMouseButton(2))
+        {
+            cameraFollowTarget = false;
+            // panning camera
+            float mouseY = Input.GetAxis("Mouse Y");
+            if (mouseY != 0)
+            {
+                cameraDestination = new Vector3(cameraDestination.x,
+                    cameraDestination.y,
+                    Camera.main.transform.position.z + mouseY * (cameraDestination.y / 25));
+            }
+            float mouseX = Input.GetAxis("Mouse X");
+            if (mouseX != 0)
+            {
+                cameraDestination = new Vector3(Camera.main.transform.position.x + mouseX * (cameraDestination.y / 25),
+                    cameraDestination.y,
+                    cameraDestination.z);
+            }
+        }
+        float mouseWheelDelta = Input.GetAxis("Mouse ScrollWheel");
+        if (mouseWheelDelta != 0)
+        {
+            Vector3 camPosition = Camera.main.transform.position;
+            cameraDestination = new Vector3(camPosition.x,
+                camPosition.y - mouseWheelDelta * (camPosition.y),
+            Camera.main.transform.position.z);
+
+        }
+        if (Vector3.Distance(Camera.main.transform.position, cameraDestination) > 0.1f)
+        {
+            Camera.main.transform.position = Vector3.Slerp(Camera.main.transform.position, cameraDestination, Time.deltaTime * 20.0f);
+        }
+    }
+
+    /// <summary>
     /// Returns whether our item can be placed here
     /// </summary>
     /// <param name="center"></param>
@@ -295,7 +313,7 @@ public partial class PlacementControllerScript : MonoBehaviour
             if (hitColliders[i].gameObject == excludeObject) continue;
             //Are any Colliders a LocationObject?
             //If we have one location, (not two) we are fine to place
-            if ((hitColliders[i].tag == "Location") ^ (placeID == 2))
+            if ((hitColliders[i].tag == "Location") ^ (placeID == KbIds.Location))
             {
                 continue;
             }
@@ -418,27 +436,29 @@ public partial class PlacementControllerScript : MonoBehaviour
     /// <param name="radius"></param>
     public GameObject CreateLocation(Vector3 center, float radius)
     {
-        //first, pull the genaric LocationSubject from the masterSubjectList and create prefab
-        LocationSubject locFromMaster = masterSubjectList.GetSubject(DbIds.Location) as LocationSubject;
+        //first, pull the genaric LocationSubject from the KnowledgeBase and create prefab
+        LocationSubject locFromMaster = KnowledgeBase.GetSubject(KbIds.Location) as LocationSubject;
         GameObject newLocationObject = Instantiate(locFromMaster.Prefab, center, Quaternion.identity);
         newLocationObject.transform.localScale = new Vector3(radius * 2, 0.1f, radius * 2);
 
         //grab our connected script and create a fresh LocationSubject
         LocationObjectScript script = newLocationObject.GetComponent<LocationObjectScript>() as LocationObjectScript;
-        LocationSubject newLocSubject = new LocationSubject();
-        //now lets set the values to make a new locationSubject card
-        newLocSubject.Name = "Location " + Time.time;
-        newLocSubject.Description = "New Location " + Time.time;
-        newLocSubject.Radius = radius;
-        newLocSubject.Coordinates = center;
-        newLocSubject.Layer = 1;
+        LocationSubject newLocSubject = new LocationSubject()
+        {
+            //now lets set the values to make a new locationSubject card
+            Name = "Location " + Time.time,
+            Description = "New Location " + Time.time,
+            Radius = radius,
+            Coordinates = center,
+            Layer = 1,
 
-        //add the next id available
-        newLocSubject.SubjectID = masterSubjectList.GetNextID();
-        script.InitializeFromSubject(masterSubjectList, newLocSubject);
+            //add the next id available
+            SubjectID = KnowledgeBase.GetNextID()
+        };
+        script.InitializeFromSubject(newLocSubject);
 
         //now add our card to the master list
-        if (!masterSubjectList.AddSubject(newLocSubject)) Debug.Log("FAIL ADD");
+        if (!KnowledgeBase.AddSubject(newLocSubject)) Debug.Log("FAIL ADD");
         //store to the script attached to our new object
         return newLocationObject;
     }
@@ -451,14 +471,14 @@ public partial class PlacementControllerScript : MonoBehaviour
     public GameObject SpawnObject(int newSubjectId, Vector3 spawnPoint)
     {
         //Use the id to pull the Subject card
-        Subject newSubject = masterSubjectList.GetSubject(newSubjectId);
+        Subject newSubject = KnowledgeBase.GetSubject(newSubjectId);
         if (newSubject != null)
         {
             GameObject newObject = Instantiate(newSubject.Prefab, spawnPoint, Quaternion.identity);
             if (newObject != null)
             {
                 SubjectObjectScript script = newObject.GetComponent<SubjectObjectScript>() as SubjectObjectScript;
-                script.InitializeFromSubject(masterSubjectList, newSubject);
+                script.InitializeFromSubject(newSubject);
                 return newObject;
             }
         }
@@ -468,25 +488,25 @@ public partial class PlacementControllerScript : MonoBehaviour
     //Button attachments
     public void OnSelectLocation(bool isClicked)
     {
-        placeID = DbIds.Location;
+        placeID = KbIds.Location;
         placementStarted = false;
     }
 
     public void OnSelectBush(bool isClicked)
     {
-        placeID = DbIds.Tree;
+        placeID = KbIds.Tree;
         placementStarted = false;
     }
 
     public void OnSelectPlinket()
     {
-        placeID = DbIds.Plinkett;
+        placeID = KbIds.Plinkett;
         placementStarted = false;
     }
 
     public void OnSelectGobber()
     {
-        placeID = DbIds.Gobber;
+        placeID = KbIds.Gobber;
         placementStarted = false;
     }
 

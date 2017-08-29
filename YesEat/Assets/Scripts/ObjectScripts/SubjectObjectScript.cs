@@ -6,7 +6,6 @@ public abstract class SubjectObjectScript : MonoBehaviour
     #region Private members
     protected Subject subject;
     protected LocationSubject location;
-    protected MasterSubjectList masterSubjectList;
     #endregion
 
     // Use this for initialization
@@ -39,9 +38,8 @@ public abstract class SubjectObjectScript : MonoBehaviour
     /// <summary>
     /// Will be used by derived classes
     /// </summary>
-    /// <param name="_masterSubjectList"></param>
     /// <param name="newSubject"></param>
-    public abstract void InitializeFromSubject(MasterSubjectList _masterSubjectList, Subject newSubject);
+    public abstract void InitializeFromSubject(Subject newSubject);
 
-    public abstract InventoryItem Harvest();
+    public abstract InventoryItem Harvest(int itemIdToHarvest);
 }

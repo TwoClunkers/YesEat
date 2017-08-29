@@ -64,15 +64,12 @@ public partial class PlacementControllerScript : MonoBehaviour
         CreateLocation(new Vector3(3.0f, 0, -4.0f), 1.6f);
         CreateLocation(new Vector3(-3.0f, 0, 3.0f), 4.0f);
 
-        SpawnObject(DbIds.Bush, new Vector3(-4.0f, 0, -4.0f));
-        SpawnObject(DbIds.Plinkett, new Vector3(3.5f, 0, -4.0f));
-        SpawnObject(DbIds.Gobber, new Vector3(3.5f, 0, 3.5f));
-
+        SpawnObject(KbIds.Tree, new Vector3(-4.0f, 0, -4.0f));
     }
 
     public void TestSet4()
     {
-
+        T_SpawnMobPacks();
     }
 
     public void TestSet5()
@@ -88,7 +85,7 @@ public partial class PlacementControllerScript : MonoBehaviour
             SubjectObjectScript objScript = lastSelector.GetComponentInParent<SubjectObjectScript>();
             if (objScript != null)
             {
-                if (objScript.GetType() == typeof(AnimalObjectScript))
+                if (objScript is AnimalObjectScript)
                 {
                     AnimalObjectScript animal = objScript as AnimalObjectScript;
                     animal.T_Npc.T_SetValues(newFood: animal.T_Npc.Definition.FoodHungry);
@@ -109,14 +106,14 @@ public partial class PlacementControllerScript : MonoBehaviour
         bool testResult = false;
         // Ross -- Tested & working 8/8/17 19:45
         // Given: A Gobber is hungry and is within range of a Plinkett.
-        Subject newSubject = masterSubjectList.GetSubject(DbIds.Plinkett);
+        Subject newSubject = KnowledgeBase.GetSubject(KbIds.Plinkett);
         GameObject testPlinkett = Instantiate(newSubject.Prefab, new Vector3(0, 0, 1), Quaternion.identity);
         AnimalObjectScript sPlinkett = testPlinkett.GetComponent<AnimalObjectScript>();
-        sPlinkett.InitializeFromSubject(masterSubjectList, newSubject);
+        sPlinkett.InitializeFromSubject(newSubject);
         // When: Plinkett is attacked by Gobber.
-        sPlinkett.Damage(masterSubjectList.GetSubject(DbIds.Gobber), 10);
+        sPlinkett.Damage(KnowledgeBase.GetSubject(KbIds.Gobber), 10);
         // Then: Plinkett's memory of Gobber has negative safety.
-        SubjectMemory subMem = sPlinkett.T_Npc.T_GetMemory(6);
+        SubjectMemory subMem = sPlinkett.T_Npc.T_GetMemory(KbIds.Gobber);
         List<SubjectMemory> sMem = sPlinkett.T_Npc.T_Memories;
         if (subMem != null)
             testResult = (subMem.Safety < 0);
@@ -145,17 +142,17 @@ public partial class PlacementControllerScript : MonoBehaviour
         GameObject loc5 = T_PlaceLocation(new Vector3(-3.0f, 0, 3.0f), 1.6f);
 
         // Given: A Plinkett memory has a negative safety for Gobbers.
-        Subject newSubject = masterSubjectList.GetSubject(DbIds.Plinkett);
+        Subject newSubject = KnowledgeBase.GetSubject(KbIds.Plinkett);
         GameObject testPlinkett = Instantiate(newSubject.Prefab, new Vector3(0, 0, 1), Quaternion.identity);
         AnimalObjectScript sPlinkett = testPlinkett.GetComponent<AnimalObjectScript>();
-        sPlinkett.InitializeFromSubject(masterSubjectList, newSubject);
-        sPlinkett.T_Npc.T_Memories.Add(new SubjectMemory(6, -1, 0));
+        sPlinkett.InitializeFromSubject(newSubject);
+        sPlinkett.T_Npc.T_Memories.Add(new SubjectMemory(KbIds.Gobber, -1, 0));
 
         int startingSafety = sPlinkett.GetSafety();
 
-        Subject gobSubject = masterSubjectList.GetSubject(DbIds.Gobber);
+        Subject gobSubject = KnowledgeBase.GetSubject(KbIds.Gobber);
         GameObject testGob = Instantiate(gobSubject.Prefab, new Vector3(0, 0, 2), Quaternion.identity);
-        testGob.GetComponent<AnimalObjectScript>().InitializeFromSubject(masterSubjectList, gobSubject);
+        testGob.GetComponent<AnimalObjectScript>().InitializeFromSubject(gobSubject);
 
         // When: Plinkett sees a Gobber.
         sPlinkett.T_Npc.AiCoreProcess();
@@ -176,13 +173,13 @@ public partial class PlacementControllerScript : MonoBehaviour
 
     /// <summary>
     /// !!!  FOR TESTING ONLY DO NOT USE !!! <para/>
-    /// Place a new location in the world and add it to the MasterSubjectList.
+    /// Place a new location in the world and add it to the KnowledgeBase.
     /// </summary>
     /// <param name="newPosition">The center point of the new location</param>
     /// <param name="newRadius">The radius of the new location.</param>
     public GameObject T_PlaceLocation(Vector3 newPosition, float newRadius)
     {
-        LocationSubject newLocation = new LocationSubject(masterSubjectList.GetSubject(DbIds.Location) as LocationSubject);
+        LocationSubject newLocation = new LocationSubject(KnowledgeBase.GetSubject(KbIds.Location) as LocationSubject);
         newLocation.Name = "Location " + Time.time;
         newLocation.Description = "New Location " + Time.time;
         newLocation.Radius = newRadius;
@@ -190,16 +187,29 @@ public partial class PlacementControllerScript : MonoBehaviour
         newLocation.Icon = null;
         newLocation.Layer = 1;
         //add the next id available
-        newLocation.SubjectID = masterSubjectList.GetNextID();
+        newLocation.SubjectID = KnowledgeBase.GetNextID();
 
         GameObject location1 = Instantiate(newLocation.Prefab, newPosition, Quaternion.identity);
         LocationObjectScript locScript = location1.GetComponent<LocationObjectScript>();
-        locScript.InitializeFromSubject(masterSubjectList, newLocation);
+        locScript.InitializeFromSubject(newLocation);
         locScript.Relocate(newLocation);
 
-        if (!masterSubjectList.AddSubject(newLocation)) Debug.Log("FAIL ADD");
+        if (!KnowledgeBase.AddSubject(newLocation)) Debug.Log("FAIL ADD");
         return location1;
     }
 
+    private void T_SpawnMobPacks()
+    {
+        SpawnObject(KbIds.Plinkett, new Vector3(3.5f, 0, -4.0f));
+        SpawnObject(KbIds.Plinkett, new Vector3(2.5f, 0, -4.5f));
+        SpawnObject(KbIds.Plinkett, new Vector3(3.0f, 0, -3.5f));
+        SpawnObject(KbIds.Plinkett, new Vector3(4.5f, 0, -5.0f));
+        SpawnObject(KbIds.Plinkett, new Vector3(-3.5f, 0, -4.0f));
+        SpawnObject(KbIds.Plinkett, new Vector3(-2.5f, 0, -4.0f));
+        AnimalObjectScript gob = SpawnObject(KbIds.Gobber, new Vector3(3.5f, 0, 3.5f)).GetComponent<AnimalObjectScript>();
+        gob.T_Npc.T_SetValues(newFood: 50);
+        AnimalObjectScript gob2 = SpawnObject(KbIds.Gobber, new Vector3(3.0f, 0, 2.5f)).GetComponent<AnimalObjectScript>();
+        gob2.T_Npc.T_SetValues(newFood: 50);
+    }
 }
 

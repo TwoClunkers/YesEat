@@ -28,6 +28,7 @@ public class PlantSubject : Subject
     private float taperRatio;
     private PlantTypes plantType;
     private Gene plantGene;
+    private int[] lootIDs;
     #endregion
 
     public PlantSubject() : base()
@@ -42,13 +43,14 @@ public class PlantSubject : Subject
         growthRate = 0.01f;
         matureGrowth = 1;
         inventorySize = 3;
-        nodeList = null;
+        nodeList = new Node[0];
         nodeAttachment = null;
         heightRatio = 5.0f;
         taperRatio = 0.8f;
         plantType = PlantTypes.Bush;
         plantGene = new Gene();
         plantGene.CreateRandom(15);
+        LootIDs = new int[0];
     }
 
     public PlantSubject(PlantSubject copyPlantSubject) : base(copyPlantSubject)
@@ -59,39 +61,29 @@ public class PlantSubject : Subject
         growthRate = copyPlantSubject.growthRate;
         matureGrowth = copyPlantSubject.matureGrowth;
         inventorySize = copyPlantSubject.inventorySize;
+
+
+        nodeList = new Node[copyPlantSubject.nodeList.Length];
+        if (nodeList.Length > 0)
+        {
+            for (int i = 0; i < copyPlantSubject.nodeList.Length; i++)
+            {
+                nodeList[i] = copyPlantSubject.nodeList[i].GetNode();
+            }
+        }
+        nodeAttachment = copyPlantSubject.nodeAttachment;
+        heightRatio = copyPlantSubject.heightRatio;
+        taperRatio = copyPlantSubject.taperRatio;
+        plantType = copyPlantSubject.plantType;
+        plantGene = copyPlantSubject.plantGene;
+        LootIDs = new int[copyPlantSubject.LootIDs.Length];
+        Array.Copy(copyPlantSubject.LootIDs, LootIDs, copyPlantSubject.LootIDs.Length);
     }
 
     /// <summary>
     /// Copy an existing PlantSubject.
     /// </summary>
-    public override Subject Copy()
-    {
-        PlantSubject newPlantSubject = new PlantSubject();
-        newPlantSubject.subjectID = subjectID;
-        newPlantSubject.name = name;
-        newPlantSubject.description = description;
-        newPlantSubject.icon = icon;
-        newPlantSubject.prefab = prefab;
-        newPlantSubject.relatedSubjects = relatedSubjects;
-
-        newPlantSubject.produceID = produceID;
-        newPlantSubject.produceTime = produceTime;
-        newPlantSubject.maxGrowth = maxGrowth;
-        newPlantSubject.growthRate = growthRate;
-        newPlantSubject.matureGrowth = matureGrowth;
-        newPlantSubject.inventorySize = inventorySize;
-        newPlantSubject.nodeList = new Node[nodeList.Length];
-        for (int i = 0; i < nodeList.Length; i++)
-        {
-            newPlantSubject.nodeList[i] = nodeList[i].GetNode();
-        }
-        newPlantSubject.nodeAttachment = nodeAttachment;
-        newPlantSubject.heightRatio = heightRatio;
-        newPlantSubject.taperRatio = taperRatio;
-        newPlantSubject.plantType = plantType;
-        newPlantSubject.plantGene = plantGene;
-        return newPlantSubject;
-    }
+    public override Subject Copy() { return new PlantSubject(this); }
 
     /// <summary>
     /// What does this plant produce?
@@ -192,9 +184,21 @@ public class PlantSubject : Subject
         set { plantGene = value; }
     }
 
+    public int[] LootIDs { get { return lootIDs; } set { lootIDs = value; } }
+
     public override void TeachNpc(NpcCore npcCharacter)
     {
         npcCharacter.Definition.Memories.Add(new SubjectMemory(subjectID, 0, 0));
+        SubjectMemory produceMemory = npcCharacter.Definition.Memories.Find(o => o.SubjectID == produceID);
+        if (produceMemory != null) produceMemory.AddSource(subjectID);
+        if (LootIDs.Length > 0)
+        {
+            for (int i = 0; i < LootIDs.Length; i++)
+            {
+                SubjectMemory lootMemory = npcCharacter.Definition.Memories.Find(o => o.SubjectID == LootIDs[i]);
+                if (lootMemory != null) lootMemory.AddSource(subjectID);
+            }
+        }
     }
 }
 

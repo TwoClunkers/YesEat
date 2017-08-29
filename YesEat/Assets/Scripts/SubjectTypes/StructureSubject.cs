@@ -9,6 +9,7 @@ public class StructureSubject : Subject
 {
     #region Private members
     private BuildRecipe recipe;
+    private int inventorySize;
     #endregion
 
     public StructureSubject() : base()
@@ -18,6 +19,7 @@ public class StructureSubject : Subject
         icon = new Sprite();
 
         recipe = new BuildRecipe();
+        inventorySize = 0;
     }
 
     /// <summary>
@@ -26,6 +28,7 @@ public class StructureSubject : Subject
     public StructureSubject(StructureSubject copyStructureSubject) : base(copyStructureSubject)
     {
         recipe = new BuildRecipe(copyStructureSubject.recipe);
+        inventorySize = copyStructureSubject.inventorySize;
     }
 
     /// <summary>
@@ -40,11 +43,12 @@ public class StructureSubject : Subject
     /// <summary>
     /// The BuildRecipe used to make this Structure
     /// </summary>
-    public BuildRecipe Recipe
-    {
-        get { return recipe; }
-        set { recipe = value; }
-    }
+    public BuildRecipe Recipe { get { return recipe; } set { recipe = value; } }
+
+    /// <summary>
+    /// The quantity of inventory slots this structure has.
+    /// </summary>
+    public int InventorySize { get { return inventorySize; } set { inventorySize = value; } }
 
     public override void TeachNpc(NpcCore npcCharacter)
     {
