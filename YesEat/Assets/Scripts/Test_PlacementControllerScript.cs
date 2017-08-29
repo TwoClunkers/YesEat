@@ -74,7 +74,19 @@ public partial class PlacementControllerScript : MonoBehaviour
 
     public void TestSet5()
     {
-
+        // make the selected target tired
+        if (lastSelector != null)
+        {
+            SubjectObjectScript objScript = lastSelector.GetComponentInParent<SubjectObjectScript>();
+            if (objScript != null)
+            {
+                if (objScript is AnimalObjectScript)
+                {
+                    AnimalObjectScript animal = objScript as AnimalObjectScript;
+                    animal.T_Npc.T_SetValues(newEndurance: animal.T_Npc.Definition.EnduranceLow);
+                }
+            }
+        }
     }
 
     public void TestSet6()
@@ -179,16 +191,17 @@ public partial class PlacementControllerScript : MonoBehaviour
     /// <param name="newRadius">The radius of the new location.</param>
     public GameObject T_PlaceLocation(Vector3 newPosition, float newRadius)
     {
-        LocationSubject newLocation = new LocationSubject(KnowledgeBase.GetSubject(KbIds.Location) as LocationSubject);
-        newLocation.Name = "Location " + Time.time;
-        newLocation.Description = "New Location " + Time.time;
-        newLocation.Radius = newRadius;
-        newLocation.Coordinates = newPosition;
-        newLocation.Icon = null;
-        newLocation.Layer = 1;
-        //add the next id available
-        newLocation.SubjectID = KnowledgeBase.GetNextID();
-
+        LocationSubject newLocation = new LocationSubject(KnowledgeBase.GetSubject(KbIds.Location) as LocationSubject)
+        {
+            Name = "Location " + Time.time,
+            Description = "New Location " + Time.time,
+            Radius = newRadius,
+            Coordinates = newPosition,
+            Icon = null,
+            Layer = 1,
+            //add the next id available
+            SubjectID = KnowledgeBase.GetNextID()
+        };
         GameObject location1 = Instantiate(newLocation.Prefab, newPosition, Quaternion.identity);
         LocationObjectScript locScript = location1.GetComponent<LocationObjectScript>();
         locScript.InitializeFromSubject(newLocation);

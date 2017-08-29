@@ -9,11 +9,13 @@ public partial class NpcCore
     /// <param name="newHealth">New health value.</param>
     /// <param name="newSafety">New safety value.</param>
     /// <param name="newFood">New food value.</param>
-    public void T_SetValues(int? newHealth = null, int? newSafety = null, int? newFood = null)
+    /// <param name="newEndurance">New endurance value.</param>
+    public void T_SetValues(int? newHealth = null, int? newSafety = null, int? newFood = null, int? newEndurance = null)
     {
         health = newHealth ?? health;
         safety = newSafety ?? safety;
         food = newFood ?? food;
+        endurance = newEndurance ?? endurance;
     }
 
     public void T_DeleteMemories()

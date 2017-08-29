@@ -318,6 +318,8 @@ public class AnimalObjectScript : SubjectObjectScript
         }
     }
 
+    internal float GetEndurance() { return npcCharacter.Endurance; }
+
     /// <summary>
     /// Get the current driver for this mob.
     /// </summary>
@@ -469,7 +471,7 @@ public class AnimalObjectScript : SubjectObjectScript
     public StructureObjectScript DigHole()
     {
         StructureSubject holeSubject = KnowledgeBase.GetSubject(KbIds.Hole10) as StructureSubject;
-        
+
         // lift the hole off the playfield
         Vector3 holePosition = new Vector3(transform.position.x, 0.01f, transform.position.z);
 

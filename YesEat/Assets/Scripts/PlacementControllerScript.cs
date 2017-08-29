@@ -24,6 +24,7 @@ public partial class PlacementControllerScript : MonoBehaviour
     public Text _Health;
     public Text _Safety;
     public Text _Food;
+    public Text _Endurance;
     public Text _Driver;
     public Text _Center;
     public Text _Radius;
@@ -220,6 +221,7 @@ public partial class PlacementControllerScript : MonoBehaviour
                 _Health.text = "Health: <b>" + animalScript.GetHealth().ToString() + "</b>";
                 _Safety.text = "Safety: <b>" + animalScript.GetSafety().ToString() + "</b>";
                 _Food.text = "Food: <b>" + animalScript.GetFood().ToString() + "</b>";
+                _Endurance.text = "Endurance: <b>" + animalScript.GetEndurance().ToString() + "</b>";
                 _Driver.text = "Driver: <b>" + animalScript.GetDriver().ToString() + "</b>";
             }
             else

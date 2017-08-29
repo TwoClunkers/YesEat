@@ -8,6 +8,7 @@ public enum NpcDrivers
     Safety,
     Hunger,
     Nest,
+    Tired,
     Explore
 }
 
