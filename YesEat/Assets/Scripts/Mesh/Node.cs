@@ -15,7 +15,7 @@ public class Node
         rotation = new Quaternion();
         radius = 0;
         position = new Vector3();
-        scale = new Vector3();
+        scale = new Vector3(1,1,1);
     }
 
     public Node(Quaternion newRotation, float newRadius, Vector3 newPosition, Vector3 newScale)

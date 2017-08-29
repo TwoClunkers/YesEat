@@ -27,6 +27,7 @@ public class PlantSubject : Subject
     private float heightRatio;
     private float taperRatio;
     private PlantTypes plantType;
+    private Gene plantGene;
     private int[] lootIDs;
     #endregion
 
@@ -47,6 +48,8 @@ public class PlantSubject : Subject
         heightRatio = 5.0f;
         taperRatio = 0.8f;
         plantType = PlantTypes.Bush;
+        plantGene = new Gene();
+        plantGene.CreateRandom(15);
         LootIDs = new int[0];
     }
 
@@ -72,6 +75,7 @@ public class PlantSubject : Subject
         heightRatio = copyPlantSubject.heightRatio;
         taperRatio = copyPlantSubject.taperRatio;
         plantType = copyPlantSubject.plantType;
+        plantGene = copyPlantSubject.plantGene;
         LootIDs = new int[copyPlantSubject.LootIDs.Length];
         Array.Copy(copyPlantSubject.LootIDs, LootIDs, copyPlantSubject.LootIDs.Length);
     }
@@ -172,6 +176,12 @@ public class PlantSubject : Subject
     {
         get { return plantType; }
         set { plantType = value; }
+    }
+
+    public Gene PlantGene
+    {
+        get { return plantGene; }
+        set { plantGene = value; }
     }
 
     public int[] LootIDs { get { return lootIDs; } set { lootIDs = value; } }
