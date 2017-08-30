@@ -37,10 +37,10 @@ public class LeafObjectScript : SubjectObjectScript
     public virtual void UpdateMesh()
     {
         MeshData meshData = new MeshData();
-        meshData.AddTriangleArc(new Vector3(0, 0.1f, 0), length, 4, width, Quaternion.AngleAxis(15, Vector3.up));
-        meshData.AddTriangleArc(new Vector3(0, 0.05f, 0), length, 4, width, Quaternion.AngleAxis(-15, Vector3.up));
+        meshData.AddTriangleArc(new Vector3(0, 0.2f, 0), length, 4, width, Quaternion.AngleAxis(15, Vector3.up));
+        meshData.AddTriangleArc(new Vector3(0, 0.08f, 0), length, 4, width, Quaternion.AngleAxis(-15, Vector3.up));
         meshData.AddTriangleArc(new Vector3(0, 0.1f, 0), length, 4, width, Quaternion.AngleAxis(15, Vector3.down));
-        meshData.AddTriangleArc(new Vector3(0, 0.05f, 0), length, 4, width, Quaternion.AngleAxis(-15, Vector3.down));
+        meshData.AddTriangleArc(new Vector3(0, 0.07f, 0), length, 4, width, Quaternion.AngleAxis(-15, Vector3.down));
         RenderMesh(meshData);
     }
 
