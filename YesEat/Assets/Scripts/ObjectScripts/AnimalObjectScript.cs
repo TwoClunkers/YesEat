@@ -70,7 +70,7 @@ public class AnimalObjectScript : SubjectObjectScript
     /// Move to target coordinates.
     /// </summary>
     /// <param name="newPosition"></param>
-    internal void MoveToPosition(Vector3 newPosition)
+    internal void MoveTo(Vector3 newPosition)
     {
         if (targetPosition == newPosition) return;
         chaseTarget = null;
@@ -82,7 +82,7 @@ public class AnimalObjectScript : SubjectObjectScript
     /// Begin path finding to a new location.
     /// </summary>
     /// <param name="newLocation">The location to move to.</param>
-    internal void MoveToLocation(LocationSubject newLocation)
+    internal void MoveTo(LocationSubject newLocation)
     {
         if (newLocation == null)
         {
@@ -210,8 +210,8 @@ public class AnimalObjectScript : SubjectObjectScript
     /// <summary>
     /// Chase the target until ChaseStop() is called.
     /// </summary>
-    /// <param name="target">The object scripte of the game object to chase.</param>
-    internal void ChaseStart(SubjectObjectScript target)
+    /// <param name="target">The object script of the game object to chase.</param>
+    internal void MoveTo(SubjectObjectScript target)
     {
         if (chaseTarget != null)
         {
@@ -270,7 +270,7 @@ public class AnimalObjectScript : SubjectObjectScript
             {
                 float distance = Vector3.Distance(destinationWayPoints[currentWaypointIndex], transform.position);
                 if (distance > (npcCharacter.RangeSightNear)) MoveTowardsPoint(destinationWayPoints[currentWaypointIndex], npcCharacter.MoveSpeed);
-                else if (distance > npcCharacter.RangeSightNear * 0.25f) MoveTowardsPoint(destinationWayPoints[currentWaypointIndex], npcCharacter.MoveSpeed * 0.85f);
+                else if (distance > npcCharacter.RangeActionClose) MoveTowardsPoint(destinationWayPoints[currentWaypointIndex], npcCharacter.MoveSpeed * 0.85f);
                 else
                 {
                     if (currentWaypointIndex == destinationWayPoints.GetUpperBound(0))
@@ -297,7 +297,7 @@ public class AnimalObjectScript : SubjectObjectScript
         else if (chaseTarget != null) // chase the target
         {
             float distance = Vector3.Distance(chaseTarget.transform.position, transform.position);
-            if (distance > npcCharacter.RangeActionClose * 0.75) MoveTowardsPoint(chaseTarget.transform.position, npcCharacter.MoveSpeed);
+            if (distance > npcCharacter.RangeActionClose * 0.9) MoveTowardsPoint(chaseTarget.transform.position, npcCharacter.MoveSpeed);
             else
             {
                 Vector3 targetDir = chaseTarget.transform.position - transform.position;

@@ -564,9 +564,17 @@ public partial class NpcCore
         }
 
         if (status.IsStateSet(NpcStates.Sleeping) | status.IsStateSet(NpcStates.Unconscious))
+        {
             endurance += definition.EnduranceLossRate * 10;
+            UnityEngine.GameObject
+                .FindGameObjectWithTag("GameController")
+                .GetComponent<PlacementControllerScript>()
+                .PopMessage("(ᴗ˳ᴗ) zZ", mob.transform.position, 4);
+        }
         else
+        {
             endurance -= definition.EnduranceLossRate;
+        }
 
         if (food <= 0)
         {
@@ -670,7 +678,7 @@ public partial class NpcCore
         // explore unknown locations
         if (unexploredLocations.Count > 0)
         {
-            mob.MoveToLocation(unexploredLocations[0]);
+            mob.MoveTo(unexploredLocations[0]);
         }
         else
         {
@@ -682,7 +690,7 @@ public partial class NpcCore
             }
             if (reExploreLocations.Count > 0)
             {
-                mob.MoveToLocation(reExploreLocations[0]);
+                mob.MoveTo(reExploreLocations[0]);
             }
             else
             {
@@ -723,7 +731,7 @@ public partial class NpcCore
                     if (Vector3.Distance(mob.transform.position, holeMemory.Position) > definition.RangeActionClose)
                     {
                         //not next to hole, move to it
-                        mob.MoveToPosition(holeMemory.Position);
+                        mob.MoveTo(holeMemory.Position);
                     }
                     else
                     {
@@ -848,7 +856,7 @@ public partial class NpcCore
                 else
                 {
                     // go to the nearest safe location
-                    mob.MoveToLocation(safeLocation);
+                    mob.MoveTo(safeLocation);
                 }
             }
             else
@@ -868,14 +876,23 @@ public partial class NpcCore
             SpecialObjectMemory myNest = definition.Nest.ObjectMemories.Find(o => o.SubjectID == Subject.Nest.SubjectID) as SpecialObjectMemory;
             if (myNest != null)
             {
-                if (Vector3.Distance(mob.transform.position, myNest.Position) > (definition.RangeActionClose / 2))
+                if (mob.Location.SubjectID == definition.Nest.SubjectID)
                 {
-                    mob.MoveToLocation(KnowledgeBase.GetSubject(definition.Nest.LocationSubjectID) as LocationSubject);
+                    // at location of nest, move to nest object
+                    if (Vector3.Distance(mob.transform.position, myNest.Position) > (definition.RangeActionClose))
+                    {
+                        mob.MoveTo(myNest.Position);
+                    }
+                    else
+                    {
+                        // sleep in my nest
+                        Sleep();
+                    }
                 }
                 else
                 {
-                    // sleep in my nest
-                    Sleep();
+                    // not at location for nest, move to location
+                    mob.MoveTo(KnowledgeBase.GetSubject(definition.Nest.SubjectID) as LocationSubject);
                 }
             }
         }
@@ -885,9 +902,9 @@ public partial class NpcCore
             LocationSubject safeLocation = GetSafeLocation(mob);
             if (safeLocation != null)
             {
-                if (Vector3.Distance(mob.transform.position, safeLocation.Coordinates) > (definition.RangeActionClose / 2))
+                if (Vector3.Distance(mob.transform.position, safeLocation.Coordinates) > (definition.RangeActionClose))
                 {
-                    mob.MoveToLocation(safeLocation);
+                    mob.MoveTo(safeLocation);
                 }
                 else
                 {
@@ -974,7 +991,7 @@ public partial class NpcCore
                 List<LocationSubject> objectLocations = GetObjectLocations(itemSubjectId, mob.transform.position, searchedLocations);
                 if (objectLocations.Count > 0)
                 {
-                    mob.MoveToLocation(objectLocations[0]);
+                    mob.MoveTo(objectLocations[0]);
                 }
                 else
                 {
@@ -1024,13 +1041,17 @@ public partial class NpcCore
     /// <param name="harvestObject">The object to harvest from</param>
     private void HarvestFromObject(SubjectObjectScript harvestObject, int itemIdToHarvest)
     {
+        // no cannibals
+        if (harvestObject.Subject.SubjectID == Subject.SubjectID)
+        {
+            searchedObjects.Add(harvestObject.gameObject.GetInstanceID());
+            return;
+        }
+
         // harvestFromObject is a source for the desired item, move closer if we're not close enough
         if (Vector3.Distance(mob.transform.position, harvestObject.transform.position) > definition.RangeActionClose)
         {
-            if (mob.GetChaseTarget() == null)
-            {
-                mob.ChaseStart(harvestObject);
-            }
+            mob.MoveTo(harvestObject);
         }
         else
         {
@@ -1099,9 +1120,9 @@ public partial class NpcCore
         if (HaveNest())
         {
             // if not at nest move there first
-            if (mob.Location.SubjectID != definition.Nest.LocationSubjectID)
+            if (mob.Location.SubjectID != definition.Nest.SubjectID)
             {
-                mob.MoveToLocation(KnowledgeBase.GetSubject(definition.Nest.SubjectID) as LocationSubject);
+                mob.MoveTo(KnowledgeBase.GetSubject(definition.Nest.SubjectID) as LocationSubject);
                 return;
             }
         }
@@ -1110,7 +1131,7 @@ public partial class NpcCore
         LocationSubject safeLocation = GetSafeLocation(mob);
         if (safeLocation != null)
         {
-            mob.MoveToLocation(safeLocation);
+            mob.MoveTo(safeLocation);
         }
         else
         {
