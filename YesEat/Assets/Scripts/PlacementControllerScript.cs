@@ -29,6 +29,7 @@ public partial class PlacementControllerScript : MonoBehaviour
     public Text _Radius;
     #endregion
 
+    public InputField geneText;
     public int masterCount;
     public int placeID;
     private bool placementStarted;
@@ -37,6 +38,7 @@ public partial class PlacementControllerScript : MonoBehaviour
     private float lastDistance;
     private GameObject placedObject;
     private Vector3 cameraDestination;
+    private bool randomGenes;
     bool cameraFollowTarget;
 
     // Use this for initialization
@@ -135,11 +137,19 @@ public partial class PlacementControllerScript : MonoBehaviour
                                     PlantSubject maybePlant = newSubject as PlantSubject;
                                     if(maybePlant != null)
                                     {
-                                        maybePlant.PlantGene = new Gene(5);
+                                        if (randomGenes) maybePlant.PlantGene = new Gene(12); 
+                                        else
+                                        {
+                                            Gene newGene = new Gene();
+                                            newGene.AddString(geneText.text);
+                                            if(newGene.Size() > 0) maybePlant.PlantGene = newGene;
+                                            else maybePlant.PlantGene = new Gene(12);
+                                        }
+                                        geneText.text = maybePlant.PlantGene.GetString();
                                         newSubject = maybePlant;
                                     }
                                     placedObject.transform.Rotate(Vector3.up, Random.value * 360);
-                                    SubjectObjectScript script = placedObject.GetComponent<SubjectObjectScript>() as SubjectObjectScript;
+                                    SubjectObjectScript script = placedObject.gameObject.GetComponent<SubjectObjectScript>() as SubjectObjectScript;
                                     script.InitializeFromSubject(newSubject);
                                     placementStarted = true;
                                 }
@@ -494,7 +504,19 @@ public partial class PlacementControllerScript : MonoBehaviour
 
     public void OnSelectBush(bool isClicked)
     {
-        placeID = KbIds.Tree;
+        placeID = KbIds.Grass;
+        placementStarted = false;
+    }
+
+    public void OnSelectGrass()
+    {
+        placeID = KbIds.Grass;
+        placementStarted = false;
+    }
+
+    public void OnSelectGroundCover()
+    {
+        placeID = KbIds.GroundCover;
         placementStarted = false;
     }
 
@@ -527,4 +549,17 @@ public partial class PlacementControllerScript : MonoBehaviour
         placeID = -2;
         placementStarted = false;
     }
+
+    public void newGeneText(string newString)
+    {
+        geneText.text = newString;
+    }
+
+    public void OnSelectRandomGene()
+    {
+        randomGenes ^= true;
+        if (randomGenes) geneText.interactable = false;
+        else geneText.interactable = true;
+    }
+
 }

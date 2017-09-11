@@ -55,7 +55,7 @@ public class MeshData
     /// <param name="radius"></param>
     /// <param name="sides"></param>
     /// <param name="relativeRotation"></param>
-    public void AddDisk(Vector3 centerPoint, float radius, int sides, Quaternion relativeRotation)
+    public void AddDisk(Vector3 centerPoint, float radius, int sides, Quaternion relativeRotation, Vector3 relativePosition)
     {
         Quaternion rotation = new Quaternion();
         Vector3 lastVert = new Vector3();
@@ -66,9 +66,9 @@ public class MeshData
         {
             rotation = Quaternion.AngleAxis((360 / sides) * i, Vector3.up);
             nextVert = rotation * Vector3.forward;
-            verts.Add(relativeRotation * centerPoint);
-            verts.Add(relativeRotation * (lastVert * radius + centerPoint));
-            verts.Add(relativeRotation * (nextVert * radius + centerPoint));
+            verts.Add((relativeRotation * centerPoint) + relativePosition);
+            verts.Add((relativeRotation * (lastVert * radius + centerPoint)) + relativePosition);
+            verts.Add((relativeRotation * (nextVert * radius + centerPoint)) + relativePosition);
             uvs.Add(new Vector2(0.5f, 0.5f));
             uvs.Add(new Vector2(lastVert.x / 2 + 0.5f, lastVert.z / 2 + 0.5f));
             uvs.Add(new Vector2(nextVert.x / 2 + 0.5f, nextVert.z / 2 + 0.5f));
@@ -78,97 +78,15 @@ public class MeshData
         return;
     }
 
-    //public void AddSplitTube(Vector3 basePoint, float baseRadius, Vector3 apexOne, Vector3 apexTwo, float apexOneRadius, float apexTwoRadius, int sides, Quaternion relativeRotation)
-    //{
-    //    Quaternion rotation = new Quaternion();
-    //    Quaternion centerRot = new Quaternion();
-    //    Vector3 lastCenter = new Vector3();
-    //    Vector3 lastVert = new Vector3();
-    //    Vector3 nextCenter = new Vector3();
-    //    Vector3 nextVert = new Vector3();
-    //    float texStep = 1.0f / sides;
-    //    rotation = Quaternion.AngleAxis((360 / sides) * (sides - 1), Vector3.up);
-    //    centerRot = Quaternion.AngleAxis((360 / sides) * (sides - 1), Vector3.right);
-    //    lastVert = rotation * Vector3.forward;
-    //    lastCenter = centerRot * Vector3.forward;
-    //    for (int i = 0; i < Mathf.FloorToInt(sides/2); i++)
-    //    {
-    //        rotation = Quaternion.AngleAxis((360 / sides) * i, Vector3.up);
-    //        nextVert = rotation * Vector3.forward;
-    //        verts.Add(relativeRotation * (lastVert * apexOneRadius + apexOne));
-    //        verts.Add(relativeRotation * (lastCenter * baseRadius + basePoint));
-    //        verts.Add(relativeRotation * (nextVert * baseRadius + basePoint));
-    //        verts.Add(relativeRotation * (nextVert * apexOneRadius + apexOne));
-    //        uvs.Add(new Vector2(texStep * i, 1.0f));
-    //        uvs.Add(new Vector2(texStep * i, 0.0f));
-    //        uvs.Add(new Vector2(texStep * i + texStep, 0.0f));
-    //        uvs.Add(new Vector2(texStep * i + texStep, 1.0f));
-    //        AddQuadTriangles();
-    //        lastVert = nextVert;
-    //        lastCenter = nextVert;
-    //    }
-    //    lastCenter = lastVert;
-    //    for (int i = Mathf.FloorToInt(sides / 2); i < sides; i++)
-    //    {
-    //        rotation = Quaternion.AngleAxis((360 / sides) * i, Vector3.up);
-    //        centerRot = Quaternion.AngleAxis((360 / sides) * i, Vector3.right);
-    //        nextVert = rotation * Vector3.forward;
-    //        nextCenter = centerRot * Vector3.forward;
-    //        verts.Add(relativeRotation * (lastVert * apexOneRadius + apexOne));
-    //        verts.Add(relativeRotation * (lastCenter * baseRadius + basePoint));
-    //        verts.Add(relativeRotation * (nextCenter * baseRadius + basePoint));
-    //        verts.Add(relativeRotation * (nextVert * apexOneRadius + apexOne));
-    //        uvs.Add(new Vector2(texStep * i, 1.0f));
-    //        uvs.Add(new Vector2(texStep * i, 0.0f));
-    //        uvs.Add(new Vector2(texStep * i + texStep, 0.0f));
-    //        uvs.Add(new Vector2(texStep * i + texStep, 1.0f));
-    //        AddQuadTriangles();
-    //        lastVert = nextVert;
-    //        lastCenter = nextCenter;
-    //    }
-
-    //    rotation = Quaternion.AngleAxis((360 / sides) * (sides - 1), Vector3.up);
-    //    centerRot = Quaternion.AngleAxis((360 / sides) * (sides - 1), Vector3.left);
-    //    lastVert = rotation * Vector3.forward;
-    //    lastCenter = lastVert;
-    //    for (int i = 0; i < Mathf.FloorToInt(sides / 2); i++)
-    //    {
-    //        rotation = Quaternion.AngleAxis((360 / sides) * i, Vector3.up);
-    //        centerRot = Quaternion.AngleAxis((360 / sides) * i, Vector3.left);
-    //        nextVert = rotation * Vector3.forward;
-    //        nextCenter = centerRot * Vector3.forward;
-    //        verts.Add(relativeRotation * (lastVert * apexTwoRadius + apexTwo));
-    //        verts.Add(relativeRotation * (lastCenter * baseRadius + basePoint));
-    //        verts.Add(relativeRotation * (nextCenter * baseRadius + basePoint));
-    //        verts.Add(relativeRotation * (nextVert * apexTwoRadius + apexTwo));
-    //        uvs.Add(new Vector2(texStep * i, 1.0f));
-    //        uvs.Add(new Vector2(texStep * i, 0.0f));
-    //        uvs.Add(new Vector2(texStep * i + texStep, 0.0f));
-    //        uvs.Add(new Vector2(texStep * i + texStep, 1.0f));
-    //        AddQuadTriangles();
-    //        lastVert = nextVert;
-    //        lastCenter = nextCenter;
-    //    }
-
-    //    for (int i = Mathf.FloorToInt(sides / 2); i < sides; i++)
-    //    {
-    //        rotation = Quaternion.AngleAxis((360 / sides) * i, Vector3.up);
-    //        nextVert = rotation * Vector3.forward;
-    //        verts.Add(relativeRotation * (lastVert * apexTwoRadius + apexTwo));
-    //        verts.Add(relativeRotation * (lastVert * baseRadius + basePoint));
-    //        verts.Add(relativeRotation * (nextVert * baseRadius + basePoint));
-    //        verts.Add(relativeRotation * (nextVert * apexTwoRadius + apexTwo));
-    //        uvs.Add(new Vector2(texStep * i, 1.0f));
-    //        uvs.Add(new Vector2(texStep * i, 0.0f));
-    //        uvs.Add(new Vector2(texStep * i + texStep, 0.0f));
-    //        uvs.Add(new Vector2(texStep * i + texStep, 1.0f));
-    //        AddQuadTriangles();
-    //        lastVert = nextVert;
-    //    }
-    //    return;
-    //}
-
-    public void AddSplitTube(Node baseNode, Node apexOne, Node apexTwo, int sides)
+    /// <summary>
+    /// AddSplitTube takes a base node and draws out to to children
+    /// </summary>
+    /// <param name="baseNode"></param>
+    /// <param name="apexOne"></param>
+    /// <param name="apexTwo"></param>
+    /// <param name="sides"></param>
+    /// <param name="relativeRotation"></param>
+    public void AddSplitTube(Node baseNode, Node apexOne, Node apexTwo, int sides, Quaternion relativeRotation, Vector3 relativePosition)
     {
         Quaternion rotStep = new Quaternion();
         Quaternion centerRot = new Quaternion();
@@ -177,18 +95,25 @@ public class MeshData
         Vector3 nextCenter = new Vector3();
         Vector3 nextVert = new Vector3();
         float texStep = 1.0f / sides;
+        float oneRad = apexOne.Radius * apexOne.Scale;
+        float twoRad = apexTwo.Radius * apexTwo.Scale;
+        float baseRad = baseNode.Radius * baseNode.Scale;
+        Vector3 onePos = apexOne.ScaledPosition(baseNode.Scale);
+        Vector3 twoPos = apexTwo.ScaledPosition(baseNode.Scale);
+
+
         rotStep = Quaternion.AngleAxis((360 / sides) * (sides - 1), Vector3.up);
-        centerRot = Quaternion.AngleAxis((360 / sides) * (sides - 1), apexOne.Position-apexTwo.Position);
+        centerRot = Quaternion.AngleAxis((360 / sides) * (sides - 1), onePos - twoPos);
         lastVert = rotStep * Vector3.forward;
         lastCenter = centerRot * Vector3.forward;
         for (int i = 0; i < Mathf.FloorToInt(sides / 2); i++)
         {
             rotStep = Quaternion.AngleAxis((360 / sides) * i, Vector3.up);
             nextVert = rotStep * Vector3.forward;
-            verts.Add( (apexOne.Rotation * (lastVert * apexOne.Radius + apexOne.Position)));
-            verts.Add( (lastCenter * baseNode.Radius));
-            verts.Add( (nextVert * baseNode.Radius));
-            verts.Add( (apexOne.Rotation * (nextVert * apexOne.Radius + apexOne.Position)));
+            verts.Add(relativePosition + (relativeRotation * (apexOne.Rotation * ((lastVert * oneRad) + onePos) )));
+            verts.Add(relativePosition + (relativeRotation * (lastCenter * baseRad) ) );
+            verts.Add(relativePosition + (relativeRotation * (nextVert * baseRad) ) );
+            verts.Add(relativePosition + (relativeRotation * (apexOne.Rotation * ((nextVert * oneRad) + onePos) )));
             uvs.Add(new Vector2(texStep * i, 1.0f));
             uvs.Add(new Vector2(texStep * i, 0.0f));
             uvs.Add(new Vector2(texStep * i + texStep, 0.0f));
@@ -201,13 +126,13 @@ public class MeshData
         for (int i = Mathf.FloorToInt(sides / 2); i < sides; i++)
         {
             rotStep = Quaternion.AngleAxis((360 / sides) * i, Vector3.up);
-            centerRot = Quaternion.AngleAxis((360 / sides) * i, apexOne.Position - apexTwo.Position);
+            centerRot = Quaternion.AngleAxis((360 / sides) * i, onePos - twoPos);
             nextVert = rotStep * Vector3.forward;
             nextCenter = centerRot * Vector3.forward;
-            verts.Add( (apexOne.Rotation * (lastVert * apexOne.Radius + apexOne.Position)));
-            verts.Add( (lastCenter * baseNode.Radius));
-            verts.Add( (nextCenter * baseNode.Radius));
-            verts.Add( (apexOne.Rotation * (nextVert * apexOne.Radius + apexOne.Position)));
+            verts.Add(relativePosition + (relativeRotation * (apexOne.Rotation * ((lastVert * oneRad) + onePos) )));
+            verts.Add(relativePosition + (relativeRotation * (lastCenter * baseRad) ) );
+            verts.Add(relativePosition + (relativeRotation * (nextCenter * baseRad) ) );
+            verts.Add(relativePosition + (relativeRotation * (apexOne.Rotation * ((nextVert * oneRad) + onePos) )));
             uvs.Add(new Vector2(texStep * i, 1.0f));
             uvs.Add(new Vector2(texStep * i, 0.0f));
             uvs.Add(new Vector2(texStep * i + texStep, 0.0f));
@@ -218,19 +143,19 @@ public class MeshData
         }
 
         rotStep = Quaternion.AngleAxis((360 / sides) * (sides - 1), Vector3.up);
-        centerRot = Quaternion.AngleAxis((360 / sides) * (sides - 1), apexTwo.Position - apexOne.Position);
+        centerRot = Quaternion.AngleAxis((360 / sides) * (sides - 1), twoPos - onePos);
         lastVert = rotStep * Vector3.forward;
         lastCenter = lastVert;
         for (int i = 0; i < Mathf.FloorToInt(sides / 2)+1; i++)
         {
             rotStep = Quaternion.AngleAxis((360 / sides) * i, Vector3.up);
-            centerRot = Quaternion.AngleAxis((360 / sides) * i, apexTwo.Position - apexOne.Position);
+            centerRot = Quaternion.AngleAxis((360 / sides) * i, twoPos - onePos);
             nextVert = rotStep * Vector3.forward;
             nextCenter = centerRot * Vector3.forward;
-            verts.Add( (apexTwo.Rotation * (lastVert * apexTwo.Radius + apexTwo.Position )));
-            verts.Add( (lastCenter * baseNode.Radius));
-            verts.Add( (nextCenter * baseNode.Radius));
-            verts.Add( (apexTwo.Rotation * (nextVert * apexTwo.Radius + apexTwo.Position )));
+            verts.Add(relativePosition + (relativeRotation * (apexTwo.Rotation * ((lastVert * twoRad) + twoPos) )) );
+            verts.Add(relativePosition + (relativeRotation * (lastCenter * baseRad) ) );
+            verts.Add(relativePosition + (relativeRotation * (nextCenter * baseRad) ) );
+            verts.Add(relativePosition + (relativeRotation * (apexTwo.Rotation * ((nextVert * twoRad) + twoPos) )) );
             uvs.Add(new Vector2(texStep * i, 1.0f));
             uvs.Add(new Vector2(texStep * i, 0.0f));
             uvs.Add(new Vector2(texStep * i + texStep, 0.0f));
@@ -244,10 +169,10 @@ public class MeshData
         {
             rotStep = Quaternion.AngleAxis((360 / sides) * i, Vector3.up);
             nextVert = rotStep * Vector3.forward;
-            verts.Add( (apexTwo.Rotation * (lastVert * apexTwo.Radius + apexTwo.Position )));
-            verts.Add( (lastVert * baseNode.Radius));
-            verts.Add( (nextVert * baseNode.Radius));
-            verts.Add( (apexTwo.Rotation * (nextVert * apexTwo.Radius + apexTwo.Position )));
+            verts.Add(relativePosition + (relativeRotation * (apexTwo.Rotation * ((lastVert * twoRad) + twoPos) )) );
+            verts.Add(relativePosition + (relativeRotation * (lastVert * baseRad) ) );
+            verts.Add(relativePosition + (relativeRotation * (nextVert * baseRad) ) );
+            verts.Add(relativePosition + (relativeRotation * (apexTwo.Rotation * ((nextVert * twoRad) + twoPos) )) );
             uvs.Add(new Vector2(texStep * i, 1.0f));
             uvs.Add(new Vector2(texStep * i, 0.0f));
             uvs.Add(new Vector2(texStep * i + texStep, 0.0f));
@@ -259,16 +184,20 @@ public class MeshData
     }
 
     /// <summary>
-    /// Creates and adds a tube to this mesh. Use relativeRotation to set direction of apex.
+    /// Creates and adds a Tube defined by the nodes and rotated by relativeRotation
     /// </summary>
     /// <param name="baseNode"></param>
     /// <param name="apexNode"></param>
     /// <param name="sides"></param>
-    public void AddTaperTube(Node baseNode, Node apexNode, int sides)
+    /// <param name="relativeRotation"></param>
+    public void AddTaperTube(Node baseNode, Node apexNode, int sides, Quaternion relativeRotation, Vector3 relativePosition)
     {
         Quaternion rotation = new Quaternion();
         Vector3 lastVert = new Vector3();
         Vector3 nextVert = new Vector3();
+        float apexRad = apexNode.Radius * apexNode.Scale;
+        float baseRad = baseNode.Radius * baseNode.Scale;
+        Vector3 apexPos = apexNode.ScaledPosition(baseNode.Scale);
         float texStep = 1.0f / sides;
         rotation = Quaternion.AngleAxis((360 / sides) * (sides - 1), Vector3.up);
         lastVert = rotation * Vector3.forward;
@@ -276,10 +205,10 @@ public class MeshData
         {
             rotation = Quaternion.AngleAxis((360 / sides) * i, Vector3.up);
             nextVert = rotation * Vector3.forward;
-            verts.Add( apexNode.Rotation * (lastVert * apexNode.Radius + apexNode.Position));
-            verts.Add( (lastVert * baseNode.Radius));
-            verts.Add( (nextVert * baseNode.Radius));
-            verts.Add( apexNode.Rotation * (nextVert * apexNode.Radius + apexNode.Position));
+            verts.Add(relativePosition + (relativeRotation * (apexNode.Rotation * (lastVert * apexRad) + apexPos) ));
+            verts.Add(relativePosition + (relativeRotation * (lastVert * baseRad) ));
+            verts.Add(relativePosition + (relativeRotation * (nextVert * baseRad) ));
+            verts.Add(relativePosition + (relativeRotation * (apexNode.Rotation * (nextVert * apexRad) + apexPos) ));
             uvs.Add(new Vector2(texStep * i, 1.0f));
             uvs.Add(new Vector2(texStep * i, 0.0f));
             uvs.Add(new Vector2(texStep * i + texStep, 0.0f));

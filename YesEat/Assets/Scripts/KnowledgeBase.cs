@@ -16,6 +16,8 @@ public static class KbIds
     public static int Plinkett;
     public static int PlinkettNest;
     public static int Tree;
+    public static int GroundCover;
+    public static int Grass;
 }
 
 /// <summary>
@@ -242,15 +244,13 @@ public class KnowledgeBase
             Icon = new UnityEngine.Sprite(),
             RelatedSubjects = new int[0],
             Prefab = Resources.Load("GameObjects/Bush") as GameObject,
-
+            BaseNode = new Node(),
             ProduceID = KbIds.Berry,
             ProduceTime = 2,
             MaxGrowth = 30,
             GrowthRate = 1,
             MatureGrowth = 2,
             InventorySize = 3,
-            NodeList = null,
-            NodeAttachment = null,
             HeightRatio = 1.5f,
             LootIDs = new int[0]
         };
@@ -387,27 +387,74 @@ public class KnowledgeBase
             Icon = new UnityEngine.Sprite(),
             RelatedSubjects = new int[0],
             Prefab = Resources.Load("GameObjects/Tree") as GameObject,
-
+            BaseNode = new Node(),
             ProduceID = KbIds.Berry,
             ProduceTime = 2,
             MaxGrowth = 1.5f,
             GrowthRate = 0.002f,
             MatureGrowth = 0.08f,
             InventorySize = 3,
-            NodeList =
-                new Node[2]
-                {
-                    new Node(Quaternion.Euler(0,0,0), 0.8f, new Vector3(0.0f, 1.0f, -0.3f), new Vector3(1,1,1)),
-                    new Node(Quaternion.Euler(0,0,50), 0.5f, new Vector3(-0.0f, 0.4f, 0.3f), new Vector3(1,1,1))
-                },
-            NodeAttachment = Resources.Load("GameObjects/Leaf") as GameObject,
             HeightRatio = 2.0f,
-            TaperRatio = 0.95f,
             PlantType = PlantTypes.Tree,
             LootIDs = new int[2] { KbIds.Leaves, KbIds.Branch }
         };
         knowledgeBase.Add(Tree);
 
+        KbIds.GroundCover = GetNextID();
+        PlantSubject GroundCover = new PlantSubject()
+        {
+            Attributes = new SubjectAttributes()
+            {
+                Attributes =
+                SubjectAttributesEnum.SmellsFloral
+                | SubjectAttributesEnum.FeelsSoft
+            },
+            SubjectID = KbIds.GroundCover,
+            Name = "GroundCover",
+            Description = "Tiny plants covering the ground",
+            Icon = new UnityEngine.Sprite(),
+            RelatedSubjects = new int[0],
+            Prefab = Resources.Load("GameObjects/GroundCover") as GameObject,
+            BaseNode = new Node(),
+            ProduceID = KbIds.Berry,
+            ProduceTime = 2,
+            MaxGrowth = 1.5f,
+            GrowthRate = 0.002f,
+            MatureGrowth = 0.08f,
+            InventorySize = 3,
+            HeightRatio = 0.2f,
+            PlantType = PlantTypes.GroundCover,
+            LootIDs = new int[2] { KbIds.Leaves, KbIds.Branch }
+        };
+        knowledgeBase.Add(GroundCover);
+
+        KbIds.Grass = GetNextID();
+        PlantSubject Grass = new PlantSubject()
+        {
+            Attributes = new SubjectAttributes()
+            {
+                Attributes =
+                SubjectAttributesEnum.FeelsSoft
+                | SubjectAttributesEnum.SoundsQuiet
+            },
+            SubjectID = KbIds.Grass,
+            Name = "Grass",
+            Description = "Slender stalks and narrow blades",
+            Icon = new UnityEngine.Sprite(),
+            RelatedSubjects = new int[0],
+            Prefab = Resources.Load("GameObjects/Grass") as GameObject,
+            BaseNode = new Node(),
+            ProduceID = KbIds.Berry,
+            ProduceTime = 2,
+            MaxGrowth = 1.5f,
+            GrowthRate = 0.002f,
+            MatureGrowth = 0.08f,
+            InventorySize = 3,
+            HeightRatio = 0.2f,
+            PlantType = PlantTypes.Grass,
+            LootIDs = new int[2] { KbIds.Leaves, KbIds.Branch }
+        };
+        knowledgeBase.Add(Grass);
     }
 
     /// <summary>

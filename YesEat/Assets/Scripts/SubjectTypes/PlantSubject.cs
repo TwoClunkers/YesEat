@@ -22,10 +22,8 @@ public class PlantSubject : Subject
     private float growthRate;
     private float matureGrowth;
     private int inventorySize;
-    private Node[] nodeList;
-    private GameObject nodeAttachment;
+    private Node baseNode;
     private float heightRatio;
-    private float taperRatio;
     private PlantTypes plantType;
     private Gene plantGene;
     private int[] lootIDs;
@@ -43,10 +41,9 @@ public class PlantSubject : Subject
         growthRate = 0.01f;
         matureGrowth = 1;
         inventorySize = 3;
-        nodeList = new Node[0];
-        nodeAttachment = null;
+        baseNode = new Node();
         heightRatio = 5.0f;
-        taperRatio = 0.8f;
+
         plantType = PlantTypes.Bush;
         plantGene = new Gene();
         plantGene.CreateRandom(15);
@@ -61,19 +58,8 @@ public class PlantSubject : Subject
         growthRate = copyPlantSubject.growthRate;
         matureGrowth = copyPlantSubject.matureGrowth;
         inventorySize = copyPlantSubject.inventorySize;
-
-
-        nodeList = new Node[copyPlantSubject.nodeList.Length];
-        if (nodeList.Length > 0)
-        {
-            for (int i = 0; i < copyPlantSubject.nodeList.Length; i++)
-            {
-                nodeList[i] = copyPlantSubject.nodeList[i].GetNode();
-            }
-        }
-        nodeAttachment = copyPlantSubject.nodeAttachment;
+        baseNode = copyPlantSubject.baseNode.GetCopy();
         heightRatio = copyPlantSubject.heightRatio;
-        taperRatio = copyPlantSubject.taperRatio;
         plantType = copyPlantSubject.plantType;
         plantGene = copyPlantSubject.plantGene;
         LootIDs = new int[copyPlantSubject.LootIDs.Length];
@@ -140,21 +126,12 @@ public class PlantSubject : Subject
     }
 
     /// <summary>
-    /// Position of branches
-    /// </summary>
-    public Node[] NodeList
-    {
-        get { return nodeList; }
-        set { nodeList = value; }
-    }
-
-    /// <summary>
     /// NodeAttachment is the gameObject used for new branches
     /// </summary>
-    public GameObject NodeAttachment
+    public Node BaseNode
     {
-        get { return nodeAttachment; }
-        set { nodeAttachment = value; }
+        get { return baseNode; }
+        set { baseNode = value; }
     }
 
     /// <summary>
@@ -166,12 +143,9 @@ public class PlantSubject : Subject
         set { heightRatio = value; }
     }
 
-    public float TaperRatio
-    {
-        get { return taperRatio; }
-        set { taperRatio = value; }
-    }
-
+    /// <summary>
+    /// PlantType is enum 
+    /// </summary>
     public PlantTypes PlantType
     {
         get { return plantType; }

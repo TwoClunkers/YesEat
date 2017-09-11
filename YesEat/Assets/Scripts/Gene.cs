@@ -44,21 +44,47 @@ public class Gene
     /// </summary>
     /// <param name="position"></param>
     /// <returns></returns>
-    public float ReadUnit(int position = -1)
+    public float ReadFloat(int position = -1)
     {
+        if (genes.Count < 1) return 0.1f;
+
         if (position < 0)
         { //by default we use a readPosition
             position = readPosition;
-            readPosition += 1;
-            if (!(readPosition < genes.Count))
-            { //set readPosition to front
-                readPosition = 0;
-            }
         }
-        else position = position % genes.Count;
+        position = position % genes.Count;
+        readPosition = position + 1;
 
         GeneUnit geneUnit = genes[position];
         return (int)geneUnit * unitVariance;
+    }
+
+    public string ReadCharacter(int position = -1)
+    {
+        if (genes.Count < 1) return "";
+
+        if (position < 0)
+        { //by default we use a readPosition
+            position = readPosition;
+        }
+        position = position % genes.Count;
+        readPosition = position + 1;
+
+        GeneUnit geneUnit = genes[position];
+        return geneUnit.ToString();
+    }
+
+    public Color32 GetColor(int position = -1)
+    {
+        int index = 1;
+        if (position < 0) index = 0;
+        byte red = (byte)Mathf.Lerp(64, 255, ReadFloat(position));
+        byte green = (byte)Mathf.Lerp(64, 255, ReadFloat(position+index));
+        byte blue = (byte)Mathf.Lerp(64, 255, ReadFloat(position+index*2));
+        byte alpha = (byte)Mathf.Lerp(128, 255, ReadFloat(position+index*3));
+        Color32 newColor = new Color32(red, blue, green, alpha);
+
+        return newColor;
     }
 
     public void SetVariance(float newVariance)
@@ -80,6 +106,24 @@ public class Gene
         genes.Add(position);
     }
 
+    public void AddGene(string newChar)
+    {
+        GeneUnit newUnit = new GeneUnit();
+        newUnit = (GeneUnit)System.Enum.Parse(typeof(GeneUnit), newChar.ToUpper());
+
+        genes.Add(newUnit);
+    }
+
+    public void AddString(string newSequence)
+    {
+        char[] charSequence = newSequence.ToCharArray();
+
+        for (int i = 0; i < newSequence.Length; i++)
+        {
+            AddGene(charSequence[i].ToString());
+        }
+    }
+
     public int Size()
     {
         return genes.Count;
@@ -93,9 +137,24 @@ public class Gene
         for (int i = 0; i < reqestedLength; i++)
         {
             if (position > -1) position = i;
-            sequence[i] = ReadUnit(position);
+            sequence[i] = ReadFloat(position);
         }
         return sequence;
+    }
+
+    public string GetString(int requestedLength = -1, int position = -1)
+    {
+        if (genes.Count < 1) return null;
+        List<string> sequence = new List<string>();
+        if (requestedLength < 1) requestedLength = genes.Count;
+
+        for (int i = 0; i < requestedLength; i++)
+        {
+            if (position > -1) position += i;
+            sequence.Add(ReadCharacter(position));
+        }
+
+        return string.Concat(sequence.ToArray());
     }
 
     public void CreateRandom(int length)
@@ -109,11 +168,13 @@ public class Gene
 
     public float Value(float source)
     {
-        return Mathf.Lerp(0.0f, source, ReadUnit());
+        return Mathf.Lerp(0.0f, source, ReadFloat());
     }
 
     public int Value(int source)
     {
-        return (int)Mathf.Lerp(0, source, ReadUnit());
+        return (int)Mathf.Lerp(0, source, ReadFloat());
     }
+
+
 }
