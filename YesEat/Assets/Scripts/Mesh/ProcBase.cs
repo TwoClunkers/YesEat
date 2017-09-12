@@ -8,6 +8,7 @@ public abstract class ProcBase : MonoBehaviour
 {
     public float m_GrowthIndex;
     public Gene m_Gene;
+    public int m_variant;
 
 	/// <summary>
 	/// Method for building a mesh. Called in Start()

@@ -91,6 +91,7 @@ public class ProcGrass : ProcBase
         m_HeadData = new SphereData();
         m_SepalData = new LeafPartData();
         m_PetalData = new LeafPartData();
+        m_variant = Random.Range(1, 10);
     }
 
     /// <summary>
@@ -298,7 +299,7 @@ public class ProcGrass : ProcBase
             Quaternion radialRotation = rotation * Quaternion.Euler(0.0f, yAngle, 0.0f);
 
             //set the postion at the top of the stem, away from the middle:
-            Vector3 position = offset + radialRotation * (Vector3.forward * radius * m_Gene.ReadFloat(i));
+            Vector3 position = offset + radialRotation * (Vector3.forward * radius * m_Gene.ReadFloat(i+m_variant));
 
             //calculate a bend angle with random variation:
             float bendAngleRandom = (partData.m_BendAngleVariation * m_Gene.ReadFloat(i + 5)) - partData.m_BendAngleVariation * 0.5f;

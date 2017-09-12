@@ -38,6 +38,7 @@ public class ProcGroundCover : ProcBase
         currentPosition = Vector3.zero;
         currentRotation = Quaternion.identity;
         m_HeadData = new SphereData();
+        m_variant = Random.Range(1, 10);
     }
 
     /// <summary>
@@ -49,8 +50,17 @@ public class ProcGroundCover : ProcBase
         if (newGene != null) m_Gene = newGene;
         else return;
 
-        m_HeadData.m_Radius = m_GrowthIndex * m_Gene.ReadFloat(0) * 2;
+        m_HeadData.m_Radius = 0.1f + m_GrowthIndex * m_Gene.ReadFloat(0) * 2;
         m_HeadData.m_VerticalScale = 0.03f + (m_Gene.ReadFloat(1) * 0.08f);
+    }
+
+    /// <summary>
+    /// Method for updating variables that change with time
+    /// </summary>
+    public override void UpdateValues()
+    {
+        m_HeadData.m_Radius = 0.2f + m_GrowthIndex * m_Gene.ReadFloat(0);
+        m_HeadData.m_VerticalScale = 0.01f + (m_GrowthIndex * m_Gene.ReadFloat(1) * 0.08f);
     }
 
     //Build the mesh:
@@ -59,7 +69,7 @@ public class ProcGroundCover : ProcBase
         //Create a new mesh builder:
         MeshBuilder meshBuilder = new MeshBuilder();
 
-        //build the main stem:
+        //build blob
         BuildHead(meshBuilder, currentPosition, currentRotation, m_HeadData);
 
         return meshBuilder.CreateMesh();
@@ -107,12 +117,6 @@ public class ProcGroundCover : ProcBase
         }
     }
 
-    /// <summary>
-    /// Method for updating variables that change with time
-    /// </summary>
-    public override void UpdateValues()
-    {
-        m_HeadData.m_Radius = m_GrowthIndex * m_Gene.ReadFloat(0) * 2;
-    }
+
 
 }

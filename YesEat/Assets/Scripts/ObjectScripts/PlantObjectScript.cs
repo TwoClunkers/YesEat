@@ -128,8 +128,8 @@ public class PlantObjectScript : SubjectObjectScript
         {
             plantSubject = newSubject.Copy() as PlantSubject;
 
-            plantSubject.GrowthRate = plantSubject.PlantGene.Value(0.9f);
-            plantSubject.MaxGrowth = plantSubject.PlantGene.Value(3.0f) + 0.2f;
+            plantSubject.GrowthRate = plantSubject.PlantGene.Value(1.0f) + 0.5f;
+            plantSubject.MaxGrowth = plantSubject.PlantGene.Value(2.0f) + 1.0f;
             plantSubject.MatureGrowth = 0.01f;
             plantSubject.HeightRatio = plantSubject.PlantGene.Value(4.0f) + 0.3f;
             plantSubject.InventorySize = plantSubject.PlantGene.Value(5);
