@@ -24,6 +24,7 @@ public partial class PlacementControllerScript : MonoBehaviour
     public Text _Health;
     public Text _Safety;
     public Text _Food;
+    public Text _Endurance;
     public Text _Driver;
     public Text _Center;
     public Text _Radius;
@@ -135,7 +136,7 @@ public partial class PlacementControllerScript : MonoBehaviour
                                 if (placedObject != null)
                                 {
                                     PlantSubject maybePlant = newSubject as PlantSubject;
-                                    if(maybePlant != null)
+                                    if (maybePlant != null)
                                     {
                                         if (randomGenes) maybePlant.PlantGene = new Gene(12); 
                                         else
@@ -199,6 +200,7 @@ public partial class PlacementControllerScript : MonoBehaviour
     private void ShowSelectionPanel()
     {
         SubjectObjectScript script = lastSelector.transform.parent.GetComponent<SubjectObjectScript>() as SubjectObjectScript;
+        if (script.Subject == null) return;
         _ID.text = "ID: <b>" + script.Subject.SubjectID.ToString() + "</b>";
         _Name.text = "Name: <b>" + script.Subject.Name.ToString() + "</b>";
         _Description.text = "Desc: <b>" + script.Subject.Description.ToString() + "</b>";
@@ -230,6 +232,7 @@ public partial class PlacementControllerScript : MonoBehaviour
                 _Health.text = "Health: <b>" + animalScript.GetHealth().ToString() + "</b>";
                 _Safety.text = "Safety: <b>" + animalScript.GetSafety().ToString() + "</b>";
                 _Food.text = "Food: <b>" + animalScript.GetFood().ToString() + "</b>";
+                _Endurance.text = "Endurance: <b>" + animalScript.GetEndurance().ToString() + "</b>";
                 _Driver.text = "Driver: <b>" + animalScript.GetDriver().ToString() + "</b>";
             }
             else
@@ -425,11 +428,11 @@ public partial class PlacementControllerScript : MonoBehaviour
     }
 
     /// <summary>
-    /// Creates a temporary message bubble at location specified
+    /// Creates a temporary message bubble at location specified.
     /// </summary>
-    /// <param name="message"></param>
-    /// <param name="position"></param>
-    /// <param name="colorSelect"></param>
+    /// <param name="message">The message to display</param>
+    /// <param name="position">The position of the message.</param>
+    /// <param name="colorSelect">0-9 from ColorList as defined on the GameObject prefab.</param>
     public void PopMessage(string message, Vector3 position, int colorSelect = 0)
     {
         position = Camera.main.WorldToScreenPoint(position);

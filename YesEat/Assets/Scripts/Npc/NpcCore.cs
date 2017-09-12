@@ -12,6 +12,7 @@ public partial class NpcCore
     private int health;
     private int food;
     private int safety;
+    private float endurance;
 
     private int subjectID;
 
@@ -44,6 +45,7 @@ public partial class NpcCore
         health = 100;
         food = 100;
         safety = 100;
+        endurance = 100;
         definition = new NpcDefinition();
         status = new NpcStatus();
         drivers = new NpcDriversList();
@@ -72,6 +74,7 @@ public partial class NpcCore
             definition = animalSubject.Definition;
             subjectID = animalSubject.SubjectID;
             health = definition.HealthMax;
+            endurance = definition.EnduranceMax;
             food = definition.FoodMax;
             safety = definition.SafetyHigh;
             status = new NpcStatus();
@@ -395,6 +398,12 @@ public partial class NpcCore
             }
         }
 
+        // sleep
+        if (endurance <= definition.EnduranceLow)
+        {
+            drivers.SetTopDriver(NpcDrivers.Tired);
+        }
+
         // of the basic needs hunger is lowest priority
         if (food <= definition.FoodHungry)
         {
@@ -451,6 +460,7 @@ public partial class NpcCore
     public int Health { get { return health; } }
     public int Food { get { return food; } }
     public int Safety { get { return safety; } }
+    public float Endurance { get { return endurance; } }
     public NpcDrivers GetDriver() { return drivers[0]; }
     #endregion
 
@@ -489,22 +499,40 @@ public partial class NpcCore
     {
         if (!IsDead)
         {
+            float metabolizeInterval = Definition.MetabolizeInterval;
+            // if we're sleeping or unconscious increase interval between metabolism ticks
+            if (status.IsStateSet(NpcStates.Sleeping) | status.IsStateSet(NpcStates.Unconscious))
+                metabolizeInterval = Definition.MetabolizeInterval * 2;
+
             MetabolizeTickCounter += Time.deltaTime;
-            if (MetabolizeTickCounter >= Definition.MetabolizeInterval)
+            if (MetabolizeTickCounter >= metabolizeInterval)
             {
                 Metabolize();
-                MetabolizeTickCounter -= Definition.MetabolizeInterval;
+                MetabolizeTickCounter -= metabolizeInterval;
             }
 
-            AiCoreTickCounter += Time.deltaTime;
-            if (AiCoreTickCounter > AiTickRate)
+            // if we're sleeping or unconscious swtich to AiDream() instead of AiCoreProcess()
+            if (status.IsStateSet(NpcStates.Sleeping) | status.IsStateSet(NpcStates.Unconscious))
             {
-                AiCoreProcess();
-                AiCoreTickCounter -= AiTickRate;
+                // TODO: dream... :)
             }
+            else
+            {
+                //if we're tired increase interval between Ai ticks
+                float aiTickRate = AiTickRate;
+                if (status.IsStateSet(NpcStates.Tired))
+                    aiTickRate = AiTickRate * 1.25f;
 
-            // ===  Movement ===
-            mob.DoMovement();
+                AiCoreTickCounter += Time.deltaTime;
+                if (AiCoreTickCounter > aiTickRate)
+                {
+                    AiCoreProcess();
+                    AiCoreTickCounter -= aiTickRate;
+                }
+
+                // ===  Movement ===
+                mob.DoMovement();
+            }
         }
     }
 
@@ -515,7 +543,40 @@ public partial class NpcCore
     {
         if (IsDead) return 0;
         int preHealth = health;
-        if (food == 0)
+
+        if (endurance <= 0)
+        {
+            status.SetState(NpcStates.Unconscious);
+        }
+        else if (endurance <= definition.EnduranceLow)
+        {
+            status.SetState(NpcStates.Tired);
+        }
+        else if (endurance >= definition.EnduranceMax)
+        {
+            drivers.Remove(NpcDrivers.Tired);
+            status.UnsetState(NpcStates.Tired);
+            WakeUp();
+        }
+        else
+        {
+            status.UnsetState(NpcStates.Tired);
+        }
+
+        if (status.IsStateSet(NpcStates.Sleeping) | status.IsStateSet(NpcStates.Unconscious))
+        {
+            endurance += definition.EnduranceLossRate * 10;
+            UnityEngine.GameObject
+                .FindGameObjectWithTag("GameController")
+                .GetComponent<PlacementControllerScript>()
+                .PopMessage("(ᴗ˳ᴗ) zZ", mob.transform.position, 4);
+        }
+        else
+        {
+            endurance -= definition.EnduranceLossRate;
+        }
+
+        if (food <= 0)
         {
             health -= definition.StarvingDamage;
             if (health <= 0)
@@ -525,7 +586,12 @@ public partial class NpcCore
         {
             if (health < definition.HealthMax)
             {
-                health += definition.HealthRegen;
+                // increase health regeneration when sleeping or unconscious
+                // remember metabolism is also slower while sleeping
+                if (status.IsStateSet(NpcStates.Unconscious) | status.IsStateSet(NpcStates.Sleeping))
+                    health += definition.HealthRegen * 4;
+                else
+                    health += definition.HealthRegen;
             }
             food -= definition.FoodMetabolizeRate;
         }
@@ -595,10 +661,13 @@ public partial class NpcCore
             case NpcDrivers.Explore:
                 AiExplore();
                 break;
+            case NpcDrivers.Tired:
+                AiTired();
+                break;
             default:
                 //There are no critical drivers, default to exploration
-                drivers.Clear();
                 drivers.Add(NpcDrivers.Explore);
+                AiExplore();
                 break;
         }
 
@@ -609,7 +678,7 @@ public partial class NpcCore
         // explore unknown locations
         if (unexploredLocations.Count > 0)
         {
-            mob.MoveToLocation(unexploredLocations[0]);
+            mob.MoveTo(unexploredLocations[0]);
         }
         else
         {
@@ -621,7 +690,7 @@ public partial class NpcCore
             }
             if (reExploreLocations.Count > 0)
             {
-                mob.MoveToLocation(reExploreLocations[0]);
+                mob.MoveTo(reExploreLocations[0]);
             }
             else
             {
@@ -662,7 +731,7 @@ public partial class NpcCore
                     if (Vector3.Distance(mob.transform.position, holeMemory.Position) > definition.RangeActionClose)
                     {
                         //not next to hole, move to it
-                        mob.MoveToPosition(holeMemory.Position);
+                        mob.MoveTo(holeMemory.Position);
                     }
                     else
                     {
@@ -787,7 +856,7 @@ public partial class NpcCore
                 else
                 {
                     // go to the nearest safe location
-                    mob.MoveToLocation(safeLocation);
+                    mob.MoveTo(safeLocation);
                 }
             }
             else
@@ -797,6 +866,77 @@ public partial class NpcCore
             }
         }
 
+    }
+
+    private void AiTired()
+    {
+        // if i have a nest move to it
+        if (HaveNest())
+        {
+            SpecialObjectMemory myNest = definition.Nest.ObjectMemories.Find(o => o.SubjectID == Subject.Nest.SubjectID) as SpecialObjectMemory;
+            if (myNest != null)
+            {
+                if (mob.Location.SubjectID == definition.Nest.SubjectID)
+                {
+                    // at location of nest, move to nest object
+                    if (Vector3.Distance(mob.transform.position, myNest.Position) > (definition.RangeActionClose))
+                    {
+                        mob.MoveTo(myNest.Position);
+                    }
+                    else
+                    {
+                        // sleep in my nest
+                        Sleep();
+                    }
+                }
+                else
+                {
+                    // not at location for nest, move to location
+                    mob.MoveTo(KnowledgeBase.GetSubject(definition.Nest.SubjectID) as LocationSubject);
+                }
+            }
+        }
+        else
+        {
+            // no nest, move to nearest safe location
+            LocationSubject safeLocation = GetSafeLocation(mob);
+            if (safeLocation != null)
+            {
+                if (Vector3.Distance(mob.transform.position, safeLocation.Coordinates) > (definition.RangeActionClose))
+                {
+                    mob.MoveTo(safeLocation);
+                }
+                else
+                {
+                    // sleep at safe location
+                    Sleep();
+                }
+            }
+            else
+            {
+                // no known safe locations, explore for one
+                AiExplore();
+            }
+        }
+
+
+    }
+
+    /// <summary>
+    /// Set sleeping state.
+    /// </summary>
+    private void Sleep()
+    {
+        status.SetState(NpcStates.Sleeping);
+    }
+
+    /// <summary>
+    /// Clear Sleeping and Unconscious states.
+    /// </summary>
+    private void WakeUp()
+    {
+        status.UnsetState(NpcStates.Sleeping);
+        status.UnsetState(NpcStates.Unconscious);
     }
 
     /// <summary>
@@ -851,7 +991,7 @@ public partial class NpcCore
                 List<LocationSubject> objectLocations = GetObjectLocations(itemSubjectId, mob.transform.position, searchedLocations);
                 if (objectLocations.Count > 0)
                 {
-                    mob.MoveToLocation(objectLocations[0]);
+                    mob.MoveTo(objectLocations[0]);
                 }
                 else
                 {
@@ -901,13 +1041,17 @@ public partial class NpcCore
     /// <param name="harvestObject">The object to harvest from</param>
     private void HarvestFromObject(SubjectObjectScript harvestObject, int itemIdToHarvest)
     {
+        // no cannibals
+        if (harvestObject.Subject.SubjectID == Subject.SubjectID)
+        {
+            searchedObjects.Add(harvestObject.gameObject.GetInstanceID());
+            return;
+        }
+
         // harvestFromObject is a source for the desired item, move closer if we're not close enough
         if (Vector3.Distance(mob.transform.position, harvestObject.transform.position) > definition.RangeActionClose)
         {
-            if (mob.GetChaseTarget() == null)
-            {
-                mob.ChaseStart(harvestObject);
-            }
+            mob.MoveTo(harvestObject);
         }
         else
         {
@@ -976,9 +1120,9 @@ public partial class NpcCore
         if (HaveNest())
         {
             // if not at nest move there first
-            if (mob.Location.SubjectID != definition.Nest.LocationSubjectID)
+            if (mob.Location.SubjectID != definition.Nest.SubjectID)
             {
-                mob.MoveToLocation(KnowledgeBase.GetSubject(definition.Nest.SubjectID) as LocationSubject);
+                mob.MoveTo(KnowledgeBase.GetSubject(definition.Nest.SubjectID) as LocationSubject);
                 return;
             }
         }
@@ -987,7 +1131,7 @@ public partial class NpcCore
         LocationSubject safeLocation = GetSafeLocation(mob);
         if (safeLocation != null)
         {
-            mob.MoveToLocation(safeLocation);
+            mob.MoveTo(safeLocation);
         }
         else
         {

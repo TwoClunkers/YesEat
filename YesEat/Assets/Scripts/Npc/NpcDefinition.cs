@@ -30,6 +30,7 @@ public struct NpcDefinition
     /// </summary>
     public NpcCharacterTraits Traits;
 
+    #region Metabolize() parameters
     /// <summary>
     /// The time between Metabolize() ticks.
     /// </summary>
@@ -42,6 +43,20 @@ public struct NpcDefinition
     /// The amount of health lost each MetabolizeInterval while starving.
     /// </summary>
     public int StarvingDamage;
+    /// <summary>
+    /// The amount of Endurance lost each MetabolizeInterval.
+    /// </summary>
+    public float EnduranceLossRate;
+    #endregion
+
+    /// <summary>
+    /// Maximum Endurance.
+    /// </summary>
+    public int EnduranceMax;
+    /// <summary>
+    /// Low Endurance makes NPC tired, sleep to restore.
+    /// </summary>
+    public int EnduranceLow;
 
     /// <summary>
     /// Threshold at which eating food becomes a priority.
@@ -119,9 +134,12 @@ public struct NpcDefinition
         MetabolizeInterval = newDefinition.MetabolizeInterval;
         HealthRegen = newDefinition.HealthRegen;
         StarvingDamage = newDefinition.StarvingDamage;
+        EnduranceLossRate = newDefinition.EnduranceLossRate;
 
         HealthDanger = newDefinition.HealthDanger;
         HealthMax = newDefinition.HealthMax;
+        EnduranceLow = newDefinition.EnduranceLow;
+        EnduranceMax = newDefinition.EnduranceMax;
         FoodHungry = newDefinition.FoodHungry;
         FoodMax = newDefinition.FoodMax;
         FoodMetabolizeRate = newDefinition.FoodMetabolizeRate;

@@ -12,7 +12,10 @@ public partial class NpcCore
         Eating = (1 << 3),
         Starving = (1 << 4),
         Fighting = (1 << 5),
-        Dead = (1 << 6)
+        Tired = (1 << 6),
+        Sleeping = (1 << 7),
+        Unconscious = (1 << 8),
+        Dead = (1 << 9)
     }
 
     public class NpcStatus
@@ -30,7 +33,7 @@ public partial class NpcCore
         /// <returns>Yes|No</returns>
         public bool CanEat()
         {
-            return (_status & NpcStates.Dead) == 0;
+            return (!IsDead && !IsStateSet(NpcStates.Sleeping) && !IsStateSet(NpcStates.Unconscious));
         }
         /// <summary>
         /// Turns on the changeState flag.
