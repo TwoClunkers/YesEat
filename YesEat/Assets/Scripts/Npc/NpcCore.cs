@@ -32,6 +32,8 @@ public partial class NpcCore
     private float AiCoreTickCounter;
     private float AiTickRate;
     private float MetabolizeTickCounter;
+
+    private int safetyMulitplier;
     #endregion
 
     #region Constructors
@@ -56,6 +58,7 @@ public partial class NpcCore
         reExploreLocations = new List<LocationSubject>();
         AiTickRate = 0.5f;
         neededItems = new List<InventoryItem>();
+        safetyMulitplier = 1;
 
         InitializeMemories();
     }
@@ -85,6 +88,7 @@ public partial class NpcCore
             reExploreLocations = new List<LocationSubject>();
             AiTickRate = 0.5f;
             neededItems = new List<InventoryItem>();
+            safetyMulitplier = 1;
 
             InitializeMemories();
         }
@@ -624,7 +628,15 @@ public partial class NpcCore
                             // don't reduce safety if it's dead
                             if (conObject.GetComponent<SubjectObjectScript>() is AnimalObjectScript)
                             {
-                                if (conObject.GetComponent<AnimalObjectScript>().IsDead) continue;
+                                if (conObject.GetComponent<AnimalObjectScript>().IsDead)
+                                {
+                                    continue;
+                                }
+                                else
+                                {
+                                    // avoid dangerous things
+                                    mob.Avoid(conScript);
+                                }
                             }
                             // danger! decrease safety
                             dangerFound = true;
@@ -641,7 +653,16 @@ public partial class NpcCore
         // increase safety if no danger was found near us
         if (!dangerFound)
         {
-            if (safety < 0) safety++;
+            if (safety < 0)
+            {
+                safetyMulitplier = safetyMulitplier * 2;
+                safety += safetyMulitplier;
+                safety =  Mathf.Min(0, safety);
+            }
+        }
+        else
+        {
+            safetyMulitplier = 1;
         }
 
         UpdateDrivers();

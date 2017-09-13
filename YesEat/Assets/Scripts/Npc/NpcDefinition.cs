@@ -95,6 +95,10 @@ public struct NpcDefinition
     /// </summary>
     public float MoveSpeed;
     /// <summary>
+    /// Fastest possible movement speed.
+    /// </summary>
+    public float MoveSpeedFastest;
+    /// <summary>
     /// Near range of sight.
     /// </summary>
     public float RangeSightNear;
@@ -147,6 +151,7 @@ public struct NpcDefinition
         SafetyHigh = newDefinition.SafetyHigh;
 
         MoveSpeed = newDefinition.MoveSpeed;
+        MoveSpeedFastest = newDefinition.MoveSpeedFastest;
         RangeSightNear = newDefinition.RangeSightNear;
         RangeSightMid = newDefinition.RangeSightMid;
         RangeSightFar = newDefinition.RangeSightFar;

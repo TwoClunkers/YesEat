@@ -20,6 +20,7 @@ public class AnimalObjectScript : SubjectObjectScript
     private SubjectObjectScript chaseTarget;
     private Vector3 targetPosition;
     private bool isCurrentLocationExplored;
+    private SubjectObjectScript[] avoidObjects;
     #endregion
 
     public NpcCore T_Npc { get { return npcCharacter; } set { npcCharacter = value; } }
@@ -49,6 +50,7 @@ public class AnimalObjectScript : SubjectObjectScript
         isCurrentLocationExplored = false;
         decaytime = 20.0f;
         targetPosition = default(Vector3);
+        avoidObjects = new SubjectObjectScript[0];
 
         subject.TeachNpc(npcCharacter);
     }
@@ -527,5 +529,21 @@ public class AnimalObjectScript : SubjectObjectScript
         Destroy(holeObjectScript.gameObject);
 
         return nestObjectScript;
+    }
+
+    /// <summary>
+    /// Add an object to avoid while moving.
+    /// </summary>
+    /// <param name="objectToAvoid">The object to avoid</param>
+    internal void Avoid(SubjectObjectScript objectToAvoid)
+    {
+        // save this object as something to avoid
+        if (!avoidObjects.Contains(objectToAvoid))
+        {
+            SubjectObjectScript[] newAvoidList = new SubjectObjectScript[avoidObjects.Length + 1];
+            Array.Copy(avoidObjects, newAvoidList, avoidObjects.Length);
+            avoidObjects = newAvoidList;
+            avoidObjects[avoidObjects.GetUpperBound(0)] = objectToAvoid;
+        }
     }
 }
