@@ -48,18 +48,21 @@ public class ProcHerb : ProcBase
     [System.Serializable]
     public class CylinderData : PartData
     {
-        //height and radius:
-        public float m_Radius = 0.05f;
-        public float m_Height = 1.0f;
+        //the radii at the start and end of the cylinder:
+        public float m_RadiusStart = 0.5f;
+        public float m_RadiusEnd = 0.0f;
+
+        //the height of the cylinder:
+        public float m_Height = 2.0f;
 
         //the angle to bend the cylinder:
-        public float m_BendAngle = 10.0f;
+        public float m_BendAngle = 90.0f;
 
         //the number of radial segments:
-        public int m_RadialSegmentCount = 10;
+        public int m_RadialSegmentCount = 5;
 
         //the number of height segments:
-        public int m_HeightSegmentCount = 10;
+        public int m_HeightSegmentCount = 4;
     }
 
     //contains data for building a sphere:
@@ -103,20 +106,19 @@ public class ProcHerb : ProcBase
         else return;
 
         m_PetalData.m_StartAngle = -30 + (-30 * m_Gene.ReadFloat(3));
-        m_PetalData.m_Count = 3 + (int)(12 * m_Gene.ReadFloat(4));
+        m_PetalData.m_Count = 2 + (int)(8 * m_Gene.ReadFloat(4));
         m_PetalData.m_StartAngleVariation = 20 * m_Gene.ReadFloat(5);
         m_PetalData.m_BendAngle = -5 * m_Gene.ReadFloat(2) - 1;
         m_PetalData.m_BendAngleVariation = 40 * m_Gene.ReadFloat(7);
 
         m_SepalData.m_StartAngle = -30 + (-30 * m_Gene.ReadFloat(3));
-        m_SepalData.m_Count = 1 + (int)(8 * m_Gene.ReadFloat(6));
+        m_SepalData.m_Count = 1 + (int)(5 * m_Gene.ReadFloat(6));
         m_SepalData.m_StartAngleVariation = 20 * m_Gene.ReadFloat(5);
         m_SepalData.m_BendAngle = -5 * m_Gene.ReadFloat(2) - 1;
         m_SepalData.m_BendAngleVariation = 40 * m_Gene.ReadFloat(7);
 
-        
-        m_StemData.m_BendAngle = -30 + (-30 * m_Gene.ReadFloat(3));
-        
+        m_StemData.m_BendAngle = -30 + (30 * m_Gene.ReadFloat(3));
+        m_StemData.m_HeightSegmentCount = m_PetalData.m_Count;
 
         m_HeadData.m_Build = false;
         m_SepalData.m_Build = (0.5f < m_Gene.ReadFloat(0) * m_Gene.ReadFloat(8));
@@ -128,11 +130,11 @@ public class ProcHerb : ProcBase
     /// </summary>
     public override void UpdateValues()
     {
-        m_StemData.m_Height = 0.3f + (0.4f + m_Gene.ReadFloat(4)) * m_GrowthIndex;
-        m_StemData.m_Radius = 0.2f + (0.01f + m_Gene.ReadFloat(0)) * m_GrowthIndex;
+        m_StemData.m_Height = 0.2f + (0.1f + m_Gene.ReadFloat(4)) * m_GrowthIndex;
+        m_StemData.m_RadiusStart = 0.04f + (0.04f * m_Gene.ReadFloat(0)) * m_GrowthIndex;
 
-        m_PetalData.m_Length = 0.3f + (0.4f + m_Gene.ReadFloat(1)) * m_GrowthIndex;
-        m_PetalData.m_Width = 0.3f + (0.1f + m_Gene.ReadFloat(2)) * m_GrowthIndex * 0.4f;
+        m_PetalData.m_Length = 0.3f + (0.2f + m_Gene.ReadFloat(1)) * m_GrowthIndex;
+        m_PetalData.m_Width = 0.3f + (0.1f + m_Gene.ReadFloat(2)) * m_GrowthIndex * 0.5f;
 
         m_SepalData.m_Length = 0.3f + (0.2f + m_Gene.ReadFloat(1)) * m_GrowthIndex;
         m_SepalData.m_Width = 0.3f + (0.1f + m_Gene.ReadFloat(2)) * m_GrowthIndex * 0.2f;
@@ -142,20 +144,21 @@ public class ProcHerb : ProcBase
     {
         MeshBuilder meshBuilder = new MeshBuilder();
 
-        //store the current position and rotaion of the stem:
-        Vector3 currentPosition = new Vector3();
-        Quaternion currentRotation = new Quaternion();
-        currentRotation = Quaternion.identity;
+        //store the current positions and rotations of the stem for future use:
+        Vector3[] offsetList;
+        Quaternion[] rotationList;
 
         //build the main stem:
-        //BuildStem(meshBuilder, out currentPosition, out currentRotation, m_StemData);
+        BuildStem(meshBuilder, out offsetList, out rotationList, m_StemData);
         //BuildHead(meshBuilder, currentPosition, currentRotation, m_HeadData);
 
         //build the sepals:
-        BuildLeafRing(meshBuilder, currentPosition, currentRotation, m_StemData.m_Radius * 0.3f, m_SepalData);
+        //BuildLeafRing(meshBuilder, currentPosition, currentRotation, m_StemData.m_Radius * 0.3f, m_SepalData);
 
         //build the petals:
-        BuildLeafRing(meshBuilder, currentPosition, currentRotation, m_StemData.m_Radius, m_PetalData);
+        BuildLeafRing(meshBuilder, offsetList, rotationList, 0.01f, m_PetalData);
+
+
 
         return meshBuilder.CreateMesh();
     }
@@ -167,66 +170,109 @@ public class ProcHerb : ProcBase
     /// <param name="currentOffset">Vector3 to store the position at the end of the stem.</param>
     /// <param name="currentRotation">Quaternion to store the rotation at the end of the stem.</param>
     /// <param name="partData">The parameters describing the cylinder to be built.</param>
-    private void BuildStem(MeshBuilder meshBuilder, out Vector3 currentOffset, out Quaternion currentRotation, CylinderData partData)
+    private void BuildStem(MeshBuilder meshBuilder, out Vector3[] offsetList, out Quaternion[] rotationList, CylinderData partData)
     {
-        currentOffset = Vector3.zero;
+        Vector3 currentPosition = new Vector3();
+        Quaternion currentRotation = new Quaternion();
+        currentPosition = Vector3.zero;
         currentRotation = Quaternion.identity;
 
         //bail if this part has been disabled:
         if (!partData.m_Build)
+        {
+            offsetList = new Vector3[0];
+            rotationList = new Quaternion[0];
             return;
+        }
 
-        //build a straight stem if partData.m_BendAngle is zero:
+        offsetList = new Vector3[partData.m_HeightSegmentCount];
+        rotationList = new Quaternion[partData.m_HeightSegmentCount];
+
+        //our bend code breaks if m_BendAngle is zero:
         if (partData.m_BendAngle == 0.0f)
         {
-            //straight cylinder:
+            //taper only:
             float heightInc = partData.m_Height / partData.m_HeightSegmentCount;
 
-            for (int i = 0; i <= partData.m_HeightSegmentCount; i++)
-            {
-                currentOffset = Vector3.up * heightInc * i;
-
-                BuildRing(meshBuilder, partData.m_RadialSegmentCount, currentOffset, partData.m_Radius, (float)i / partData.m_HeightSegmentCount, i > 0);
-            }
-        }
-        else
-        {
-            //get the bend angle in radians:
-            float stemBendRadians = partData.m_BendAngle * Mathf.Deg2Rad;
-
-            //the radius of our bend (vertical) circle:
-            float stemBendRadius = partData.m_Height / stemBendRadians;
-
-            //the angle increment per height segment (based on arc length):
-            float angleInc = stemBendRadians / partData.m_HeightSegmentCount;
-
-            //calculate a start offset that will place the centre of the first ring (angle 0.0f) on the mesh origin:
-            //(x = cos(0.0f) * stemBendRadius, y = sin(0.0f) * stemBendRadius)
-            Vector3 startOffset = new Vector3(stemBendRadius, 0.0f, 0.0f);
+            //calculate the slope of the cylinder based on the height and difference between radii:
+            Vector2 slope = new Vector2(partData.m_RadiusEnd - partData.m_RadiusStart, partData.m_Height);
+            slope.Normalize();
 
             //build the rings:
             for (int i = 0; i <= partData.m_HeightSegmentCount; i++)
             {
-                //current normalised height value:
-                float heightNormalised = (float)i / partData.m_HeightSegmentCount;
+                //centre position of this ring:
+                Vector3 centrePos = Vector3.up * heightInc * i;
 
+                //V coordinate is based on height:
+                float v = (float)i / partData.m_HeightSegmentCount;
+
+                //interpolate between the radii:
+                float radius = Mathf.Lerp(partData.m_RadiusStart, partData.m_RadiusEnd, (float)i / partData.m_HeightSegmentCount);
+
+                //build the ring:
+                BuildRing(meshBuilder, partData.m_RadialSegmentCount, centrePos, radius, v, i > 0, Quaternion.identity, slope);
+
+                if(i>0)
+                {
+                    offsetList[i - 1] = new Vector3(centrePos.x, centrePos.y, centrePos.z);
+                    rotationList[i - 1] = new Quaternion();
+                }
+            }
+        }
+        else
+        {
+            //bend and taper:
+
+            //get the angle in radians:
+            float bendAngleRadians = partData.m_BendAngle * Mathf.Deg2Rad;
+
+            //the radius of our bend (vertical) circle:
+            float bendRadius = partData.m_Height / bendAngleRadians;
+
+            //the angle increment per height segment (based on arc length):
+            float angleInc = bendAngleRadians / partData.m_HeightSegmentCount;
+
+            //calculate a start offset that will place the centre of the first ring (angle 0.0f) on the mesh origin:
+            //(x = cos(0.0f) * bendRadius, y = sin(0.0f) * bendRadius)
+            Vector3 startOffset = new Vector3(bendRadius, 0.0f, 0.0f);
+
+            //calculate the slope of the cylinder based on the height and difference between radii:
+            Vector2 slope = new Vector2(partData.m_RadiusEnd - partData.m_RadiusStart, partData.m_Height);
+            slope.Normalize();
+
+            //build the rings:
+            for (int i = 0; i <= partData.m_HeightSegmentCount; i++)
+            {
                 //unit position along the edge of the vertical circle:
-                currentOffset = Vector3.zero;
-                currentOffset.x = Mathf.Cos(angleInc * i);
-                currentOffset.y = Mathf.Sin(angleInc * i);
+                Vector3 centrePos = Vector3.zero;
+                centrePos.x = Mathf.Cos(angleInc * i);
+                centrePos.y = Mathf.Sin(angleInc * i);
 
                 //rotation at that position on the circle:
                 float zAngleDegrees = angleInc * i * Mathf.Rad2Deg;
-                currentRotation = Quaternion.Euler(0.0f, 0.0f, zAngleDegrees);
+                Quaternion rotation = Quaternion.Euler(0.0f, 0.0f, zAngleDegrees);
 
-                //multiply the unit postion by the bend radius:
-                currentOffset *= stemBendRadius;
+                //multiply the unit postion by the radius:
+                centrePos *= bendRadius;
 
                 //offset the position so that the base ring (at angle zero) centres around zero:
-                currentOffset -= startOffset;
+                centrePos -= startOffset;
+
+                //interpolate between the radii:
+                float radius = Mathf.Lerp(partData.m_RadiusStart, partData.m_RadiusEnd, (float)i / partData.m_HeightSegmentCount);
+
+                //V coordinate is based on height:
+                float v = (float)i / partData.m_HeightSegmentCount;
 
                 //build the ring:
-                BuildRing(meshBuilder, partData.m_RadialSegmentCount, currentOffset, partData.m_Radius, heightNormalised, i > 0, currentRotation);
+                BuildRing(meshBuilder, partData.m_RadialSegmentCount, centrePos, radius, v, i > 0, rotation, slope);
+
+                if (i > 0)
+                {
+                    offsetList[i - 1] = new Vector3(centrePos.x, centrePos.y, centrePos.z);
+                    rotationList[i - 1] = rotation;
+                }
             }
         }
     }
@@ -288,20 +334,30 @@ public class ProcHerb : ProcBase
     /// <param name="rotation">The rotation offset to apply(rotation at the top of the stem).</param>
     /// <param name="radius">The radius at the top of the stem.</param>
     /// <param name="partData">The parameters describing the part to be built.</param>
-    private void BuildLeafRing(MeshBuilder meshBuilder, Vector3 offset, Quaternion rotation, float radius, LeafPartData partData)
+    private void BuildLeafRing(MeshBuilder meshBuilder, Vector3[] offsetList, Quaternion[] rotationList, float radius, LeafPartData partData)
     {
         //bail if this part has been disabled:
         if (!partData.m_Build)
             return;
 
+        Vector3 offset = Vector3.zero;
+        Quaternion rotation = Quaternion.identity;
+        float cumulativeAngle = 0;
+
         for (int i = 0; i < partData.m_Count; i++)
         {
+            if(i < offsetList.Length)
+            {
+                offset = offsetList[i];
+                rotation = rotationList[i];
+            }
+
             //calculate the rotation of this part:
-            float yAngle = 360.0f * i / partData.m_Count;
-            Quaternion radialRotation = rotation * Quaternion.Euler(0.0f, yAngle, 0.0f);
+            cumulativeAngle = cumulativeAngle+137.5f;
+            Quaternion radialRotation = rotation * Quaternion.Euler(0.0f, cumulativeAngle, 0.0f);
 
             //set the postion at the top of the stem, away from the middle:
-            Vector3 position = offset + radialRotation * (Vector3.forward * radius * m_Gene.ReadFloat(i));
+            Vector3 position = offset + radialRotation * (Vector3.forward * radius);
 
             //calculate a bend angle with random variation:
             float bendAngleRandom = (partData.m_BendAngleVariation * m_Gene.ReadFloat(i + 5)) - partData.m_BendAngleVariation * 0.5f;
@@ -355,7 +411,7 @@ public class ProcHerb : ProcBase
             float v = (1.0f / partData.m_LengthSegmentCount) * i;
 
             //width of the current row, scaled to shape the leaf part:
-            float localWidth = partData.m_Width * Mathf.Sin(Mathf.Min(v + m_Gene.ReadFloat(9) * 0.3f, 1.0f) * Mathf.PI) * backFaceMultiplier;
+            float localWidth = partData.m_Width * Mathf.Sin(v * Mathf.PI) * backFaceMultiplier;
             ////use this instead for rectangular leaves:
             //float localWidth = partData.m_Width * backFaceMultiplier;
 
