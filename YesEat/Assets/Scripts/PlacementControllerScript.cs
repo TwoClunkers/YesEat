@@ -505,9 +505,9 @@ public partial class PlacementControllerScript : MonoBehaviour
         placementStarted = false;
     }
 
-    public void OnSelectBush(bool isClicked)
+    public void OnSelectHerb(bool isClicked)
     {
-        placeID = KbIds.Grass;
+        placeID = KbIds.Herb;
         placementStarted = false;
     }
 

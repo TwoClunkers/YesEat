@@ -173,6 +173,12 @@ public class PlantObjectScript : SubjectObjectScript
             proc.AssignGene(plantSubject.PlantGene);
             proc.Rebuild();
         }
+        else if (plantSubject.PlantType == PlantTypes.Herb)
+        {
+            ProcHerb proc = gameObject.AddComponent<ProcHerb>();
+            proc.AssignGene(plantSubject.PlantGene);
+            proc.Rebuild();
+        }
     }
 
     public float CurrentGrowth

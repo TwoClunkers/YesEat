@@ -102,21 +102,21 @@ public class ProcHerb : ProcBase
         if (newGene != null) m_Gene = newGene;
         else return;
 
-        m_PetalData.m_StartAngle = -60 + (-30 * m_Gene.ReadFloat(3));
+        m_PetalData.m_StartAngle = -30 + (-30 * m_Gene.ReadFloat(3));
         m_PetalData.m_Count = 3 + (int)(12 * m_Gene.ReadFloat(4));
-        m_PetalData.m_StartAngleVariation = 5 * m_Gene.ReadFloat(5);
-        m_PetalData.m_BendAngle = -10 * m_Gene.ReadFloat(2) - 1;
-        m_PetalData.m_BendAngleVariation = 20 * m_Gene.ReadFloat(7);
+        m_PetalData.m_StartAngleVariation = 20 * m_Gene.ReadFloat(5);
+        m_PetalData.m_BendAngle = -5 * m_Gene.ReadFloat(2) - 1;
+        m_PetalData.m_BendAngleVariation = 40 * m_Gene.ReadFloat(7);
 
-        m_SepalData.m_StartAngle = -60 + (-30 * m_Gene.ReadFloat(3));
+        m_SepalData.m_StartAngle = -30 + (-30 * m_Gene.ReadFloat(3));
         m_SepalData.m_Count = 1 + (int)(8 * m_Gene.ReadFloat(6));
-        m_SepalData.m_StartAngleVariation = 5 * m_Gene.ReadFloat(5);
-        m_SepalData.m_BendAngle = -10 * m_Gene.ReadFloat(2) - 1;
-        m_SepalData.m_BendAngleVariation = 20 * m_Gene.ReadFloat(7);
+        m_SepalData.m_StartAngleVariation = 20 * m_Gene.ReadFloat(5);
+        m_SepalData.m_BendAngle = -5 * m_Gene.ReadFloat(2) - 1;
+        m_SepalData.m_BendAngleVariation = 40 * m_Gene.ReadFloat(7);
 
-        m_StemData.m_Height = 0;
-        m_StemData.m_BendAngle = 1;
-        m_StemData.m_Radius = 0.4f + m_Gene.ReadFloat(0);
+        
+        m_StemData.m_BendAngle = -30 + (-30 * m_Gene.ReadFloat(3));
+        
 
         m_HeadData.m_Build = false;
         m_SepalData.m_Build = (0.5f < m_Gene.ReadFloat(0) * m_Gene.ReadFloat(8));
@@ -128,11 +128,14 @@ public class ProcHerb : ProcBase
     /// </summary>
     public override void UpdateValues()
     {
-        m_PetalData.m_Length = 0.3f + (0.4f + m_Gene.ReadFloat(1)) * m_GrowthIndex;
-        m_PetalData.m_Width = 0.2f + (0.1f + m_Gene.ReadFloat(2)) * m_GrowthIndex * 0.1f;
+        m_StemData.m_Height = 0.3f + (0.4f + m_Gene.ReadFloat(4)) * m_GrowthIndex;
+        m_StemData.m_Radius = 0.2f + (0.01f + m_Gene.ReadFloat(0)) * m_GrowthIndex;
 
-        m_SepalData.m_Length = 0.3f + (0.4f + m_Gene.ReadFloat(1)) * m_GrowthIndex;
-        m_SepalData.m_Width = 0.1f + (0.1f + m_Gene.ReadFloat(2)) * m_GrowthIndex * 0.1f;
+        m_PetalData.m_Length = 0.3f + (0.4f + m_Gene.ReadFloat(1)) * m_GrowthIndex;
+        m_PetalData.m_Width = 0.3f + (0.1f + m_Gene.ReadFloat(2)) * m_GrowthIndex * 0.4f;
+
+        m_SepalData.m_Length = 0.3f + (0.2f + m_Gene.ReadFloat(1)) * m_GrowthIndex;
+        m_SepalData.m_Width = 0.3f + (0.1f + m_Gene.ReadFloat(2)) * m_GrowthIndex * 0.2f;
     }
 
     public override Mesh BuildMesh()

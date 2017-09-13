@@ -55,7 +55,9 @@ public abstract class ProcBase : MonoBehaviour
         MeshFilter filter = GetComponent<MeshFilter>();
         if (filter != null)
         {
+            Mesh oldMesh = filter.sharedMesh;
             filter.sharedMesh = mesh;
+            Destroy(oldMesh);
         }
     }
 

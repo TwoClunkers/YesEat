@@ -5,9 +5,10 @@ public enum PlantTypes
 {
     GroundCover = 0,
     Grass = 1,
-    Bush = 2,
-    Tree = 3,
-    Branch = 4
+    Herb = 2,
+    Bush = 3,
+    Tree = 4,
+    Branch = 5
 }
 /// <summary>
 /// Plant Subject extends the Subject Class to describe plants for AI

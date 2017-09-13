@@ -18,6 +18,7 @@ public static class KbIds
     public static int Tree;
     public static int GroundCover;
     public static int Grass;
+    public static int Herb;
 }
 
 /// <summary>
@@ -461,6 +462,34 @@ public class KnowledgeBase
             LootIDs = new int[2] { KbIds.Leaves, KbIds.Branch }
         };
         knowledgeBase.Add(Grass);
+
+        KbIds.Herb = GetNextID();
+        PlantSubject Herb = new PlantSubject()
+        {
+            Attributes = new SubjectAttributes()
+            {
+                Attributes =
+                SubjectAttributesEnum.SmellsFloral
+                | SubjectAttributesEnum.TastesSweet
+            },
+            SubjectID = KbIds.Herb,
+            Name = "Herb",
+            Description = "Small leafy plants that may or may not have flowers",
+            Icon = new UnityEngine.Sprite(),
+            RelatedSubjects = new int[0],
+            Prefab = Resources.Load("GameObjects/Herb") as GameObject,
+            BaseNode = new Node(),
+            ProduceID = KbIds.Berry,
+            ProduceTime = 2,
+            MaxGrowth = 1.5f,
+            GrowthRate = 0.002f,
+            MatureGrowth = 0.08f,
+            InventorySize = 3,
+            HeightRatio = 0.2f,
+            PlantType = PlantTypes.Herb,
+            LootIDs = new int[2] { KbIds.Leaves, KbIds.Branch }
+        };
+        knowledgeBase.Add(Herb);
     }
 
     /// <summary>
